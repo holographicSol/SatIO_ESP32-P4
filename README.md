@@ -465,6 +465,10 @@ Stat
 
 -----
 
+![plot](./Data/SatIO_Sat.png)
+
+-----
+
     Summary: Over one quintillion possible combinations of stackable logic across 20 switches for
     a general purpose part or standalone device.
 
@@ -498,3 +502,4 @@ Stat
     Full SatIO (Active): Everything.
 
 -----
+
