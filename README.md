@@ -221,7 +221,7 @@
                           |       Altitude        |       Distance
                           Declination             Helio Ecliptic Longitude  
 
-
+-----
   
     Summary: Over one quintillion possible combinations of stackable logic across 20 switches for a general purpose
     part or standalone device.
