@@ -465,7 +465,7 @@ Stat
 
 -----
 
-![plot](./Data/SatIO_Sat.png)
+![plot](./Data/SatIO_Stat.png)
 
 -----
 
@@ -502,4 +502,5 @@ Stat
     Full SatIO (Active): Everything.
 
 -----
+
 
