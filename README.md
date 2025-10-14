@@ -4,7 +4,7 @@
 
     A general purpose programmable I/O platform for automation and throughput.
 
-    Supporting stacks of logic across 70 output and 100 mapping slots.
+    Supporting stacks of logic across 70 output pins and 100 mapping slots.
 
   What can SatIO tell you is true? Potentially infinite things.
 
@@ -501,6 +501,7 @@ Stat
     Full SatIO (Active): Everything.
 
 -----
+
 
 
 
