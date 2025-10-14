@@ -222,33 +222,6 @@
                           Declination             Helio Ecliptic Longitude  
 
 -----
-  
-    Summary: Over one quintillion possible combinations of stackable logic across 20 switches for a general purpose
-    part or standalone device.
-  
-    Whats the point? Working with ESP32 is cheap and from this project I intend to have reusable, general purpose parts
-    as modules that can work both together and standalone, creating a platform I can go to when working with ESP32.
-  
-    Requires using modified SiderealPlanets library (hopefully thats okay as the modifications allow calculating rise/set
-    of potentially any celestial body as described in this paper: https://stjarnhimlen.se/comp/riset.html).
-    Additions: 1: doXRiseSetTimes(). This allows for calculating rise and set times of all planets and objects according to time and location.
-               2: inRange60(). Ensures minutes and second values are wihin 0-59 for planet/object rise, set times.
-               3: inRange24(). Ensures hour values are wihin 0-23 for planet/object rise, set times.
-    
-    ToDo: Terrain elevation: Experiments have been made decompressing NASA's SRTMGL1 (Shuttle Radar Topography Mission) files quickly.
-  
-    ToDo: More data and calculate more data from existing data.
-  
-    ToDo: Macros.
-  
-    Complete PlatformIO project files, libraries and modified libraries:
-    https://drive.google.com/drive/folders/13yynSxkKL-zxb7iLSkg0v0VXkSLgmtW-?usp=sharing
-  
-    Builds:
-    Nano SatIO (Passive): Serial input/output only, headless. Useful for LLMs and things.
-    Full SatIO (Active): Everything.
-
------
 
 [ MATRIX SWITCH LOGIC ]
 
@@ -491,5 +464,29 @@ Stat
     stat --sentence --uranus    Takes arguments -e, -d.
     stat --sentence --neptune   Takes arguments -e, -d.
     stat --sentence --meteors   Takes arguments -e, -d.
+
+-----
+
+    Summary: Over one quintillion possible combinations of stackable logic across 20 switches for a general purpose
+    part or standalone device.
+
+    Requires using modified SiderealPlanets library (hopefully thats okay as the modifications allow calculating rise/set
+    of potentially any celestial body as described in this paper: https://stjarnhimlen.se/comp/riset.html).
+    Additions: 1: doXRiseSetTimes(). This allows for calculating rise and set times of all planets and objects according to time and location.
+                2: inRange60(). Ensures minutes and second values are wihin 0-59 for planet/object rise, set times.
+                3: inRange24(). Ensures hour values are wihin 0-23 for planet/object rise, set times.
+
+    ToDo: Terrain elevation: Experiments have been made decompressing NASA's SRTMGL1 (Shuttle Radar Topography Mission) files quickly.
+
+    ToDo: More data and calculate more data from existing data.
+
+    ToDo: Macros.
+
+    Complete PlatformIO project files, libraries and modified libraries:
+    https://drive.google.com/drive/folders/13yynSxkKL-zxb7iLSkg0v0VXkSLgmtW-?usp=sharing
+
+    Builds:
+    Nano SatIO (Passive): Serial input/output only, headless. Useful for LLMs and things.
+    Full SatIO (Active): Everything.
 
 -----
