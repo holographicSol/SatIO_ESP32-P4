@@ -474,6 +474,12 @@ Stat
                 2: inRange60(). Ensures minutes and second values are wihin 0-59 for planet/object rise, set times.
                 3: inRange24(). Ensures hour values are wihin 0-23 for planet/object rise, set times.
 
+    Requires modified ffconf.h to enable exFAT support (system tested with exFAT and FAT).
+
+    Requires modified SD_MMC library so that SD_MMC.end() releases its LDO power channel so that SD_MMC.begin() can be called successfully
+    again after SD_MMC.end(). This enables same/different cards to be removed/inserted, mounted successfully without
+    LDO errors.
+
     ToDo: Terrain elevation: Experiments have been made decompressing NASA's SRTMGL1 (Shuttle Radar Topography Mission) files quickly.
 
     ToDo: More data and calculate more data from existing data.
