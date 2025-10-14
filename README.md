@@ -388,6 +388,7 @@ Mapping
 
 example map analog stick axis x0 on admplex0 channel 0 into map slot 0:
     mapping -s 0 -m 1 -c0 16 -c1 1974 -c2 1974 -c3 1894 -c4 255 -c5 50
+    
 example map analog stick axis x1 on admplex0 channel 1 into map slot 1:
     mapping -s 1 -m 2 -c0 17 -c1 1974 -c2 1974 -c3 1894 -c4 255 -c5 50
 
@@ -417,14 +418,14 @@ Matrix
     matrix --map-slot n         Set switch -s output as map slot n value.
 
 example default all switch configurations:
-
     matrix --new
+
 example stat switch zero:
-
     stat --matrix 0
-example set switch zero:
 
+example set switch zero:
     matrix -s 0 -f 0 -p 33 -fn 91 -fx 1 -fo 1 --pwm0 1000000 --pwm1 15000 --computer-assist 1
+
 example set mapped output mode:
     matrix -s 0 --omode 1
 
