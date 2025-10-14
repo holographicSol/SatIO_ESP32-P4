@@ -465,22 +465,26 @@ Stat
 
 -----
 
-    Summary: Over one quintillion possible combinations of stackable logic across 20 switches for a general purpose
-    part or standalone device.
+    Summary: Over one quintillion possible combinations of stackable logic across 20 switches for
+    a general purpose part or standalone device.
 
-    Requires using modified SiderealPlanets library (hopefully thats okay as the modifications allow calculating rise/set
-    of potentially any celestial body as described in this paper: https://stjarnhimlen.se/comp/riset.html).
-    Additions: 1: doXRiseSetTimes(). This allows for calculating rise and set times of all planets and objects according to time and location.
-                2: inRange60(). Ensures minutes and second values are wihin 0-59 for planet/object rise, set times.
-                3: inRange24(). Ensures hour values are wihin 0-23 for planet/object rise, set times.
+    Requires using modified SiderealPlanets library (hopefully thats okay as the modifications
+    allow calculating rise/set of potentially any celestial body as described in this paper:
+    https://stjarnhimlen.se/comp/riset.html).
+    Additions: 1: doXRiseSetTimes(). This allows for calculating rise and set times of all planets
+                  and objects according to time and location.
+               2: inRange60(). Ensures minutes and second values are wihin 0-59 for planet/object
+                  rise, set times.
+               3: inRange24(). Ensures hour values are wihin 0-23 for planet/object rise, set times.
 
     Requires modified ffconf.h to enable exFAT support (system tested with exFAT and FAT).
 
-    Requires modified SD_MMC library so that SD_MMC.end() releases its LDO power channel so that SD_MMC.begin() can be called successfully
-    again after SD_MMC.end(). This enables same/different cards to be removed/inserted, mounted successfully without
-    LDO errors.
+    Requires modified SD_MMC library so that SD_MMC.end() releases its LDO power channel so that
+    SD_MMC.begin() can be called successfully again after SD_MMC.end(). This enables same/different
+    cards to be removed/inserted, mounted successfully without LDO errors.
 
-    ToDo: Terrain elevation: Experiments have been made decompressing NASA's SRTMGL1 (Shuttle Radar Topography Mission) files quickly.
+    ToDo: Terrain elevation: Experiments have been made decompressing NASA's SRTMGL1 (Shuttle Radar
+    Topography Mission) files quickly.
 
     ToDo: More data and calculate more data from existing data.
 
