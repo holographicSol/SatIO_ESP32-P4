@@ -105,7 +105,6 @@
                                                                                   Sensor 15
 
 
-
                                           $SUN SENTENCE
                                                     
                                     Right Ascension 
@@ -117,7 +116,6 @@
                                         |       |       Set 
                                         |       Altitude
                                         Declination 
-
 
 
                                           $MOON SENTENCE
@@ -134,7 +132,6 @@
                                     Declination
 
 
-
                                         $MERCURY SENTENCE
 
                                       Rise
@@ -147,7 +144,6 @@
                           |       |       Set     |       |       Ecliptic Longitude
                           |       Altitude        |       Distance
                           Declination             Helio Ecliptic Longitude  
-
 
 
                                          $VENUS SENTENCE
@@ -164,7 +160,6 @@
                           Declination             Helio Ecliptic Longitude  
 
 
-
                                         $MARS SENTENCE
 
                                       Rise
@@ -177,7 +172,6 @@
                           |       |       Set     |       |       Ecliptic Longitude
                           |       Altitude        |       Distance
                           Declination             Helio Ecliptic Longitude
-
 
 
                                       $JUPITER SENTENCE
@@ -194,7 +188,6 @@
                           Declination             Helio Ecliptic Longitude
 
 
-
                                       $SATURN SENTENCE
 
                                       Rise
@@ -209,7 +202,6 @@
                           Declination             Helio Ecliptic Longitude
 
 
-
                                       $URANUS SENTENCE
 
                                       Rise
@@ -222,7 +214,6 @@
                           |       |       Set     |       |       Ecliptic Longitude
                           |       Altitude        |       Distance
                           Declination             Helio Ecliptic Longitude 
-
 
 
                                       $NEPTUNE SENTENCE
