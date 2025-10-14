@@ -12,9 +12,9 @@
   Applications? Potentially infinite applications.
 
   Inference in Bayesian Reasoning? Moon tracking for example can be used to track the moon, it can also be used for one example; to 
-  track the tides, if the system is aware moon/planetary positioning and datetime then marine life values may also be inferred relative
-  to the inferred tide values and known datetime. There is a lot of data that can be used in many ways, with a kind of network effect.
-  Or more simply 'SatIO is one hell of a switch'.
+  track the tides, if the system is aware of moon/planetary positioning and datetime then marine life values may also then be inferred
+  relative to the inferred tide values and known datetime. There is a lot of data that can be used in many ways, with a kind of network
+  effect. Or more simply 'SatIO is one hell of a switch'.
 
   Matrix logic is an attempt to maximize programmable potential and hardware configuration is designed to attempt maximum IO potential.
   If more output is needed then add another I2C port controller, if more input is needed then add another custom I2C sensor module.
