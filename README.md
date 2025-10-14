@@ -263,105 +263,106 @@
 Logic may require or not require values X,Y,Z.
     
 [Available Matrix Switch Functions]
-  [0] None
-  [1] On
-  [2] SwitchLink
-  [3] LocalTime
-  [4] Weekday
-  [5] DateDayX
-  [6] DateMonthX
-  [7] DateYearX
-  [8] DegLat
-  [9] DegLon
-  [10] DegLatLon
-  [11] INSLat
-  [12] INSLon
-  [13] INSLatLon
-  [14] INSHeading
-  [15] INSSpeed
-  [16] INSAltitude
-  [17] UTCTimeGNGGA
-  [18] PosStatusGNGGA
-  [19] SatCount
-  [20] HemiGNGGANorth
-  [21] HemiGNGGASouth
-  [22] HemiGNGGAEast
-  [23] HemiGNGGAWest
-  [24] GPSPrecision
-  [25] AltGNGGA
-  [26] UTCTimeGNRMC
-  [27] PosStatusGNRMCA
-  [28] PosStatusGNRMCV
-  [29] ModeGNRMCA
-  [30] ModeGNRMCD
-  [31] ModeGNRMCE
-  [32] ModeGNRMCN
-  [33] HemiGNRMCNorth
-  [34] HemiGNRMCSouth
-  [35] HemiGNRMCEast
-  [36] HemiGNRMCWest
-  [37] GSpeedGNRMC
-  [38] HeadingGNRMC
-  [39] UTCDateGNRMC
-  [40] LFlagGPATT
-  [41] SFlagGPATT
-  [42] RSFlagGPATT
-  [43] INSGPATT
-  [44] SpeedNumGPATT
-  [45] MileageGPATT
-  [46] GSTDataGPATT
-  [47] YawGPATT
-  [48] RollGPATT
-  [49] PitchGPATT
-  [50] GNGGAValidCS
-  [51] GNRMCValidCS
-  [52] GPATTValidCS
-  [53] GNGGAValidCD
-  [54] GNRMCValidCD
-  [55] GPATTValidCD
-  [56] Gyro0AccX
-  [57] Gyro0AccY
-  [58] Gyro0AccZ
-  [59] Gyro0AngX
-  [60] Gyro0AngY
-  [61] Gyro0AngZ
-  [62] Gyro0MagX
-  [63] Gyro0MagY
-  [64] Gyro0MagZ
-  [65] Gyro0GyroX
-  [66] Gyro0GyroY
-  [67] Gyro0GyroZ
-  [68] Meteors
-  [69] SunAz
-  [70] SunAlt
-  [71] MoonAz
-  [72] MoonAlt
-  [73] MoonPhase
-  [74] MercuryAz
-  [75] MercuryAlt
-  [76] VenusAz
-  [77] VenusAlt
-  [78] MarsAz
-  [79] MarsAlt
-  [80] JupiterAz
-  [81] JupiterAlt
-  [82] SaturnAz
-  [83] SaturnAlt
-  [84] UranusAz
-  [85] UranusAlt
-  [86] NeptuneAz
-  [87] NeptuneAlt
-  [88] ADMPlex0
-  [89] MappedValue
-  [90] SDCARDInserted
-  [91] SDCARDMounted
+
+    [0] None
+    [1] On
+    [2] SwitchLink
+    [3] LocalTime
+    [4] Weekday
+    [5] DateDayX
+    [6] DateMonthX
+    [7] DateYearX
+    [8] DegLat
+    [9] DegLon
+    [10] DegLatLon
+    [11] INSLat
+    [12] INSLon
+    [13] INSLatLon
+    [14] INSHeading
+    [15] INSSpeed
+    [16] INSAltitude
+    [17] UTCTimeGNGGA
+    [18] PosStatusGNGGA
+    [19] SatCount
+    [20] HemiGNGGANorth
+    [21] HemiGNGGASouth
+    [22] HemiGNGGAEast
+    [23] HemiGNGGAWest
+    [24] GPSPrecision
+    [25] AltGNGGA
+    [26] UTCTimeGNRMC
+    [27] PosStatusGNRMCA
+    [28] PosStatusGNRMCV
+    [29] ModeGNRMCA
+    [30] ModeGNRMCD
+    [31] ModeGNRMCE
+    [32] ModeGNRMCN
+    [33] HemiGNRMCNorth
+    [34] HemiGNRMCSouth
+    [35] HemiGNRMCEast
+    [36] HemiGNRMCWest
+    [37] GSpeedGNRMC
+    [38] HeadingGNRMC
+    [39] UTCDateGNRMC
+    [40] LFlagGPATT
+    [41] SFlagGPATT
+    [42] RSFlagGPATT
+    [43] INSGPATT
+    [44] SpeedNumGPATT
+    [45] MileageGPATT
+    [46] GSTDataGPATT
+    [47] YawGPATT
+    [48] RollGPATT
+    [49] PitchGPATT
+    [50] GNGGAValidCS
+    [51] GNRMCValidCS
+    [52] GPATTValidCS
+    [53] GNGGAValidCD
+    [54] GNRMCValidCD
+    [55] GPATTValidCD
+    [56] Gyro0AccX
+    [57] Gyro0AccY
+    [58] Gyro0AccZ
+    [59] Gyro0AngX
+    [60] Gyro0AngY
+    [61] Gyro0AngZ
+    [62] Gyro0MagX
+    [63] Gyro0MagY
+    [64] Gyro0MagZ
+    [65] Gyro0GyroX
+    [66] Gyro0GyroY
+    [67] Gyro0GyroZ
+    [68] Meteors
+    [69] SunAz
+    [70] SunAlt
+    [71] MoonAz
+    [72] MoonAlt
+    [73] MoonPhase
+    [74] MercuryAz
+    [75] MercuryAlt
+    [76] VenusAz
+    [77] VenusAlt
+    [78] MarsAz
+    [79] MarsAlt
+    [80] JupiterAz
+    [81] JupiterAlt
+    [82] SaturnAz
+    [83] SaturnAlt
+    [84] UranusAz
+    [85] UranusAlt
+    [86] NeptuneAz
+    [87] NeptuneAlt
+    [88] ADMPlex0
+    [89] MappedValue
+    [90] SDCARDInserted
+    [91] SDCARDMounted
 
 [Available Switch Function Operators]
-  [0] None
-  [1] Equal
-  [2] Over
-  [3] Under
-  [4] Range
+    [0] None
+    [1] Equal
+    [2] Over
+    [3] Under
+    [4] Range
 
 -----
 
@@ -369,122 +370,133 @@ Logic may require or not require values X,Y,Z.
 
 System
 
-system --save
-system --load
-system --restore-defaults
+    system --save
+    system --load
+    system --restore-defaults
 
 Mapping
 
-mapping --save
-mapping --load
-mapping --delete
-mapping -s n       Specify map slot n.
-mapping -m n       Specify slot -s mode. (0 : map min to max) (1 : center map x0) (2 : center map x1)
-mapping -c0 n      Configuration map slot -s  value to map. See available map values.
-mapping -c1 n      Configuration map slot -s. (mode 0 : in_min)  (mode 1 : approximate center value)
-mapping -c2 n      Configuration map slot -s. (mode 0 : in_max)  (mode 1 : Neg_range : 0 to approximate center value)
-mapping -c3 n      Configuration map slot -s. (mode 0 : out_min) (mode 1 : Pos_range : ADC max - neg range)
-mapping -c4 n      Configuration map slot -s. (mode 0 : out_max) (mode 1 : out_max)
-mapping -c5 n      Configuration map slot -s. (mode 1 only : DEADZONE : expected flutuation at center)
+    mapping --save
+    mapping --load
+    mapping --delete
+    mapping -s n       Specify map slot n.
+    mapping -m n       Specify slot -s mode. (0 : map min to max) (1 : center map x0) (2 : center map x1)
+    mapping -c0 n      Configuration map slot -s  value to map. See available map values.
+    mapping -c1 n      Configuration map slot -s. (mode 0 : in_min)  (mode 1 : approximate center value)
+    mapping -c2 n      Configuration map slot -s. (mode 0 : in_max)  (mode 1 : Neg_range : 0 to approximate center value)
+    mapping -c3 n      Configuration map slot -s. (mode 0 : out_min) (mode 1 : Pos_range : ADC max - neg range)
+    mapping -c4 n      Configuration map slot -s. (mode 0 : out_max) (mode 1 : out_max)
+    mapping -c5 n      Configuration map slot -s. (mode 1 only : DEADZONE : expected flutuation at center)
 
-example map analog stick axis x0 on admplex0 channel 0 into map slot 0: mapping -s 0 -m 1 -c0 16 -c1 1974 -c2 1974 -c3 1894 -c4 255 -c5 50
-example map analog stick axis x1 on admplex0 channel 1 into map slot 1: mapping -s 1 -m 2 -c0 17 -c1 1974 -c2 1974 -c3 1894 -c4 255 -c5 50
+example map analog stick axis x0 on admplex0 channel 0 into map slot 0:
+    mapping -s 0 -m 1 -c0 16 -c1 1974 -c2 1974 -c3 1894 -c4 255 -c5 50
+example map analog stick axis x1 on admplex0 channel 1 into map slot 1:
+    mapping -s 1 -m 2 -c0 17 -c1 1974 -c2 1974 -c3 1894 -c4 255 -c5 50
 
 Matrix
 
-matrix --new                Clears matrix in memory.
-matrix --save n             Specify file slot.
-matrix --load n             Specify file slot.
-matrix --delete n           Specify file slot.
-matrix --startup-enable
-matrix --startup-disable
-matrix -s n                 Specify switch index n.
-matrix -f n                 Specify function index n.
-matrix -p n                 Set port for switch -s.
-matrix -fn n                Set function -f for switch -s. See available matrix functions.
-matrix -fx n                Set function -f value x for switch -s.
-matrix -fy n                Set function -f value y for switch -s.
-matrix -fz n                Set function -f value z for switch -s.
-matrix -fi n                Set function -f logic inverted for switch -s.
-matrix -fo n                Set function -f operator for switch -s.
-matrix --pwm0 n             Set switch -s uS time off period (0uS = remain on)
-matrix --pwm1 n             Set switch -s uS time on period  (0uS = remain off after on)
-matrix --flux n             Set switch -s output fluctuation threshold.
-matrix --oride n            Override switch -s output values.
-matrix --computer-assist n  Enable/disable computer assist for switch -s.
-matrix --omode n            Set switch -s output mode: (0 : matrix logic) (1 : mapped value analog/digital).
-matrix --map-slot n         Set switch -s output as map slot n value.
+    matrix --new                Clears matrix in memory.
+    matrix --save n             Specify file slot.
+    matrix --load n             Specify file slot.
+    matrix --delete n           Specify file slot.
+    matrix --startup-enable
+    matrix --startup-disable
+    matrix -s n                 Specify switch index n.
+    matrix -f n                 Specify function index n.
+    matrix -p n                 Set port for switch -s.
+    matrix -fn n                Set function -f for switch -s. See available matrix functions.
+    matrix -fx n                Set function -f value x for switch -s.
+    matrix -fy n                Set function -f value y for switch -s.
+    matrix -fz n                Set function -f value z for switch -s.
+    matrix -fi n                Set function -f logic inverted for switch -s.
+    matrix -fo n                Set function -f operator for switch -s.
+    matrix --pwm0 n             Set switch -s uS time off period (0uS = remain on)
+    matrix --pwm1 n             Set switch -s uS time on period  (0uS = remain off after on)
+    matrix --flux n             Set switch -s output fluctuation threshold.
+    matrix --oride n            Override switch -s output values.
+    matrix --computer-assist n  Enable/disable computer assist for switch -s.
+    matrix --omode n            Set switch -s output mode: (0 : matrix logic) (1 : mapped value analog/digital).
+    matrix --map-slot n         Set switch -s output as map slot n value.
 
-example default all switch configurations: matrix --new
-example stat switch zero: stat --matrix 0
-example set switch zero: matrix -s 0 -f 0 -p 33 -fn 91 -fx 1 -fo 1 --pwm0 1000000 --pwm1 15000 --computer-assist 1
-example set mapped output mode: matrix -s 0 --omode 1
-example set matrix logic output mode: matrix -s 0 --omode 0
+example default all switch configurations:
+
+    matrix --new
+example stat switch zero:
+
+    stat --matrix 0
+example set switch zero:
+
+    matrix -s 0 -f 0 -p 33 -fn 91 -fx 1 -fo 1 --pwm0 1000000 --pwm1 15000 --computer-assist 1
+example set mapped output mode:
+    matrix -s 0 --omode 1
+
+example set matrix logic output mode:
+    matrix -s 0 --omode 0
 
 INS
 
-ins -m n              Set INS mode n. (0 : Off) (1 : Dynamic, set by gps every 100ms) (2 : Fixed, remains on after conditions met).
-ins -gyro n           INS uses gyro for attitude. (0 : gyro heading) (1 : gps heading).
-ins -p n              Set INS mimimum required gps precision factor to initialize.
-ins -s n              Set INS mimimum required speed to initialize.
-ins -r n              Set INS maximum required heading range difference to initialize (difference between gps heading and gyro heading).
-ins --reset-forced n  Reset INS remains on after conditions met.
+    ins -m n              Set INS mode n. (0 : Off) (1 : Dynamic, set by gps every 100ms) (2 : Fixed, remains on after conditions met).
+    ins -gyro n           INS uses gyro for attitude. (0 : gyro heading) (1 : gps heading).
+    ins -p n              Set INS mimimum required gps precision factor to initialize.
+    ins -s n              Set INS mimimum required speed to initialize.
+    ins -r n              Set INS maximum required heading range difference to initialize (difference between gps heading and gyro heading).
+    ins --reset-forced n  Reset INS remains on after conditions met.
 
 Satio
 
-satio --speed-units n  Set displayed units (0 : M/S) (1 : MPH) (2 : KPH) (3 : KTS estimated)
-satio --utc-offset n   Set +-seconds offset time.
-satio --mode-gngga     Use GNGGA data for location.
-satio --mode-gnrmc     Use GNRMC data for location.
+    satio --speed-units n  Set displayed units (0 : M/S) (1 : MPH) (2 : KPH) (3 : KTS estimated)
+    satio --utc-offset n   Set +-seconds offset time.
+    satio --mode-gngga     Use GNGGA data for location.
+    satio --mode-gnrmc     Use GNRMC data for location.
 
 Gyro
 
-gyro --calacc        Callibrate the accelerometer.
-gyro --calmag-start  Begin calibrating the magnetometer.
-gyro --calmag-end    End calibrating the magnetometer.
+    gyro --calacc        Callibrate the accelerometer.
+    gyro --calmag-start  Begin calibrating the magnetometer.
+    gyro --calmag-end    End calibrating the magnetometer.
 
 SDCard
 
-sdcard --mount
-sdcard --unmount
+    sdcard --mount
+    sdcard --unmount
 
 Other
 
--v    Enable verbosoity.
--vv   Enable extra verbosoity.
-help
+    -v    Enable verbosoity.
+    -vv   Enable extra verbosoity.
+    help
 
 Stat
 
-stat -e     Enable print.
-stat -d     Disable print.
-stat -t     Enables/disables serial print stats and counters. Takes arguments -e, -d.
-stat --partition-table      Print partition table.
-stat --memory-ram           Print ram information.
-stat --sdcard               Print matrix information.
-stat --system               Print system configuration.
-stat --matrix               Print matrix configuration.
-stat --matrix n             Print matrix switch n configuration.
-stat --matrix -A            Print configuration of all matrix switches.
-stat --mapping              Print configuration of all mapping slots.
-stat --sentence -A          Print all sentences. Takes arguments -e, -d.
-stat --sentence --satio     Takes arguments -e, -d.
-stat --sentence --ins       Takes arguments -e, -d.
-stat --sentence --gngga     Takes arguments -e, -d.
-stat --sentence --gnrmc     Takes arguments -e, -d.
-stat --sentence --gpatt     Takes arguments -e, -d.
-stat --sentence --matrix    Takes arguments -e, -d.
-stat --sentence --admplex0  Takes arguments -e, -d.
-stat --sentence --gyro0     Takes arguments -e, -d.
-stat --sentence --sun       Takes arguments -e, -d.
-stat --sentence --moon      Takes arguments -e, -d.
-stat --sentence --mercury   Takes arguments -e, -d.
-stat --sentence --venus     Takes arguments -e, -d.
-stat --sentence --mars      Takes arguments -e, -d.
-stat --sentence --jupiter   Takes arguments -e, -d.
-stat --sentence --saturn    Takes arguments -e, -d.
-stat --sentence --uranus    Takes arguments -e, -d.
-stat --sentence --neptune   Takes arguments -e, -d.
-stat --sentence --meteors   Takes arguments -e, -d.
+    stat -e     Enable print.
+    stat -d     Disable print.
+    stat -t     Enables/disables serial print stats and counters. Takes arguments -e, -d.
+    stat --partition-table      Print partition table.
+    stat --memory-ram           Print ram information.
+    stat --sdcard               Print matrix information.
+    stat --system               Print system configuration.
+    stat --matrix               Print matrix configuration.
+    stat --matrix n             Print matrix switch n configuration.
+    stat --matrix -A            Print configuration of all matrix switches.
+    stat --mapping              Print configuration of all mapping slots.
+    stat --sentence -A          Print all sentences. Takes arguments -e, -d.
+    stat --sentence --satio     Takes arguments -e, -d.
+    stat --sentence --ins       Takes arguments -e, -d.
+    stat --sentence --gngga     Takes arguments -e, -d.
+    stat --sentence --gnrmc     Takes arguments -e, -d.
+    stat --sentence --gpatt     Takes arguments -e, -d.
+    stat --sentence --matrix    Takes arguments -e, -d.
+    stat --sentence --admplex0  Takes arguments -e, -d.
+    stat --sentence --gyro0     Takes arguments -e, -d.
+    stat --sentence --sun       Takes arguments -e, -d.
+    stat --sentence --moon      Takes arguments -e, -d.
+    stat --sentence --mercury   Takes arguments -e, -d.
+    stat --sentence --venus     Takes arguments -e, -d.
+    stat --sentence --mars      Takes arguments -e, -d.
+    stat --sentence --jupiter   Takes arguments -e, -d.
+    stat --sentence --saturn    Takes arguments -e, -d.
+    stat --sentence --uranus    Takes arguments -e, -d.
+    stat --sentence --neptune   Takes arguments -e, -d.
+    stat --sentence --meteors   Takes arguments -e, -d.
 
 -----
