@@ -3,7 +3,9 @@
                                   SatIO - Written by Benjamin Jack Cullen.
 
               A general purpose programmable I/O platform for automation and manual throughput.
-    Supporting stacks (up to 10 functions per output pin) of logic across 20 output pins on the portcontroller.
+
+    Supporting stacks (up to 10 functions per output pin) of logic across 70 output pins on the portcontroller
+    and 100 mapping slots.
 
   What can SatIO tell you is true? Potentially infinite things.
 
@@ -491,5 +493,3 @@ Stat
     stat --sentence --meteors   Takes arguments -e, -d.
 
 -----
-
-
