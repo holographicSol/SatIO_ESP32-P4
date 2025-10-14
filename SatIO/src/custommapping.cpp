@@ -6,36 +6,8 @@
     3 : Access mapped values in matrixData.mapped_value.
 
     Center Mapping example:
-    - Analog stick example. start mapping function 16 value into map slot 0 using map mode 1:
-        Lets say we are mapping x axis of the stick (for the sake of comments below).
-        (1) Configure mapping for the first half of the x axis into map slot 0.
-        Map Slot 0, Map Mode 1 (X0):
-        - set map mode 0 1
-        - set mapping 0 16 1974 1974 1894 1023 50
-        (2) Configure mapping for the second half of the x axis into map slot 1.
-        Map Slot 1, Map Mode 2 (X1):
-        - set map mode 1 2
-        - set mapping 1 16 1974 1974 1894 1023 50
-        You should now be able to see Map slots zero and one populate with mapping results.
-        
-    - Utilize a map slot example (passthrough):
-        (1) Link matrix switch output to map slots (from previous example).
-        Matrix Switch, Map Slot:
-        - set output map 0 0
-        - set output map 1 1
-        (2) Now the output is linked and if/when required can be set as the output for a switch.
-        Matrix Switch, Output Mode:
-        - set output mode 0 1
-        - set output mode 1 1
-        - This allows matrix switch 0 and 1 to output mapped results 0 & 1 values to port controller.
-        Lastly, enable computer assist for switch zero and one:
-        - set assist enabled 0
-        - set assist enabled 1
-        You should now be able to see map slots zero and one populate with mapped values,
-        output values one and zero populated with mapped values and the port controller receiving
-        the mapped values (output values).
-        Because there is no logic required for passthrough, switch intention will remain
-        false, this is expected behaviour if there is no logic set on a switch.
+    example map analog stick axis x0 on admplex0 channel 0 into map slot 0: mapping -s 0 -m 1 -c0 16 -c1 1974 -c2 1974 -c3 1894 -c4 255 -c5 50
+    example map analog stick axis x1 on admplex0 channel 1 into map slot 1: mapping -s 1 -m 2 -c0 17 -c1 1974 -c2 1974 -c3 1894 -c4 255 -c5 50
     
     - Utilize a map slot example (matrix):
         - Map slots can also be utilized by the matrix with mapped value function.
