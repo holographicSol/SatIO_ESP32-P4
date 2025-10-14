@@ -8,17 +8,6 @@
     Center Mapping example:
     example map analog stick axis x0 on admplex0 channel 0 into map slot 0: mapping -s 0 -m 1 -c0 16 -c1 1974 -c2 1974 -c3 1894 -c4 255 -c5 50
     example map analog stick axis x1 on admplex0 channel 1 into map slot 1: mapping -s 1 -m 2 -c0 17 -c1 1974 -c2 1974 -c3 1894 -c4 255 -c5 50
-        
-    - Utilize a map slot example (passthrough):
-        (1) Link matrix switch output to map slots (from previous example).
-        Matrix Switch, Map Slot:
-        - set output map 0 0
-        - set output map 1 1
-        (2) Now the output is linked and if/when required can be set as the output for a switch.
-        Matrix Switch, Output Mode:
-        - set output mode 0 1
-        - set output mode 1 1
-        - This allows matrix switch 0 and 1 to output mapped results 0 & 1 values to port controller.
     
     - Utilize a map slot example (matrix):
         - Map slots can also be utilized by the matrix with mapped value function.
