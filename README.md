@@ -71,7 +71,6 @@
                                 ESP32: io13 -> SSD1351: SDA
                                 ESP32: io26 -> SSD1351: CS
 
-
                                            $SATIO SENTENCE
                               
                               RTC Sync Time (UTC)             System Uptime (Seconds)
@@ -94,7 +93,6 @@
            |                                                                                                                                                   |
           Matrix Switch Output Port 0                                                                                                                          Matrix Switch State 19
                                                                                           
-
 
                                           $SENSORS SENTENCE
 
