@@ -1,3 +1,8 @@
+-----
+
+![plot](./Data/UnidentifiedStudios.png)
+
+-----
                                   SatIO - Written by Benjamin Jack Cullen.
 
               A general purpose programmable I/O platform for automation and manual throughput.
@@ -489,3 +494,4 @@ Stat
     stat --sentence --meteors   Takes arguments -e, -d.
 
 -----
+
