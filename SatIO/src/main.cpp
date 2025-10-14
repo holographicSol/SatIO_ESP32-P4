@@ -1,96 +1,102 @@
 /*
 
-                                  SatIO - Written by Benjamin Jack Cullen.
-                                  
-                                          I/O all the things.
-                                          Map all the things.
-                                          Automate all the things (with manual overrides).
-                                          Over 1 Quintillion possible combinations after flashing.
+  SatIO - Written by Benjamin Jack Cullen.
 
-      Complex but very simple design to be a well-equipped (data rich), highly flexible, general purpose platform to build projects on:
-                            1 : System returns values (currently over serial).
-                            2 : System outputs analog/digital according to results from compound logic using said values.
+  A general purpose programmable I/O platform for automation and throughput.
 
-        Much may be inferred from existing data, for example the moon controls the tide and SatIO has moon data.
+  Supporting stacks of logic across 70 output pins on the portcontroller
+  and 100 mapping slots.
 
-                                    Central MCU: Requirement Speed.
-                                    Output MCU: Requirement IO.
-                                    Ideal Primary sensors. GPS & or AHRS/INS.
-                                   Wiring For ESP32-P4 Development Board
+  What can SatIO tell you is true? Potentially infinite things.
 
-                                                      [ IIC ]
-                                
-                                I2C extension bus (SDA & SCL Rails):
-                                ESP32: SDA              ->       Custom I2C extension bus: SDA rail
-                                ESP32: SCL              ->       Custom I2C extension bus: SCL rail
+  Applications? Potentially infinite applications.
 
-                                Port Controller (1st ATMEGA2560 with shield):
-                                Custom I2C extension bus: SDA  ->       ATMEGA2560: SDA
-                                Custom I2C extension bus: SCL  ->       ATMEGA2560: SCL
+  Inference in Bayesian Reasoning? Moon tracking for example can be used to track the moon, it can also be used for one example; to 
+  track the tides, if the system is aware of moon/planetary positioning and datetime then marine life values may also be inferred
+  relative to the inferred tide values and known datetime. There is a lot of data that can be used in many ways, with a kind of network
+  effect. Or more simply 'SatIO is one hell of a switch'.
 
-                                RTC (DS3231):
-                                Custom I2C extension bus: SDA  ->       RTC DS3231: SDA
-                                Custom I2C extension bus: SCL  ->       RTC DS3231: SCL
-                                                                        RTC DS3231: 5v
+  Matrix logic is an attempt to maximize programmable potential and hardware configuration is designed to attempt maximum IO potential.
+  If more output is needed then add another I2C port controller, if more input is needed then add another custom I2C sensor module.
+  If more matrix logic is needed then build on another MCU, matrix switches and switch functions have been balanced to allow for plenty
+  of switches and functions for said switches, with regards to available memory/storage (10 functions per switch not including switch linking
+  where logic can be stacked accross multiple/all matrix switches).
 
-                                                    [ SERIAL ]
-                                WTGPS300P (GPS):
-                                ESP32: io36 RXD         ->       WTGPS300P: TXD
-                                ESP32: null TXD         ->       WTGPS300P: RXD
-                                                                 WTGPS300P: 5v
-                                
-                                Gyro0 (9-Axis Gyro):
-                                ESP32: io33 RXD         ->       Gyro0: TXD
-                                ESP32: io32 TXD         ->       Gyro0: RXD
-                                                                 Gyro0: 5v
+        Design: Break out all the things and build I2C peripherals as required to orbit the ESP32/Central-MCU.
 
-                                             [ ANALOG / DIGITAL ]
-                                CD74HC4067 (Analog/Digital Multiplexer):
-                                ESP32: io53             ->       CD74HC4067: SIG
-                                ESP32: io23             ->       CD74HC4067: S0
-                                ESP32: io22             ->       CD74HC4067: S1
-                                ESP32: io21             ->       CD74HC4067: S2
-                                ESP32: io20             ->       CD74HC4067: S3
-                                                                 CD74HC4067: 3.3v
+                                Wiring For Keystudio ESP32 PLUS Development Board
 
+                                ESP32: 1st ATMEGA2560 with shield as Port Controller (not on multiplexer):
+                                ESP32: I2C SDA -> ATMEGA2560: I2C SDA
+                                ESP32: I2C SCL -> ATMEGA2560: I2C SCL
 
+                                ESP32: 2nd ATMEGA2560 with shield as Control Panel (not on multiplexer):
+                                ESP32: io25    -> ATMEGA2560: io22
+                                ESP32: I2C SDA -> ATMEGA2560: I2C SDA
+                                ESP32: I2C SCL -> ATMEGA2560: I2C SCL
 
-                                               $SATIO SENTENCE
+                                Other ESP32 i2C Devices (not on multiplexer):
+                                ESP32: SDA0 SCL0 -> DS3231 (RTC): SDA, SCL (5v)
+
+                                ESP32: WTGPS300P (5v) (for getting a downlink):
+                                ESP32: io27 RXD -> WTGPS300P: TXD
+                                ESP32: null TXD -> WTGPS300P: RXD
+
+                                ESP32 i2C: i2C Multiplexing (3.3v) (for peripherals):
+                                ESP32: i2C -> TCA9548A: SDA, SCL
+
+                                ESP32: Analog/Digital Multiplexing (3.3v) (for peripherals):
+                                ESP32: io4    -> CD74HC4067: SIG
+                                ESP32: io32   -> CD74HC4067: S0
+                                ESP32: io33   -> CD74HC4067: S1
+                                ESP32: io16   -> CD74HC4067: S2
+                                ESP32: io17   -> CD74HC4067: S3
+                                CD74HC4067 C0 -> DHT11: SIG
+
+                                ESP32 VSPI: SDCARD (5v) (for matrix and system data):
+                                ESP32: io5  -> HW-125: CS (SS)
+                                ESP32: io23 -> HW-125: DI (MOSI)
+                                ESP32: io19 -> HW-125: DO (MISO)
+                                ESP32: io18 -> HW-125: SCK (SCLK)
+
+                                ESP32 HSPI: SSD1351 OLED (5v) (short wires recommended):
+                                ESP32: io14 -> SSD1351: SCL/SCLK
+                                ESP32: io12 -> SSD1351: MISO/DC
+                                ESP32: io13 -> SSD1351: SDA
+                                ESP32: io26 -> SSD1351: CS
+
+                                           $SATIO SENTENCE
                               
-                                        RTC Sync Time (UTC)             System Uptime (Seconds)
-                                        |      RTC Sync Date (UTC)      |
-                  Tag                   |      |                        |   Longitude Degrees
-                  |                     |      |                        |   |
-                  $SATIO,000000,00000000,000000,00000000,000000,00000000,0,0,0,*CHECKSUM
-                        |      |                        |      |          |
-                        |      |                        |      |          Latitude Degrees
-                        |      RTC Date (UTC)           |      Local Date (UTC Offset)
-                        RTC Time (UTC)                  Local Time (UTC Offset)
+                              RTC Sync Time (UTC)             System Uptime (Seconds)
+                              |      RTC Sync Date (UTC)      |
+        Tag                   |      |                        |   Longitude Degrees
+        |                     |      |                        |   |
+        $SATIO,000000,00000000,000000,00000000,000000,00000000,0,0,0,*CHECKSUM
+              |      |                        |      |          |
+              |      |                        |      |          Latitude Degrees
+              |      RTC Date (UTC)           |      Local Date (UTC Offset)
+              RTC Time (UTC)                  Local Time (UTC Offset)
+
+                                          $MATRIX SENTENCE 
+
+                                                                              Matrix Switch Output Port 19
+                                                                              |
+                                                                              |    Matrix Switch State 0
+                                                                              |    |
+    $MATRIX,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,*CHECKSUM
+           |                                                                                                                                                   |
+          Matrix Switch Output Port 0                                                                                                                          Matrix Switch State 19
+                                                                                          
+
+                                          $SENSORS SENTENCE
+
+                      Sensor 0
+                      |
+              $SENSORS,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,*CHECKSUM
+                                                                                  |
+                                                                                  Sensor 15
 
 
-                                            $INS SENTENCE
-
-                                Tag               INS Initialization Flag
-                                |                 |      INS Longitude
-                                |                 |      |        INS Heading
-                                |                 |      |        |
-                                $INS,000000000000,0.0,0.0,0.0,0.0,0.0,0.0,*CHECKSUM
-                                    |                |       |       |
-                                    |                |       |       INS
-                                    |                |       INS Altitude
-                                    |                INS Latitude
-                                    UTC Unix time from RTC
-                                                                                    
-
-                                            $MPLEX SENTENCE
-
-                     MPLEX Channel 0
-                     |
-              $MPLEX,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,*CHECKSUM
-                                                                                   |
-                                                                                   MPLEX Channel 15
-                                                           
-                                                                                   
                                           $SUN SENTENCE
                                                     
                                     Right Ascension 
@@ -105,6 +111,7 @@
 
 
                                           $MOON SENTENCE
+
                                                 Rise
                                 Right Ascension |
                                 |       Azimuth | 
@@ -112,12 +119,13 @@
                                 |       |       |       |
                           $MOON,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,*CHECKSUM
                                     |       |       |       |
-                                    |       |       Set     Luminescence
+                                    |       |       Set     Luminessence
                                     |       Altitude
                                     Declination
 
 
                                         $MERCURY SENTENCE
+
                                       Rise
                       Right Ascension |       Helio Ecliptic Latitude
                       |       Azimuth |       |       Radius Vector   
@@ -131,6 +139,7 @@
 
 
                                          $VENUS SENTENCE
+
                                       Rise
                       Right Ascension |       Helio Ecliptic Latitude
                       |       Azimuth |       |       Radius Vector   
@@ -144,6 +153,7 @@
 
 
                                         $MARS SENTENCE
+
                                       Rise
                       Right Ascension |       Helio Ecliptic Latitude
                       |       Azimuth |       |       Radius Vector   
@@ -157,6 +167,7 @@
 
 
                                       $JUPITER SENTENCE
+
                                       Rise
                       Right Ascension |       Helio Ecliptic Latitude
                       |       Azimuth |       |       Radius Vector   
@@ -170,6 +181,7 @@
 
 
                                       $SATURN SENTENCE
+
                                       Rise
                       Right Ascension |       Helio Ecliptic Latitude
                       |       Azimuth |       |       Radius Vector   
@@ -183,6 +195,7 @@
 
 
                                       $URANUS SENTENCE
+
                                       Rise
                       Right Ascension |       Helio Ecliptic Latitude
                       |       Azimuth |       |       Radius Vector   
@@ -196,6 +209,7 @@
 
 
                                       $NEPTUNE SENTENCE
+
                                       Rise
                       Right Ascension |       Helio Ecliptic Latitude
                       |       Azimuth |       |       Radius Vector   
@@ -206,7 +220,6 @@
                           |       |       Set     |       |       Ecliptic Longitude
                           |       Altitude        |       Distance
                           Declination             Helio Ecliptic Longitude  
-
   
   Summary: Over one quintillion possible combinations of stackable logic across N switches for a general purpose
   part or standalone device providing data over serial and or analog/digital output.
