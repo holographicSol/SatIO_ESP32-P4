@@ -7,20 +7,10 @@
 
   Applications? Potentially infinite applications.
 
-  Limitations? Being vastly general purpose comes at a perfromnce cost. SatIO is designed to be vastly general purpose.
-
   Inference in Bayesian Reasoning? Moon tracking for example can be used to track the moon, it can also be used for one example; to 
   track the tides, if the system is aware moon/planetary positioning and datetime then marine life values may also be inferred relative
   to the inferred tide values and known datetime. There is a lot of data that can be used in many ways, with a kind of network effect.
   Or more simply 'SatIO is one hell of a switch'.
-
-  The amount of data and I/O available on this project makes this project a more than adequately general purpose platform for all
-  kinds of future projects, from universally aware LLMs harnessing SatIO's optional serial output, to sensor drones, or even just a
-  GPS syncronized astro clock. Everything other than the ESP32 running SatIO should be considered as optional and modular, meaning
-  SatIO builds can be from a headless chip with GPS pouring out data over serial, or a full system with extra I/O and display.
-
-  Short of quantum navigation on a microchip, GPS is currently used for navigation, providing values that many more values
-  can be calculated from, providing there is not something potentially terminally wrong with the universe.
 
   Matrix logic is an attempt to maximize programmable potential and hardware configuration is designed to attempt maximum IO potential.
   If more output is needed then add another I2C port controller, if more input is needed then add another custom I2C sensor module.
@@ -388,7 +378,7 @@ Mapping
 
 example map analog stick axis x0 on admplex0 channel 0 into map slot 0:
     mapping -s 0 -m 1 -c0 16 -c1 1974 -c2 1974 -c3 1894 -c4 255 -c5 50
-    
+
 example map analog stick axis x1 on admplex0 channel 1 into map slot 1:
     mapping -s 1 -m 2 -c0 17 -c1 1974 -c2 1974 -c3 1894 -c4 255 -c5 50
 
