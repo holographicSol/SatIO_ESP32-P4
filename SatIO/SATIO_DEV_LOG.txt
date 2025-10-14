@@ -1,0 +1,2103 @@
+---------------------------------------------------------------------------------------------------
+                                               SATIO
+---------------------------------------------------------------------------------------------------
+
+---------------------------------------------------------------------------------------------------
+                                                                            INFORMATION (SENTENCES)
+---------------------------------------------------------------------------------------------------
+switch output satio                       Return SatIO Sentence With Checksum.
+switch output gngga                       Return GNGGA Sentence With Checksum.
+switch output gnrmc                       Return GNRMC Sentence With Checksum.
+switch output gpatt                       Return GPATT Sentence With Checksum.
+switch output matrix                      Return Matrix Sentence With Checksum.
+switch output sensors                     Return Sensor Sentence With Checksum.
+switch output gyro                        Return Gyro Sentence With Checksum.
+switch output sun                         Return Sun Sentence With Checksum.
+switch output moon                        Return Moon Sentence With Checksum.
+switch output mercury                     Return Mercury Sentence With Checksum.
+switch output venus                       Return Venus Sentence With Checksum.
+switch output mars                        Return Mars Sentence With Checksum.
+switch output jupiter                     Return Jupiter Sentence With Checksum.
+switch output saturn                      Return Saturn Sentence With Checksum.
+switch output uranus                      Return Uranus Sentence With Checksum.
+switch output neptune                     Return Neptune Sentence With Checksum.
+switch output meteors                     Return Meteors Sentence With Checksum.
+
+---------------------------------------------------------------------------------------------------
+                                                                                INFORMATION (SATIO)
+---------------------------------------------------------------------------------------------------
+print satio degrees_latitude              Return SATIO Degrees Latitude.
+print satio degrees_longitude             Return SATIO Degrees Longitude.
+print satio ground_heading                Return SATIO Ground Heading.
+print satio formatted_local_time          Return SATIO Formatted Local Time.
+print satio formatted_local_date          Return SATIO Formatted Local Date.
+print satio formatted_rtc_sync_time       Return SATIO Formatted RTC Sync Time.
+print satio formatted_rtc_sync_date       Return SATIO Formatted RTC Sync Date.
+print satio formatted_rtc_time            Return SATIO Formatted RTC Time.
+print satio formatted_rtc_date            Return SATIO Formatted RTC Date.
+print satio utc_second_offset             Return SATIO UTC Second Offset.
+print satio utc_auto_offset_flag          Return SATIO UTC Second Offset Flag.
+
+---------------------------------------------------------------------------------------------------
+                                                                               INFORMATION (MATRIX)
+---------------------------------------------------------------------------------------------------
+print matrix -v                           Return all matrix data.
+print matrix n                            Return matrix data for specified n.
+print matrix enabled                      Return all enabled matrix switches.
+print matrix disabled                     Return all disabled matrix switches.
+print matrix active                       Return all active matrix switches.
+print matrix inactive                     Return all inactive matrix switches.
+print matrix enabled -v                   Return verbose all enabled matrix switches.
+print matrix active -v                    Return verbose all active matrix switches.
+print matrix inverted -v                  Return verbose all inverted matrix switch functions.
+print matrix timers -v                    Return verbose all matrix switch timer values.
+print matrix ports -v                     Return verbose all matrix switch ports.
+print matrix functions -v                 Return verbose all matrix switch functions.
+print matrix functions xyz -v             Return verbose all matrix switch function values.
+print matrix expressions -v               Return verbose all matrix switch expressions.
+print matrix available functions -v       Return verbose all available matrix switch functions.
+
+---------------------------------------------------------------------------------------------------
+                                                                                INFORMATION (GNGGA)
+---------------------------------------------------------------------------------------------------
+print gngga utc_time                      Return GNGGA UTC Time.
+print gngga latitude                      Return GNGGA Latitude.
+print gngga latitude_hemisphere           Return GNGGA Latitude Hemisphere.
+print gngga longitude                     Return GNGGA Longitude.
+print gngga longitude_hemisphere          Return GNGGA Longitude Hemisphere.
+print gngga solution_status               Return GNGGA Solution Status.
+print gngga satellite_count_gngga         Return GNGGA Satellite Count.
+print gngga hdop_precision_factor         Return GNGGA HDOP Precision Factor.
+print gngga altitude                      Return GNGGA Altitude.
+print gngga altitude_units                Return GNGGA Altitude Units.
+print gngga geoidal                       Return GNGGA Geoidal.
+print gngga geoidal_units                 Return GNGGA Geoidal Units.
+print gngga differential_delay            Return GNGGA Differential Delay.
+
+---------------------------------------------------------------------------------------------------
+                                                                                INFORMATION (GNRMC)
+---------------------------------------------------------------------------------------------------
+print gnrmc utc_time                      Return GNRMC UTC Time.
+print gnrmc positioning_status            Return GNRMC Positioning Status.
+print gnrmc latitude                      Return GNRMC Latitude.
+print gnrmc latitude_hemisphere           Return GNRMC Latitude Hemisphere.
+print gnrmc longitude                     Return GNRMC Longitude.
+print gnrmc longitude_hemisphere          Return GNRMC Longitude Hemisphere.
+print gnrmc ground_speed                  Return GNRMC Ground Speed.
+print gnrmc ground_heading                Return GNRMC Ground Heading.
+print gnrmc utc_date                      Return GNRMC UTC Date.
+print gnrmc installation_angle            Return GNRMC Installation Angle.
+print gnrmc installation_angle_direction  Return GNRMC Installation Angle Direction.
+print gnrmc mode_indication               Return GNRMC Mode Indication.
+
+---------------------------------------------------------------------------------------------------
+                                                                                 INFORMATION(GPATT)
+---------------------------------------------------------------------------------------------------
+print gpatt pitch                         Return GPATT Pitch.
+print gpatt roll                          Return GPATT Roll.
+print gpatt yaw                           Return GPATT Yaw.
+print gpatt software_version              Return GPATT Software Version.
+print gpatt product_id                    Return GPATT Product ID.
+print gpatt ins                           Return GPATT INS.
+print gpatt hardware_version              Return GPATT Hardware Version.
+print gpatt run_state_flag                Return GPATT Run State Flag.
+print gpatt mis_angle_num                 Return GPATT Mis Angle Num.
+print gpatt static_flag                   Return GPATT Static Flag.
+print gpatt user_code                     Return GPATT User Code.
+print gpatt gst_data                      Return GPATT GST Data.
+print gpatt line_flag                     Return GPATT Line Flag.
+print gpatt mis_att_flag                  Return GPATT Mis Att Flag.
+print gpatt imu_kind                      Return GPATT IMU Kind.
+print gpatt ubi_car_kind                  Return GPATT UBI Car Kind.
+print gpatt mileage                       Return GPATT Mileage.
+print gpatt run_inetial_flag              Return GPATT Run Inetial Flag.
+print gpatt speed_enable                  Return GPATT Speed Enable.
+print gpatt speed_num                     Return GPATT Speed Num.
+
+---------------------------------------------------------------------------------------------------
+                                                                              INFORMATION (SENSORS)
+---------------------------------------------------------------------------------------------------
+print dht11_h_0                           Return DHT11_0 Humidity.
+print dht11_c_0                           Return DHT11_0 Celsius.
+print dht11_f_0                           Return DHT11_0 Fahrenheit.
+print dht11_hic_0                         Return DHT11_0 Heat Index Celsius.
+print dht11_hif_0                         Return DHT11_0 Heat Index Fahrenheit.
+
+print sensor_0                            Return Sensor 0 Value.
+print sensor_1                            Return Sensor 1 Value.
+print sensor_2                            Return Sensor 2 Value.
+print sensor_3                            Return Sensor 3 Value.
+print sensor_4                            Return Sensor 4 Value.
+print sensor_5                            Return Sensor 5 Value.
+print sensor_6                            Return Sensor 6 Value.
+print sensor_7                            Return Sensor 7 Value.
+print sensor_8                            Return Sensor 8 Value.
+print sensor_9                            Return Sensor 9 Value.
+print sensor_10                           Return Sensor 10 Value.
+print sensor_11                           Return Sensor 11 Value.
+print sensor_12                           Return Sensor 12 Value.
+print sensor_13                           Return Sensor 13 Value.
+print sensor_14                           Return Sensor 14 Value.
+print sensor_15                           Return Sensor 15 Value.
+
+---------------------------------------------------------------------------------------------------
+                                                                                INFORMATION (WT901)
+---------------------------------------------------------------------------------------------------
+print wt901_ang_x                         Return WT901 Angle X.
+print wt901_ang_y                         Return WT901 Angle Y.
+print wt901_ang_z                         Return WT901 Angle Z.
+print wt901_mag_x                         Return WT901 Magnetic Field X.
+print wt901_mag_y                         Return WT901 Magnetic Field Y.
+print wt901_mag_z                         Return WT901 Magnetic Field Z.
+print wt901_acc_x                         Return WT901 Acceleration X.
+print wt901_acc_y                         Return WT901 Acceleration Y.
+print wt901_acc_z                         Return WT901 Acceleration Z.
+print wt901_gyr_x                         Return WT901 Gyro X.
+print wt901_gyr_y                         Return WT901 Gyro Y.
+print wt901_gyr_z                         Return WT901 Gyro Z.
+
+---------------------------------------------------------------------------------------------------
+                                                                                  INFORMATION (SUN)
+---------------------------------------------------------------------------------------------------
+print sun ra                              Return Sun Right Ascension.
+print sun dec                             Return Sun Declination.
+print sun az                              Return Sun Azimuth.
+print sun alt                             Return Sun Altitude.
+print sun r                               Return Sunrise.
+print sun s                               Return Sunset.
+print sun helat                           Return Sun Helioecliptic Latitude.
+print sun helon                           Return Sun Helioecliptic Longitude.
+print sun rv                              Return Sun Radius Vector.
+print sun dis                             Return Sun Distance.
+print sun elat                            Return Sun Ecliptic Latitude
+print sun elon                            Return Sun Ecliptic Longitude.
+
+---------------------------------------------------------------------------------------------------
+                                                                              INFORMATION (MERCURY)
+---------------------------------------------------------------------------------------------------
+print mercury ra                          Return Mercury Right Ascension.
+print mercury dec                         Return Mercury Declination.
+print mercury az                          Return Mercury Azimuth
+print mercury alt                         Return Mercury Altitude.
+print mercury r                           Return Mercury Rise.
+print mercury s                           Return Mercury Set.
+print mercury hlat                        Return Mercury Helioecliptic Latitude.
+print mercury hlon                        Return Mercury Helioecliptic Longitude.
+print mercury rv                          Return Mercury Radius Vector.
+print mercury dis                         Return Mercury Distance.
+print mercury elat                        Return Mercury Ecliptic Latitude.
+print mercury elon                        Return Mercury Ecliptic Longitude.
+
+---------------------------------------------------------------------------------------------------
+                                                                                INFORMATION (VENUS)
+---------------------------------------------------------------------------------------------------
+print venus ra                            Return Venus Right Ascension.
+print venus dec                           Return Venus Declination.
+print venus az                            Return Venus Azimuth
+print venus alt                           Return Venus Altitude.
+print venus r                             Return Venus Rise.
+print venus s                             Return Venus Set.
+print venus hlat                          Return Venus Helioecliptic Latitude.
+print venus hlon                          Return Venus Helioecliptic Longitude.
+print venus rv                            Return Venus Radius Vector.
+print venus dis                           Return Venus Distance.
+print venus elat                          Return Venus Ecliptic Latitude.
+print venus elon                          Return Venus Ecliptic Longitude.
+
+---------------------------------------------------------------------------------------------------
+                                                                                INFORMATION (EARTH)
+---------------------------------------------------------------------------------------------------
+print earth el                            Return Earth Ecliptic Longitude.
+
+---------------------------------------------------------------------------------------------------
+                                                                                 INFORMATION (MOON)
+---------------------------------------------------------------------------------------------------
+print moon ra                             Return Moon Right Ascension.
+print moon dec                            Return Moon Declination.
+print moon az                             Return Moon Azimuth.
+print moon alt                            Return Moon Altitude.
+print moon r                              Return Moon Rise.
+print moon s                              Return Moon Set.
+print moon p                              Return Moon Phase.
+print moon l                              Return Moon Luminosity.
+
+---------------------------------------------------------------------------------------------------
+                                                                                 INFORMATION (MARS)
+---------------------------------------------------------------------------------------------------
+print mars ra                             Return Mars Right Ascension.
+print mars dec                            Return Mars Declination.
+print mars az                             Return Mars Azimuth
+print mars alt                            Return Mars Altitude.
+print mars r                              Return Mars Rise.
+print mars s                              Return Mars Set.
+print mars hlat                           Return Mars Helioecliptic Latitude.
+print mars hlon                           Return Mars Helioecliptic Longitude.
+print mars rv                             Return Mars Radius Vector.
+print mars dis                            Return Mars Distance.
+print mars elat                           Return Mars Ecliptic Latitude.
+print mars elon                           Return Mars Ecliptic Longitude.
+
+---------------------------------------------------------------------------------------------------
+                                                                              INFORMATION (JUPITER)
+---------------------------------------------------------------------------------------------------
+print jupiter ra                          Return Juptier Right Ascension.
+print jupiter dec                         Return Juptier Declination.
+print jupiter az                          Return Juptier Azimuth
+print jupiter alt                         Return Juptier Altitude.
+print jupiter r                           Return Juptier Rise.
+print jupiter s                           Return Juptier Set.
+print jupiter hlat                        Return Juptier Helioecliptic Latitude.
+print jupiter hlon                        Return Juptier Helioecliptic Longitude.
+print jupiter rv                          Return Juptier Radius Vector.
+print jupiter dis                         Return Juptier Distance.
+print jupiter elat                        Return Juptier Ecliptic Latitude.
+print jupiter elon                        Return Juptier Ecliptic Longitude.
+
+---------------------------------------------------------------------------------------------------
+                                                                               INFORMATION (SATURN)
+---------------------------------------------------------------------------------------------------
+print saturn ra                           Return Saturn Right Ascension.
+print saturn dec                          Return Saturn Declination.
+print saturn az                           Return Saturn Azimuth
+print saturn alt                          Return Saturn Altitude.
+print saturn r                            Return Saturn Rise.
+print saturn s                            Return Saturn Set.
+print saturn hlat                         Return Saturn Helioecliptic Latitude.
+print saturn hlon                         Return Saturn Helioecliptic Longitude.
+print saturn rv                           Return Saturn Radius Vector.
+print saturn dis                          Return Saturn Distance.
+print saturn elat                         Return Saturn Ecliptic Latitude.
+print saturn elon                         Return Saturn Ecliptic Longitude.
+
+---------------------------------------------------------------------------------------------------
+                                                                               INFORMATION (URANUS)
+---------------------------------------------------------------------------------------------------
+print uranus ra                           Return Uranus Right Ascension.
+print uranus dec                          Return Uranus Declination.
+print uranus az                           Return Uranus Azimuth
+print uranus alt                          Return Uranus Altitude.
+print uranus r                            Return Uranus Rise.
+print uranus s                            Return Uranus Set.
+print uranus hlat                         Return Uranus Helioecliptic Latitude.
+print uranus hlon                         Return Uranus Helioecliptic Longitude.
+print uranus rv                           Return Uranus Radius Vector.
+print uranus dis                          Return Uranus Distance.
+print uranus elat                         Return Uranus Ecliptic Latitude.
+print uranus elon                         Return Uranus Ecliptic Longitude.
+
+---------------------------------------------------------------------------------------------------
+                                                                              INFORMATION (NEPTUNE)
+---------------------------------------------------------------------------------------------------
+print neptune ra                          Return Neptune Right Ascension.
+print neptune dec                         Return Neptune Declination.
+print neptune az                          Return Neptune Azimuth
+print neptune alt                         Return Neptune Altitude.
+print neptune r                           Return Neptune Rise.
+print neptune s                           Return Neptune Set.
+print neptune hlat                        Return Neptune Helioecliptic Latitude.
+print neptune hlon                        Return Neptune Helioecliptic Longitude.
+print neptune rv                          Return Neptune Radius Vector.
+print neptune dis                         Return Neptune Distance.
+print neptune elat                        Return Neptune Ecliptic Latitude.
+print neptune elon                        Return Neptune Ecliptic Longitude.
+
+---------------------------------------------------------------------------------------------------
+[ CONTROL ] Requires Serial Commands enabled.
+---------------------------------------------------------------------------------------------------
+
+---------------------------------------------------------------------------------------------------
+                                                                   CONTROL (NAVIGATION & KEY INPUT)
+---------------------------------------------------------------------------------------------------
+menu left                                 Navigate UI Menu.
+menu right                                Navigate UI Menu.
+menu back                                 Navigate UI Menu.
+menu enter                                Navigate UI Menu.
+menu home                                 Navigate UI Menu.
+enter digits n                            Specify digits (n) to enter.
+
+---------------------------------------------------------------------------------------------------
+                                                                                  CONTROL (DISPLAY)
+---------------------------------------------------------------------------------------------------
+switch display timeout                    Enables/Disables Display Timeout.
+set display timeout 0                     Set Display Timeout 3 seconds.
+set display timeout 1                     Set Display Timeout 5 seconds.
+set display timeout 2                     Set Display Timeout 10 seconds.
+set display timeout 3                     Set Display Timeout 15 seconds.
+set display timeout 4                     Set Display Timeout 30 seconds.
+set display timeout 5                     Set Display Timeout 1 minute.
+
+---------------------------------------------------------------------------------------------------
+                                                                                 CONTROL (OVERLOAD)
+---------------------------------------------------------------------------------------------------
+set overload 0                            Set Overload Threshold 1 microsecond.
+set overload 1                            Set Overload Threshold 2 microsecond.
+set overload 2                            Set Overload Threshold 3 microsecond.
+set overload 3                            Set Overload Threshold 4 microsecond.
+set overload 4                            Set Overload Threshold 5 microsecond.
+set overload 5                            Set Overload Threshold 10 microsecond.
+set overload 6                            Set Overload Threshold 50 microsecond.
+set overload 7                            Set Overload Threshold 1 millisecond.
+set overload 8                            Set Overload Threshold 10 millisecond.
+set overload 9                            Set Overload Threshold 100 millisecond.
+set overload 10                           Set Overload Threshold 1 second.
+
+---------------------------------------------------------------------------------------------------
+                                                                                     CONTROL (FILE)
+---------------------------------------------------------------------------------------------------
+new matrix                                Clears any current matrix value.
+save matrix n                             Saves current matrix to save slot specified by n.
+load matrix n                             Loads matrix from save slot specified by n.
+delete matrix n                           Deletes matrix in save slot specified by n.
+save system                               Saves current system configuration.
+
+---------------------------------------------------------------------------------------------------
+                                                                                   CONTROL (SYSTEM)
+---------------------------------------------------------------------------------------------------
+switch matrix enabled                     Enables/Disables Running Matrix Switch.
+set matrix enabled 0                      Disables Running Matrix Switch.
+set matrix enabled 1                      Enables Running Matrix Switch.
+switch matrix startup enabled             Enables/Disables Running Matrix Switch On Startup.
+switch matrix io enabled                  Enables/Disables Matrix Switch Output via Port Controller.
+switch wt901 enabled                      Enables/Disables WT901 requests.
+
+---------------------------------------------------------------------------------------------------
+                                                                                  CONTROL (SENSORS)
+---------------------------------------------------------------------------------------------------
+switch dht11_0_display_hic                Enables/Disables DHT11 Heat Index Celsius/Fahrenheit.
+
+---------------------------------------------------------------------------------------------------
+                                                                              CONTROL (MULIPLEXERS)
+---------------------------------------------------------------------------------------------------
+switch ad-plex chan n                     Enables/Disables Analog/Digital Multiplexer Channel (0-15) specified by n.
+switch ad-plex chan all                   Enables/Disables all Analog/Digital Multiplexer Channels.
+switch iic-plex chan n                    Enables/Disables IIC Multiplexer Channel (0-7) specified by n.
+switch iic-plex chan all                  Enables/Disables all IIC Multiplexer Channels.
+
+---------------------------------------------------------------------------------------------------
+                                                                                   CONTROL (MATRIX)
+---------------------------------------------------------------------------------------------------
+set matrix switch enabled n 0             Disables specific matrix switch specified by n.
+set matrix switch enabled n 1             Enables specific matrix switch specified by n.
+
+set matrix port n                         Set output port number specified by n (-1=None).
+
+set matrix inverted n n 0                 Invert matrix (n) function(n) logic.
+set matrix inverted n n 1                 Standard matrix (n) function(n) logic.
+
+set matrix expression n n 0-4             Specify matrix n & function n. Set expression 0-4.
+                                          0=None  1=Equal  2=Over  3=Under  4=Range
+
+set matrix entry n n function_name x y z inverted expression port enabled/disabled
+                                          Specify matrix n.
+                                          Specify function n.
+                                          Set function name.
+                                          Set function values x y z.
+                                          Set standard/inverted (0-1).
+                                          Set expression (0-4). 0=None  1=Equal  2=Over  3=Under  4=Range
+                                          Set output port (-1=None).
+                                          Set disabled/enabled (0-1).
+
+set matrix xyz n n x y z                  Specify matrix n, function n and matrix function values.
+set matrix entry n n function_name        Specify a function name for specified matrix n, function n.
+
+set pcio n 0                              Set matrix n output low (overridden by matrix logic).
+set pcio n 1                              Set matrix n output high (overridden by matrix logic).
+
+set pcioi n 0-7                           Set indicator color (0-7) for matrix switch n.
+                                          0=Black
+                                          1=Red
+                                          2=Yellow
+                                          3=Green
+                                          4=Blue
+                                          5=Cyan
+                                          6=Purple
+                                          7=White
+
+---------------------------------------------------------------------------------------------------
+                                                                                      CONTROL (GPS)
+---------------------------------------------------------------------------------------------------
+switch satio                              Enables/Disables SatIO features.
+switch gngga                              Enables/Disables Parsing GNGGA Data.
+switch gnrmc                              Enables/Disables Parsing GNRMC Data.
+switch gpatt                              Enables/Disables Parsing GPATT Data.
+switch convert coordinates                Enables/Disables SatIO Coordinate Degrees Conversions.
+set convert coordinates GNGGA             Set Coordinate Degrees Conversions From GNGGA Data.
+set convert coordinates GNRMC             Set Coordinate Degrees Conversions From GNRMC Data.
+
+---------------------------------------------------------------------------------------------------
+                                                                         CONTROL (SIDEREAL PLANETS)
+---------------------------------------------------------------------------------------------------
+switch track sun                          Enables/Disables Tracking Sun.
+switch track moon                         Enables/Disables Tracking Moon.
+switch track mercury                      Enables/Disables Tracking Mercury.
+switch track venus                        Enables/Disables Tracking Venus.
+switch track mars                         Enables/Disables Tracking Mars.
+switch track jupiter                      Enables/Disables Tracking Jupiter.
+switch track saturn                       Enables/Disables Tracking Saturn.
+switch track uranus                       Enables/Disables Tracking Uranus.
+switch track neptune                      Enables/Disables Tracking Neptune.
+
+run track planets                         Run Track PLanets Once.
+run track sun                             Run Track Sun Once.
+run track moon                            Run Track Moon Once.
+run track mercury                         Run Track Mercury Once.
+run track venus                           Run Track Venus Once.
+run track mars                            Run Track Mars Once.
+run track jupiter                         Run Track Jupiter Once.
+run track saturn                          Run Track Saturn Once.
+run track uranus                          Run Track Uranus Once.
+run track neptune                         Run Track Neptune Once.
+
+---------------------------------------------------------------------------------------------------
+                                                                                 CONTROL (DATETIME)
+---------------------------------------------------------------------------------------------------
+set utc_second_offset                     Set UTC Second Offset.
+
+---------------------------------------------------------------------------------------------------
+                                                                                               HELP
+---------------------------------------------------------------------------------------------------
+h                                         Display this help message.
+
+---------------------------------------------------------------------------------------------------
+
+Set expression (0-4). 0=None  1=Equal  2=Over  3=Under  4=Range
+
+set matrix entry n n function_name x y z inverted expression port
+
+// Simple Tests: 
+
+set matrix entry 0 0 SatCountOver 1 0 0 0 2 33
+set matrix entry 1 0 SatCountOver 1 0 0 0 2 34
+set matrix entry 2 0 SatCountOver 1 0 0 0 2 35
+
+set matrix entry 0 0 14 50 0 0 0 2 33
+set matrix entry 0 0 SatCountOver 31 0 0 0 2 33
+set matrix entry 0 0 SatCountOver 10 0 0 0 2 33
+set matrix entry 0 1 GPSPrecisionUnder 1 0 0 0 3 33
+
+set matrix entry 1 0 14 40 0 0 0 2 34
+set matrix entry 1 0 SatCountOver 10 0 0 0 2 34
+set matrix entry 1 1 GPSPrecisionUnder 1 0 0 0 3 34
+
+set matrix entry 0 0 1 0 0 0 0 0 33
+set matrix entry 1 0 Enabled 0 0 0 0 0 34
+set matrix entry 2 0 Enabled 0 0 0 0 0 35
+
+set matrix entry 0 0 0 0 0 0 0 0 33
+set matrix entry 0 0 None 0 0 0 0 0 33
+set matrix entry 1 0 None 0 0 0 0 0 34
+set matrix entry 2 0 None 0 0 0 0 0 35
+
+set matrix entry 0 0 15 0 0 0 0 0 33
+
+set matrix mod 0 100000 100000
+
+set matrix mod 0 500000 500000
+
+set matrix mod 0 50000 50000
+
+set matrix mod 0 3000000 15000
+
+set matrix mod 0 1000000 400000
+
+set matrix mod 0 0 0
+
+set matrix operator 0 0 2
+set matrix operator 0 0 3
+
+set matrix entry 0 0 14 30 0 0 0 2 33
+set matrix entry 1 0 14 30 0 0 0 2 34
+set matrix entry 2 0 14 30 0 0 0 2 35
+set matrix entry 3 0 14 30 0 0 0 2 36
+set matrix entry 4 0 14 30 0 0 0 2 37
+set matrix entry 5 0 14 30 0 0 0 2 38
+set matrix entry 0 0 14 30 0 0 0 2 39
+set matrix entry 0 0 14 30 0 0 0 2 33
+set matrix entry 0 0 14 30 0 0 0 2 33
+set matrix entry 0 0 14 30 0 0 0 2 33
+
+
+
+set matrix entry 0 0 Overload 0 0 0 0 0 33
+
+set matrix entry 0 0 None 0 0 0 0 0 -1
+
+set matrix entry n n function_name
+
+set overload 1
+
+---------------------------------------------------------------------------------------------------------------
+switch matrix io
+switch matrix enabled                     Enables/Disables Running Matrix Switch.
+set matrix enabled 0                      Disables Running Matrix Switch.
+set matrix enabled 1                      Enables Running Matrix Switch.
+switch matrix startup enabled             Enables/Disables Running Matrix Switch On Startup.
+switch matrix io enabled                  Enables/Disables Matrix Switch Output via Port Controller.
+switch wt901 enabled                      Enables/Disables WT901 requests.
+
+set matrix switch enabled n 0             Disables specific matrix switch specified by n.
+set matrix switch enabled n 1             Enables specific matrix switch specified by n.
+
+set matrix port n                         Set output port number specified by n (-1=None).
+
+set matrix inverted n n 0                 Invert matrix (n) function(n) logic.
+set matrix inverted n n 1                 Standard matrix (n) function(n) logic.
+
+set matrix expression n n 0-4             Specify matrix n & function n. Set expression 0-4.
+                                          0=None  1=Equal  2=Over  3=Under  4=Range
+
+set matrix entry n n function_name x y z inverted expression port enabled/disabled
+                                          Specify matrix n.
+                                          Specify function n.
+                                          Set function name.
+                                          Set function values x y z.
+                                          Set standard/inverted (0-1).
+                                          Set expression (0-4). 0=None  1=Equal  2=Over  3=Under  4=Range
+                                          Set output port (-1=None).
+                                          Set disabled/enabled (0-1).
+
+set matrix xyz n n x y z                  Specify matrix n, function n and matrix function values.
+
+---------------------------------------------------------------------------------------------------------------
+print matrix -v                           Return all matrix data.
+print matrix n                            Return matrix data for specified n.
+print matrix enabled                      Return all enabled matrix switches.
+print matrix disabled                     Return all disabled matrix switches.
+print matrix active                       Return all active matrix switches.
+print matrix inactive                     Return all inactive matrix switches.
+print matrix enabled -v                   Return verbose all enabled matrix switches.
+print matrix active -v                    Return verbose all active matrix switches.
+print matrix inverted -v                  Return verbose all inverted matrix switch functions.
+print matrix timers -v                    Return verbose all matrix switch timer values.
+print matrix ports -v                     Return verbose all matrix switch ports.
+print matrix functions -v                 Return verbose all matrix switch functions.
+print matrix functions xyz -v             Return verbose all matrix switch function values.
+print matrix expressions -v               Return verbose all matrix switch expressions.
+print matrix available functions -v       Return verbose all available matrix switch functions.
+
+---------------------------------------------------------------------------------------------------------------
+
+[ DEVELOPERS LOG ]
+
+8/22/2025
+important! currently doPlans() results in Guru Meditation Error: Core 0 panic'ed (Stack protection fault) for certain non default optimization
+flags. This bug occurred after migrating to ESP32-P4 and was resolved
+by removing non default optimization flag.
+
+8/23/2025
+performance! currently everything enabled except port controller & WT901, yields 11,500 loops a second.
+port controller & WT901 disabled: 11,500 loops a second.
+port controller & WT901 enabled:  100 loops a second.
+this is a dramatic difference in performance and must be addressed: faster port controller + WT901 IIC
+communication. try faster MCUs for embedding port controller + WT901 onto. in the meantime scrutinize
+the code.
+Resolved/improved performance by plugging WT901 directly into ESP32-P4 and changing communication
+protocol from IIC to UART. Port controller was also simplified by removing unnecessary IIC requests.
+port controller & WT901 enabled: 7400 loops a second.
+
+8/23/2025
+getSensorData() via multiplexer reduces loops per second from 7400 to 400.
+this is a dramatic difference in performance and must be addressed:
+	- removing sensor multiplexer.
+	- get a faster read from every channel on the multiplexer.
+partially resolved by putting getSensorData() in load distribution.
+loops per second: 1800
+
+8/23/2025
+Continue simplifying the software and hardware to increase performance and efficiency.
+Ideally there is no load distribution so that everything can run every loop.
+
+8/24/2025
+[LPS] 2030           (loops per second)
+[i_wtgps300]  10     (read WTGPS300: executions per second)
+[i_wt901]     404    (read WT901: executions per second)
+[i_sensors]   404    (read sensors: executions per second)
+[i_scommands] 404    (read serial: commands executions per second)
+[i_tplanets]  404    (track planets: executions per second)
+[i_portcon]   2030   (write port controller: executions per second)
+[i_matrix]    2030   (write matrix: executions per second)
+This is with all matrix switch functions set to None.
+This means SatIO is capable of switching about twice a millisecond.
+Timing of individual loops vary (currently).
+A good target would be to create enough headroom that everything executes every millisecond, regardless
+of what is enabled (serial output etc.). This means continuing to simplify the software and hardware
+and increasing performance and efficiency.
+If there is enough headroom then consider setting execution intervals; for example: read WTGPS at millisecond time N, etc,
+so that all main executions occur within their own unique specified time windows.
+
+8/24/2025
+Results after some tweaking:
+[LPS] 33132
+[i_wtgps300]  10
+[i_scommands] 33122
+[i_portcon]   33132
+[i_matrix]    33132
+This is with all matrix switch functions set to None.
+Note that thousands of loops drop for none 'None functions' set: tweak matrix switch perf.
+
+8/24/2025
+removed unecesary 'set pio' and 'set switch state' commands which are already accounted for 
+with set 'matrix entry' with function 'Enabled' 0/1 command.
+
+8/24/2025
+Reduced checks required by serial command parser.
+[LPS] 36380
+[i_wtgps300]  10
+[i_scommands] 36370
+[i_portcon]   36380
+[i_matrix]    36380
+
+8/24/2025
+Moved matrix to task.
+Turn out wt901 outputs ten times a second.
+Current vTaskDalays:
+readGPS:         vTaskDelay(50 / portTICK_PERIOD_MS);     priority: 1
+readWT901:       vTaskDelay(50 / portTICK_PERIOD_MS);     priority: 1
+setTrackPlanets: vTaskDelay(1000 / portTICK_PERIOD_MS);   priority: 1
+readSensors:     vTaskDelay(1 / portTICK_PERIOD_MS);      priority: 4
+matrixSwitch:    vTaskDelay(1 / portTICK_PERIOD_MS);      priority: 4
+[LPS] 41748
+[i_wtgps300]  10
+[i_wt901]     10
+[i_sensors]   333
+[i_scommands] 0
+[i_tplanets]  1
+[i_portcon]   41748
+[i_matrix]    854
+
+8/24/2025
+Moved matrix to task.
+Turn out wt901 outputs ten times a second.
+Current vTaskDalays:
+matrixSwitch:    vTaskDelay(1 / portTICK_PERIOD_MS);      priority: 4
+readSensors:     vTaskDelay(1 / portTICK_PERIOD_MS);      priority: 4
+readGPS:         vTaskDelay(50 / portTICK_PERIOD_MS);     priority: 1
+readWT901:       vTaskDelay(50 / portTICK_PERIOD_MS);     priority: 1
+setTrackPlanets: vTaskDelay(1000 / portTICK_PERIOD_MS);   priority: 1
+[LPS] 41839
+[i_wtgps300]  10
+[i_wt901]     10
+[i_sensors]   334
+[i_scommands] 0
+[i_tplanets]  1
+[i_portcon]   41839
+[i_matrix]    852
+
+
+8/24/2025
+Moved matrixSwitch() and portController to switchHandler() task.
+This helps balance matrixSwitch times ran with port controller timers ran while
+also increasing main loops per second.
+[LPS] 61217
+[i_wtgps300]  10
+[i_wt901]     10
+[i_sensors]   334
+[i_scommands] 0
+[i_tplanets]  1
+[i_portcon]   865
+[i_matrix]    865
+Now try to increase performance & efficiency of matrixSwitch and port controller
+functionality, aiming for >1000 loops per second (for full millisecond modulation
+if required).
+
+
+8/24/2025
+Removed Switch() and portController from SwitchHandler() task.
+Alternative balance.
+[LPS] 46445
+[i_wtgps300]  10
+[i_wt901]     10
+[i_sensors]   334
+[i_scommands] 0
+[i_tplanets]  1
+[i_portcon]   46445
+[i_matrix]    46445
+
+
+8/24/2025
+Adjusted IIC communication to port controller to be more efficient.
+All matrix switches disabled.
+[LPS] 47647
+[i_wtgps300]  10
+[i_wt901]     0
+[i_sensors]   333
+[i_scommands] 0
+[i_tplanets]  1
+[i_portcon]   47647
+[i_matrix]    47647
+One switch enabled with timer: 50 25
+[LPS] 38000
+[i_wtgps300]  10
+[i_wt901]     0
+[i_sensors]   333
+[i_scommands] 0
+[i_tplanets]  1
+[i_portcon]   38000
+[i_matrix]    38000
+
+
+8/25/2025
+Throttled port controller and matrixSwitch by a division of INTERVAL_TIME.
+All matrix switches disabled.
+[LPS] 59883
+[i_wtgps300]  10
+[i_wt901]     10
+[i_sensors]   333
+[i_scommands] 0
+[i_tplanets]  1
+[i_portcon]   1964
+[i_matrix]    1964
+One switch enabled with timer: 50 25
+[LPS] 58890
+[i_wtgps300]  10
+[i_wt901]     10
+[i_sensors]   333
+[i_scommands] 0
+[i_tplanets]  1
+[i_portcon]   1964
+[i_matrix]    1964
+
+
+8/25/2025
+Removed MatrixTimers (modulation), this allow thinking differently for
+modulation.
+Current vTaskDalays:
+matrixSwitch:    vTaskDelay(1 / portTICK_PERIOD_MS);      priority: 4.
+readSensors:     vTaskDelay(1 / portTICK_PERIOD_MS);      priority: 4.
+readGPS:         vTaskDelay(50 / portTICK_PERIOD_MS);     priority: 1.
+readWT901:       vTaskDelay(50 / portTICK_PERIOD_MS);     priority: 1.
+setTrackPlanets: vTaskDelay(1000 / portTICK_PERIOD_MS);   priority: 1.
+INTERVAL_TIME=1000_Microseconds=1_Millisecond.
+time_period_switches=INTERVAL_TIME/2=500_Microseconds=HALF_Millisecond.
+All matrix functions None:
+[LPS] 46259
+[i_wtgps300]  10
+[i_wt901]     11
+[i_sensors]   333
+[i_scommands] 0
+[i_tplanets]  1
+[i_portcon]   1954
+[i_matrix]    1954
+One switch running SatCountOver:
+[LPS] 45235
+[i_wtgps300]  10
+[i_wt901]     10
+[i_sensors]   333
+[i_scommands] 0
+[i_tplanets]  1
+[i_portcon]   1961
+[i_matrix]    1961
+
+
+8/25/2025
+Ensure all counters do not exceed their data type max limits.
+ 
+8/25/2025
+Continue increasing efficiency and performance.
+Comb through all code, simplifying, ordering and removing.
+Sync tv_now with gps?
+Make header file.
+make i_count_X = yield counters (increment if yield, most do already)?
+parse functions with python, make list for header file.
+make libraries for the things (meteors, volcanoes, wt901, wtgps300p, port controller, etc)
+$SYSTEM sentence.
+Calculate gforce.
+Comb through CmdProcess, making amendments and adding features.
+
+
+8/26/2025
+Added overload prints arguments to CmdProc.
+Added ability to set overload threshold in microseconds.
+Removed setting overload threshold by predefined values.
+
+
+8/26/2025
+Simplify CmdProcess().
+
+8/26/2025
+Created new struct for serial 0.
+
+8/26/2025
+Make a list of all input:
+	1: serial
+	2: i2c
+Sanitize all input.
+1: Build/find lib that explicitly checks data types.
+2: Beyond 1: sanitization may be unique/bespoke per value requirements (hard work).
+
+
+8/27/2025
+Counters reset 2 units below TYPE_MAX
+Refactored:
+	IIC multiplexer variable names to be agnostic to any particular multiplexer name.
+	IIC multiplexer variable names reflect multiplexer 0-N for if there are more IIC multiplexers.
+	IIC multiplexer is now referred to as IICMPLEX_0.
+	Analog/Digital multiplexer variable names to be agnostic to any particular multiplexer name.
+	Analog/Digital multiplexer variable names reflect multiplexer 0-N for if there are more Analog/Digital multiplexers.
+	Analog/Digital multiplexer is now referred to as ADMPLEX_0.
+	WT901 is now referred to as Gyro0 for if there are more Gyro's.
+
+
+8/27/2025
+Todo: Group structs with their corresponding functions that populate them and make function name headers.
+
+8/27/2025
+Added input sanitization for GPS (serial) and humans (serial).
+
+8/27/2025
+Consider other sanitization.
+
+8/28/2025
+------------------------------------------------------------------
+
+Current Time Handling:
+
+External RTC = UTC
+Local Time   = +- External RTC
+Read Times   = Stored Values with a approx. resolution of loop time.
+
+Time values are stored each 'frame' so that calls to write/set time
+happen in one place while calls to read time can occur anywhere
+in the system without disturbing a write/set time function.
+
+The RTC used does not have microseconds.
+The system would benefit from synchronized milliseconds to within
+some degree of micros.
+
+------------------------------------------------------------------
+
+ESP32-P4 RTC has microseconds but can reset on POR:
+
+External RTC = UTC
+Local Time   = +- External RTC
+
+ESP32-P4 RTC = External RTC (with microseconds)
+or
+ESP32-P4 RTC = Local Time (with microseconds)
+
+Read Times   = Stored Values with a approx. resolution of loop time.
+
+------------------------------------------------------------------
+
+8/28/2025
+New time handling:
+External RTC = UTC
+Internal RTC = Local Time
+Times are still stored by the second.
+Internal RTC is now synchronized with UTC to within microseconds
+depending on system load.
+Main loop timings that use Internal RTC are now synchronized with UTC.
+
+8/28/2025
+Re-implemented utc offset for user defined local time.
+
+8/28/2025
+system time (local time) is now set on startup as well as being
+adjusted (synchronized with UTC).
+
+
+8/28/2025
+removed 3 bugs/typos in gnrmcData and gpattData.
+
+8/30/2025
+Ensured all instances of memset clear buffer by sizeof() rather than arbitrary
+values.
+
+8/30/2025
+Before setting MAX_GLOBAL_ELEMENT_SIZE
+RAM:   [==        ]  20.1% (used 65732 bytes from 327680 bytes)
+Flash: [=======   ]  70.1% (used 918221 bytes from 1310720 bytes)
+After setting MAX_GLOBAL_ELEMENT_SIZE
+RAM:   [==        ]  21.6% (used 70772 bytes from 327680 bytes)
+Flash: [=======   ]  70.4% (used 923273 bytes from 1310720 bytes)
+I believe this is worth it to know everything (with some exceptions) can hold MAX_GLOBAL_ELEMENT_SIZE bytes (MAX_GLOBAL_ELEMENT_SIZE chars).
+
+
+8/30/2025
+Consider making MAX_SERIAL_BUFFER_SIZE a multiplication of max expected elements size: MAX_SERIAL_BUFFER_SIZE = expected elements * MAX_GLOBAL_ELEMENT_SIZE
+Find current expected max element size (find the currently largest expected value).
+
+8/30/2025
+No sentence output:
+---------------------------------------------------------------
+Loops p/s              :  15194
+GPS p/s                :  10
+Gyro0 p/s              :  10
+Multiplexers p/s       :  331
+Commands p/s           :  0
+Universe p/s           :  1
+Matrix p/s             :  3798
+Port Controller p/s    :  3799
+Total Overloads        :  0
+Loop Time              :  32 uS
+Longest Loop time      :  59806 uS
+Load                   :  0.0319999978 %
+Satellites             :  35
+GPS Precision          :  0.6
+GPS Datetime           :  075906.00 310825
+RTC unixime (SS)       :  1756627146
+System unixtime (uS)   :  1756627146000028 (+- offset seconds 0)
+RTC Datetime           :  075906 31082025
+System Datetime        :  075906 31082025 (+- offset seconds 0)
+---------------------------------------------------------------
+All sentence output:
+---------------------------------------------------------------
+Loops p/s              :  14742
+GPS p/s                :  11
+Gyro0 p/s              :  11
+Multiplexers p/s       :  331
+Commands p/s           :  0
+Universe p/s           :  0
+Matrix p/s             :  3637
+Port Controller p/s    :  3636
+Total Overloads        :  0
+Loop Time              :  44 uS
+Longest Loop time      :  59806 uS
+Load                   :  0.0439999998 %
+Satellites             :  37
+GPS Precision          :  0.6
+GPS Datetime           :  080004.00 310825
+RTC unixime (SS)       :  1756627204
+System unixtime (uS)   :  1756627204000025 (+- offset seconds 0)
+RTC Datetime           :  080004 31082025
+System Datetime        :  080004 31082025 (+- offset seconds 0)
+---------------------------------------------------------------
+
+8/31/2025
+Reimplemented programmable linear modulation (simple time on time off modulation).
+
+9/1/2025
+change: char matrixData.matrix_function[n][n][n]
+to:     int matrixData.matrix_function[n][n][n]
+instances of matrixData.matrix_function[n][n][n]:
+	matrixSwitch()
+	zeroMatrix()
+	cmdProcess()
+int matrixData.matrix_function[n][n][n] will hold index numbers pointing to matrixData.matrix_function_names[n].
+int matrixData.matrix_function[n][n][n] index numbers can then be used for making switch statements in matrixSwitch() (instead of strcmp).
+upside:
+	- quicker.
+	- more efficient.
+downside:
+	matrixData.function_names[n] will ideally have to remain in the same order to avoid having to change indexes later:
+		- new functions should be added to the end not in the middle of matrixData.matrix_function_names[n].
+		- this has been avoided until there may be nothing to 'slot in' to matrixData.matrix_function_namess[n] anywhere.
+		- currently new function namescan be slotted in at any index of matrix_function_names[n] without disrupting
+		  anything else, because strcmp checks are agnostic to any specific index number(s).
+
+8/1/2025
+Now ensure high/low is set every time & efficiently.
+
+8/2/2025
+load dist: 3730 none set, 3630 1 set
+no load dist: 11824 none set, 10889 1 set
+
+8/2/2025
+Began bringing cmdProcess out of draft.
+Amend and test commands for trying to make ease of use and bug checking:
+	- bug: sentence output (timing). fixed (taken out of load distribution to catch intervals).
+	- potential issue if parsing output by colon delimiter (time has colon). mitigated if parsing by expected column index.
+	- removed matrix_io enable
+ 	- removed gps, satio enable
+	- removed matrix enable
+ 	- inspect mplex enables for efficiency and zeroed data if disabled. the system is general, a read would be replaced by a constant check. remove enable/disable.
+	- return system unix microsecond time
+	- elaborate help commands
+	- stats like matrix_enabled_i, matrix_active_i
+
+8/3/2025
+Moved matrixSwitch and portcontroller to taskSwitches.
+
+8/3/2025
+taskUniverse     : vTaskDelay(1000 / portTICK_PERIOD_MS) priority 1  core 0
+taskSwitches     : vTaskDelay(1)                         priority 4  core 0
+taskGPS          : vTaskDelay(10 / portTICK_PERIOD_MS);  priority 1  core 0
+taskMultiplexers : vTaskDelay(1 / portTICK_PERIOD_MS);   priority 1  core 0
+--------------------------------------------------------------- 
+Loops p/s              :  31941
+GPS p/s                :  10
+Gyro0 p/s              :  0
+Multiplexers p/s       :  331
+Commands p/s           :  0
+Universe p/s           :  1
+Matrix p/s             :  992
+Port Controller p/s    :  992
+Total Overloads        :  0
+Loop Time              :  1 uS
+Longest Loop time      :  61516 uS
+Load                   :  0.0009999999 %
+Satellites             :  27
+GPS Precision          :  0.8
+GPS Datetime           :  055022.00 030925
+RTC unixime (SS)       :  1756878622
+System unixtime (uS)   :  1756878621000001 (+- offset seconds 0)
+RTC Datetime           :  055022 03092025
+System Datetime        :  055021 03092025 (+- offset seconds 0)
+Switch Enabled         :  enabled: 0 disabled: 30
+Switch Active          :  active:  0 inactive: 30
+---------------------------------------------------------------
+
+8/3/2025
+Multiple instances of load must now be measured from tasks and
+pertain to each task.
+
+8/3/2025
+Refactored matrix functions 'none', 'enabled' to 'off' and 'on'. this allows
+for terms like enabled/disabled to be used separately in and for other cases.
+
+8/3/2025
+commands:
+	- print
+	- switch: compliment current switch commands with set commands and consider keeping switch.
+	- set
+indexes:
+	- check for arbitrary hardcoded index access int's and replace them with #defines, loops using variable index int's can remain.
+task switches:
+	- try to increase loops per second of task switches (currently approx. 994 loops a second, short of millisecond resolution) to
+          millisecond resolution (>1000 loops a second).
+	- enumerate samples per second either by elements or compounds:
+		sensor reads: say analog/digital x16 multiplexer x330 a second = 16 elements * 330 = 5,280
+		+
+		GPS elements
+		+
+		universe elements
+		+
+		other elements
+	- element sample focus: see how quickly a single element can be sampled (isolated sampling modes).
+
+
+8/3/2025
+    // --------------------------------------------------------------------------------------------------------------------
+    // set matrix intended switch state as true/false according to final bool.
+    // checking enabled after logic allows logic to be checked without setting intended switch state high/low (experimental)
+    // if enabled:
+    //           - matrix_switch_state high/low intention is set and sent to portcontroller.
+    //           - switch high/low state is updated.
+    // if disabled:
+    //           - virtual_matrix_switch_state high/low intention is set and not sent to portcontroller.
+    //           - switch remains in current high/low state until enabled.
+    //           - updating high/low should be manual if disabled.
+    // --------------------------------------------------------------------------------------------------------------------
+    if (matrixData.matrix_switch_enabled[0][Mi]==true) {matrixData.matrix_switch_state[0][Mi]=final_bool;}
+    else {matrixData.virtual_matrix_switch_state[0][Mi]=final_bool;}
+
+serial commands:
+	- enable all
+	- disable all
+	- set high/low (manual override) requires at least:
+		- automatically disable matrix switch (DSKY style) (command: disable switch n).
+		- requires command to hand back to computer (command: enable switch n).
+
+check override: use matrixData.matrix_switch_enabled
+check virtual state: matrixData.virtual_matrix_switch_state
+check actual state: matrixData.matrix_switch_state
+thats 3 bool arrays that can be used to determine a lot of information while also providing changes in system fucntionality.
+very simple and concise.
+
+Important:
+	- manually setting matrixData.matrix_switch_enabled=false = matrixData.matrix_switch_state remains high/low
+		- can you do this? yes but its on you.
+		- what is the preferred method? making a macro, like simple setMatrixLow() function (for digital I/O).
+	- automatically setting matrixData.matrix_switch_enabled=false = matrixData.matrix_switch_state can be manipulated as part of a macro.
+	- manually setting matrixData.matrix_switch_enabled=true = computer now controls high/low (in example of digital I/O instances).
+		- can you do this? yes but its you and your matrix logic.
+
+set matrix entry 0 0 0 0 0 0 0 2 33
+set matrix entry 0 0 14 20 0 0 0 2 33
+set matrix high 0     : macro manual override                : switch set high
+set matrix low 0      : macro manual override                : switch set low
+set matrix enabled 0  : low level hands back to the computer : switch high/low according to users matrix logic
+set matrix disabled 0 : low level manual override            : switch n remains high/low
+
+set matrix enabled 29
+
+8/4/2025
+current:
+	matrix_switch_enabled
+	matrix_switch_state
+	virtual_matrix_switch_state
+
+different ways of looking at the same thing:
+
+	computer_enabled_switch
+	red_matrix_switch_state
+	amber_matrix_switch_state
+
+	red_matrix_switch_state
+	hyper_matrix_switch_state
+
+	red_switch_state
+	virtual_matrix_switch_state
+
+	actual_switch_state
+	computer_matrix_switch_state
+
+	current intention
+	computer intention
+
+	current supported switch state is digital only (bool only).
+	if analog, IIC, etc become supported then different arrays would be required (with different names).
+		- benefits of keeping the matrix switch digital:
+			- simple.
+			- always true/false.
+
+	digital_intention
+	computer_digital_intention
+
+	digital_intention
+	computer_digital_intention
+
+
+	computer enabled
+	current intention
+	computer intention
+
+	
+	computer assist
+	current intention
+	computer intention
+
+switch_intention is a result.
+computer_switch_intention is a result.
+is 'intention' a layer of abstraction (one layer) premature?
+
+keep: computer assist (true/false)
+use: computer result (true/false)
+use: switch intention (currently true/false for digital: high/low)
+
+
+8/4/2025
+New Refactored:
+matrixData.computer_assist    (true/false)
+matrixData.switch_intention   (true/false = high/low)
+matrixData.computer_intention (true/false = high/low)
+
+New commands:
+set matrix entry 0 0 1 0 0 0 0 0 33
+set matrix entry 0 0 0 0 0 0 0 0 33
+set matrix entry 0 0 14 20 0 0 0 2 33
+set matrix high 0     : macro manual override                : switch set high
+set matrix low 0      : macro manual override                : switch set low
+set assist enabled 0  : low level hands back to the computer : switch high/low according to users matrix logic
+set assist disabled 0 : low level manual override            : switch n remains high/low
+
+
+8/4/2025
+Consider variable analog out in its most practical, programmable and simplest way:
+	- variable mapping (programmable output value filter)
+	- avoid analog/digital flags (always just write the value to the port controller)
+	- both digital and analog output values should go through the same mapping filter with no problem (everything simply works the same)
+		- digital: 0/1 go into filter = 0/1 come out of filter.
+		- analog: 0/1 go into filter = 0-N come out of filter according to programmable mappings.
+		- this way everything just goes through a 'filter' stage (simplicity, all values through one extra function).
+
+		- requirements:
+			- mapping value arrays.
+			- available mapping value indexes.
+
+			variable_array (default): { {switch_intention, 0, 1, 0, 1}, {..more}}
+			variable_array (example): { {ground speed, ground speed min, ground speed max, analog_min, analog_max}, {..more}}
+			analog_result[index] = map(variable_array[index][0], variable_array[index][1],variable_array[index][2], variable_array[index][3], variable_array[index][4])
+			--> send to port con
+
+			consider use case:
+				- analog human interface devices: joysticks etc.
+					- {joystick_X, joystick_X_min, joystick_X_max, new_min, new_max}
+					- note that this allows calibration while also any other (or the same) switch could also be using these values digitally (joystick_X > Y).
+
+
+8/4/2025
+current mappable value list (for now):
+    "Digital",  # 0
+    "YawGPATT",  # 1
+    "RollGPATT",  # 2
+    "PitchGPATT",  # 3
+    "Gyro0AccX",  # 4
+    "Gyro0AccY",  # 5
+    "Gyro0AccZ",  # 6
+    "Gyro0AngX",  # 7
+    "Gyro0AngY",  # 8
+    "Gyro0AngZ",  # 9
+    "Gyro0MagX",  # 10
+    "Gyro0MagY",  # 11
+    "Gyro0MagZ",  # 12
+    "Gyro0GyroX",  # 13
+    "Gyro0GyroY",  # 14
+    "Gyro0GyroZ",  # 15
+    "ADMPlex0_0",  # 16
+    "ADMPlex0_1",  # 17
+    "ADMPlex0_2",  # 18
+    "ADMPlex0_3",  # 19
+    "ADMPlex0_4",  # 20
+    "ADMPlex0_5",  # 21
+    "ADMPlex0_6",  # 22
+    "ADMPlex0_7",  # 23
+    "ADMPlex0_8",  # 24
+    "ADMPlex0_9",  # 25
+    "ADMPlex0_10",  # 26
+    "ADMPlex0_11",  # 27
+    "ADMPlex0_12",  # 28
+    "ADMPlex0_13",  # 29
+    "ADMPlex0_14",  # 30
+    "ADMPlex0_15",  # 31
+
+8/4/2025
+todo: map nvalue in setOutputValues() for non zero case.
+
+set matrix entry 0 0 1 0 0 0 0 0 54 // A0
+set matrix entry 0 0 1 0 0 0 0 0 33 // D
+set matrix entry 0 0 0 0 0 0 0 0 33
+set matrix entry 0 0 14 25 0 0 0 2 33
+set matrix entry 0 0 1 0 0 0 0 0 33
+
+set matrix entry 0 0 83 0 0 0 0 2 33
+
+set output value 0 0     : macro manual override
+set output value 0 1     : macro manual override
+set output value 0 150     : macro manual override
+
+set assist enabled 0  : low level hands back to the computer : switch high/low according to users matrix logic
+set assist disabled 0 : low level manual override            : switch n remains high/low
+
+set output map 0 0 0 1 0 1 // default: digital
+set output map 0 16 0 4090 0 50
+
+set matrix port 0 33
+set matrix port 0 54
+
+set matrix mod 0 100000 100000
+set matrix mod 0 500000 500000
+set matrix mod 0 50000 50000
+set matrix mod 0 1000000 15000
+set matrix mod 0 1000000 400000
+set matrix mod 0 0 0
+set matrix mod 0 3000000 0
+
+
+
+8/4/2025
+todo: add mapped output values to matrix. done. x,y=compare, z=mapped output index
+todo: refine portcontroller receive behaviour (no spam high). pending
+changed manual override method to force portcontroller instruction to use a different value array if assist is false.
+
+8/4/2025
+note: System Datetime        :   00 (+- offset seconds 0)
+
+8/5/2025
+simplified use of and instances of admplex. x,y=compare, z=admplex index
+example with analog joystick on analog/digital multiplexer channel 0:
+set matrix entry 0 0 83 0 0 0 0 2 33   (value greater than 0)
+set output map 0 16 0 4090 0 50        (calibrate and stabilize)
+set assist enabled 0                   (hand off to the computer)
+
+8/5/2025
+Increase matrix size to fully compliment ATMEGA2560 IO capacity now that output is both analog and digital. done.
+
+
+8/6/2025
+mapped_value vs output_value.
+
+currently:
+output_value
+override_output_value
+add:
+mapped_values separately (currently placed directly into output_value).
+	- independently of output values.
+	- mapped value happens once and can be used multiple times.
+
+set matrix entry 0 0 1 0 0 0 0 0 54 // A0
+set matrix entry 0 0 1 0 0 0 0 0 33 // D
+set matrix entry 0 0 0 0 0 0 0 0 -1
+set matrix entry 0 0 14 25 0 0 0 2 33
+set matrix entry 0 0 1 0 0 0 0 0 33
+
+set assist enabled 0  : low level hands back to the computer : switch high/low according to users matrix logic
+set assist disabled 0 : low level manual override            : switch n remains high/low
+
+
+8/6/2025
+Mapped values now reside independently of switches and can be output to switch and or used in matrix.
+
+Start mapping a value:
+2: set value map 0 16 0 4090 0 50     - 0: map slot 1: map value 2: expected min 3: expected max 4: min 5: max
+
+Optional: Output a mapped value example:
+1: set assist enabled 0               - enable assist on switch zero
+2: set mapped value 0 0               - point switch zero mapped value to map value index 0 (can be any map value slot)
+3: set output key 0 1                 - change switch zero output to mapped value (output key 1)
+4: set output key 0 0                 - optional: change switch zero output to default (0/1)
+
+Optional: Use mapped value in matrix example:
+1: set matrix entry 0 0 84 0 0 0 0 2 33  - switch zero, function 0, function 84 (mapped value) greater than zero, output port 33 
+
+
+Advanced Example
+
+Reset mapping:
+set mapping 0 0 0 0 0 0
+set mapping 1 0 0 0 0 0
+set map mode 0 0
+set map mode 1 0
+
+Start mapping a value:
+2: set mapping 0 16 0 4090 0 4090     - 0: map slot   1: map value   2: expected min   3: expected max   4: min/max   5: max/min
+2: set mapping 1 16 0 4090 0 4090     - 0: map slot   1: map value   2: expected min   3: expected max   4: min/max   5: max/min
+
+Optional: Output a mapped value example:
+1: set assist enabled 0             - enable assist on switch zero
+1: set assist enabled 1             - enable assist on switch one
+
+2: set output map 0 0               - point switch zero at mapped value 0 
+2: set output map 1 1               - point switch one at mapped value 1
+
+3: set output mode 0 1              - set switch zero output as mapped mode
+3: set output mode 1 1              - set switch one output as mapped mode
+
+Optional: Use mapped value in matrix example:
+1: set matrix entry 0 0 84 7 0 0 0 2 54  - configure switch 0 to trigger in joystick up (greater than 25/N) 84: mapped value=z=1
+1: set matrix entry 1 0 84 3 0 0 0 3 55  - configure switch 0 to trigger in joystick down (less than 20/N)  84: mapped value=z=0
+Gives the analog approx. 3 different stable levels of change, each way on one axis, +-x.
+
+
+4: optional: set flux 0 0
+4: optional: set flux 1 0
+
+
+8/6/2025
+Done: variable mapping/stabilization.
+Todo: variable balancing. possibly a simple offset array: default 0.
+	- note balancing can be achieved by combining flux and map but possibly not at full ADC bit range (with lower values).
+	- note that different algorithms could be selected for mappings (make map algorithm index).
+
+
+center map example:
+int center=1974;     // estimate approximate center
+int neg_range=1974;  // 0 - center
+int pos_range=1894;  // ADC max - neg range
+int OUTPUT_MAX=1023; // output max
+int DEADZONE=50;     // account for fluctuation at center
+
+set mapping 0 16 1974 1974 1894 255 50
+set mapping 1 16 1974 1974 1894 255 50
+set mapping 2 17 1974 1974 1894 255 50
+set mapping 3 17 1974 1974 1894 255 50
+
+set mapping 0 16 0 4096 0 255
+set mapping 1 16 0 4096 0 255
+
+
+set matrix port 0 54
+set matrix port 1 55
+
+
+set matrix entry 0 0 14 789 0 0 0 2 33
+set matrix entry 34 0 14 123 0 0 0 2 33
+
+
+
+
+
+8/10/2025
+created simple system INS.
+plugged INS into matrix.
+plugged INS into output.
+balanced estimate position with gyro interval.
+delayed setup to allow devices such as WT901 enough time to start after power on.
+
+
+8/11/2025
+added second vTaskDelay to sub while loop in taskGPS for increasing task priority to 3.
+increased taskGPS priority to 3.
+
+
+8/11/2025
+plugged INS settings into cmdProcess.
+
+
+8/17/2025
+  // --------------------------------------------------------------
+  // xTask Multiplexers
+  // --------------------------------------------------------------
+  xTaskCreatePinnedToCore(
+    taskMultiplexers,   /* Function to implement the task */
+    "TaskMultiplexers", /* Name of the task */
+    10240,              /* Stack size in words */
+    NULL,               /* Task input parameter */
+    2,                  /* Priority of the task */
+    &TaskMultiplexers,  /* Task handle. */
+    0);                 /* Core where the task should run */
+  delay(50);            /* delay between task creation */
+
+vTaskDelay(1 / portTICK_PERIOD_MS);
+
+  // --------------------------------------------------------------
+  // xTask Gyro
+  // --------------------------------------------------------------
+  xTaskCreatePinnedToCore(
+    taskGyro,   /* Function to implement the task */
+    "TaskGyro", /* Name of the task */
+    10240,      /* Stack size in words */
+    NULL,       /* Task input parameter */
+    3,          /* Priority of the task */
+    &TaskGyro,  /* Task handle. */
+    0);         /* Core where the task should run */
+  delay(50);    /* delay between task creation */
+
+vTaskDelay(1);
+
+  // --------------------------------------------------------------
+  // xTask Universe
+  // --------------------------------------------------------------
+  xTaskCreatePinnedToCore(
+    taskUniverse,   /* Function to implement the task */
+    "TaskUniverse", /* Name of the task */
+    10240,          /* Stack size in words */
+    NULL,           /* Task input parameter */
+    1,              /* Priority of the task */
+    &TaskUniverse,  /* Task handle. */
+    0);             /* Core where the task should run */
+  delay(50);        /* delay between task creation */
+
+vTaskDelay(1000 / portTICK_PERIOD_MS);
+
+  // --------------------------------------------------------------
+  // xTask GPS
+  // --------------------------------------------------------------
+  xTaskCreatePinnedToCore(
+      taskGPS,   /* Function to implement the task */
+      "TaskGPS", /* Name of the task */
+      10240,     /* Stack size in words */
+      NULL,      /* Task input parameter */
+      3,         /* Priority of the task */
+      &TaskGPS,  /* Task handle. */
+      0);        /* Core where the task should run */
+  delay(50);     /* delay between task creation */
+
+vTaskDelay(1 / portTICK_PERIOD_MS);
+
+  // --------------------------------------------------------------
+  // xTask TaskSwitches
+  // --------------------------------------------------------------
+  xTaskCreatePinnedToCore(
+    taskSwitches,   /* Function to implement the task */
+    "TaskSwitches", /* Name of the task */
+    10240,          /* Stack size in words */
+    NULL,           /* Task input parameter */
+    4,              /* Priority of the task */
+    &TaskSwitches,  /* Task handle. */
+    0);             /* Core where the task should run */
+  delay(50);        /* delay between task creation */
+
+vTaskDelay(1);
+
+
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------   
+Loops p/s       GPS p/s         INS p/s         Gyro0 p/s       ADMplex0 p/s    CMD p/s         Universe p/s    Matrix p/s      I/O p/s         LT uS           LT Max uS       Satellites      GPS Precision
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------   
+31552.000000    10.000000       0.000000        193.000000      195.000000      0.000000        0.000000        963.000000      963.000000      2.000000        53068.000000    24.000000       0.900000
+
+
+  // --------------------------------------------------------------
+  // xTask Multiplexers
+  // --------------------------------------------------------------
+  DELAY_TASK_MULTIPLEXERS=1;         // delay time/ticks
+  TICK_DELAY_TASK_MULTIPLEXERS=true; // false for millisecond delay
+  xTaskCreatePinnedToCore(
+    taskMultiplexers,   /* Function to implement the task */
+    "TaskMultiplexers", /* Name of the task */
+    10240,              /* Stack size in words */
+    NULL,               /* Task input parameter */
+    4,                  /* Priority of the task */
+    &TaskMultiplexers,  /* Task handle. */
+    0);                 /* Core where the task should run */
+    delay(50);            /* delay between task creation */
+
+  // --------------------------------------------------------------
+  // xTask Gyro
+  // --------------------------------------------------------------
+  DELAY_TASK_GYRO0=1;         // delay time/ticks
+  TICK_DELAY_TASK_GYRO0=true; // false for millisecond delay
+  xTaskCreatePinnedToCore(
+    taskGyro,   /* Function to implement the task */
+    "TaskGyro", /* Name of the task */
+    10240,      /* Stack size in words */
+    NULL,       /* Task input parameter */
+    4,          /* Priority of the task */
+    &TaskGyro,  /* Task handle. */
+    0);         /* Core where the task should run */
+    delay(50);    /* delay between task creation */
+      
+  // --------------------------------------------------------------
+  // xTask Universe
+  // --------------------------------------------------------------
+  DELAY_TASK_UNIVERSE=1;          // delay time/ticks
+  TICK_DELAY_TASK_UNIVERSE=false; // false for millisecond delay
+  xTaskCreatePinnedToCore(
+    taskUniverse,   /* Function to implement the task */
+    "TaskUniverse", /* Name of the task */
+    10240,          /* Stack size in words */
+    NULL,           /* Task input parameter */
+    1,              /* Priority of the task */
+    &TaskUniverse,  /* Task handle. */
+    0);             /* Core where the task should run */
+    delay(50);        /* delay between task creation */
+        
+  // --------------------------------------------------------------
+  // xTask GPS
+  // --------------------------------------------------------------
+  DELAY_TASK_GPS=1;          // delay time/ticks
+  TICK_DELAY_TASK_GPS=false; // false for millisecond delay
+  xTaskCreatePinnedToCore(
+    taskGPS,   /* Function to implement the task */
+    "TaskGPS", /* Name of the task */
+    10240,     /* Stack size in words */
+    NULL,      /* Task input parameter */
+    1,         /* Priority of the task */
+    &TaskGPS,  /* Task handle. */
+    0);        /* Core where the task should run */
+    delay(50);     /* delay between task creation */
+          
+  // --------------------------------------------------------------
+  // xTask TaskSwitches
+  // --------------------------------------------------------------
+  DELAY_TASK_SWITCHES=1;         // delay time/ticks
+  TICK_DELAY_TASK_SWITCHES=true; // false for millisecond delay
+  xTaskCreatePinnedToCore(
+    taskSwitches,   /* Function to implement the task */
+    "TaskSwitches", /* Name of the task */
+    10240,          /* Stack size in words */
+    NULL,           /* Task input parameter */
+    4,              /* Priority of the task */
+    &TaskSwitches,  /* Task handle. */
+    0);             /* Core where the task should run */
+  delay(50);        /* delay between task creation */
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------     
+Loops p/s       GPS p/s         INS p/s         Gyro0 p/s       ADMplex0 p/s    CMD p/s         Universe p/s    Matrix p/s      I/O p/s         LT uS           LT Max uS       Satellites      GPS Precision
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------     
+31130.000000    10.000000       0.000000        194.000000      195.000000      0.000000        0.000000        963.000000      963.000000      7.000000        52697.000000    19.000000       1.000000  
+
+
+8/17/2025
+disabled universe task.
+set optimization flag 02: same performance
+set optimization flag 03: same performance
+reenabled universe task.
+set optimization flag back to 0s.
+
+before matrix i/o = 963.000000      963.000000  p/s
+disabled all tasks except switches task: matrix i/o = 963.000000      963.000000  p/s
+reenabled all tasks.
+
+
+8/17/2025
+testing functions one by one.
+
+set utc offset 3600
+
+set matrix entry n n n x y z n n n        Set a matrix.
+                                          0 : matrix n.
+                                          1 : function n.
+                                          2 : function index n.
+                                          3 : function values x.
+                                          4 : function values y.
+                                          5 : function values z.
+                                          6 : standard/inverted n (0-1).
+                                          7 : operator n (0-4). 0=None  1=Equal  2=Over  3=Under  4=Range
+                                          8 : output port n (-1=None).
+
+INDEX_MATRIX_SWITCH_FUNCTION_NONE
+set assist enabled 0
+set matrix entry 0 0 0 0 0 0 0 0 33
+set matrix entry 0 1 0 0 0 0 0 0 33
+
+INDEX_MATRIX_SWITCH_FUNCTION_ON
+set assist enabled 0
+set matrix entry 0 0 1 0 0 0 0 0 33
+
+INDEX_MATRIX_SWITCH_FUNCTION_SWITCHLINK
+set assist enabled 0
+set assist enabled 1
+set matrix entry 1 0 0 0 0 0 0 0 34 m1 off
+set matrix entry 1 0 1 0 0 0 0 0 34 m1 on
+set matrix entry 0 0 2 1 0 0 0 0 33 m0 linked to m1
+
+INDEX_MATRIX_SWITCH_FUNCTION_LOCALTIME
+set assist enabled 0
+set matrix entry 0 0 3 125900 0 0 0 2 33
+set matrix entry 0 1 3 130000 0 0 0 3 33
+
+INDEX_MATRIX_SWITCH_FUNCTION_WEEKDAY
+set assist enabled 0
+set matrix entry 0 0 4 3 0 0 0 1 33
+
+INDEX_MATRIX_SWITCH_FUNCTION_DATEDAYX
+set assist enabled 0
+set matrix entry 0 0 5 17 0 0 0 1 33
+
+INDEX_MATRIX_SWITCH_FUNCTION_DATEMONTHX
+set assist enabled 0
+set matrix entry 0 0 6 9 0 0 0 1 33
+
+INDEX_MATRIX_SWITCH_FUNCTION_DATEYEARX
+set assist enabled 0
+set matrix entry 0 0 7 2025 0 0 0 1 33
+
+#define INDEX_MATRIX_SWITCH_FUNCTION_INSLAT 11
+#define INDEX_MATRIX_SWITCH_FUNCTION_INSLON 12
+
+INDEX_MATRIX_SWITCH_FUNCTION_INSALTITUDE
+set assist enabled 0
+set matrix entry 0 0 16 45 0 0 0 2 33 over alt
+
+INDEX_MATRIX_SWITCH_FUNCTION_POSSTATUSGNGGA
+set assist enabled 0
+set matrix entry 0 0 18 2 0 0 0 1 33
+
+INDEX_MATRIX_SWITCH_FUNCTION_SATCOUNT
+set assist enabled 0
+set matrix entry 0 0 19 30 0 0 0 2 33
+
+INDEX_MATRIX_SWITCH_FUNCTION_HEMIGNGGANORTH (tested N/S/E/W)
+set assist enabled 0
+set matrix entry 0 0 20 0 0 0 0 0 33
+
+INDEX_MATRIX_SWITCH_FUNCTION_GPSPRECISION
+set assist enabled 0
+set matrix entry 0 0 24 1.0 0 0 0 3 33
+
+INDEX_MATRIX_SWITCH_FUNCTION_ALTGNGGA
+set assist enabled 0
+set matrix entry 0 0 25 1.0 0 0 0 2 33
+
+INDEX_MATRIX_SWITCH_FUNCTION_GSPEEDGNRMC
+set assist enabled 0
+set matrix entry 0 0 37 1.0 0 0 0 3 33
+
+INDEX_MATRIX_SWITCH_FUNCTION_HEADINGGNRMC
+set assist enabled 0
+set matrix entry 0 0 38 170 0 0 0 2 33
+set matrix entry 0 1 38 171 0 0 0 3 33
+
+INDEX_MATRIX_SWITCH_FUNCTION_GNGGAVALIDCS
+set assist enabled 0
+set matrix entry 0 0 50 0 0 0 0 1 33
+
+INDEX_MATRIX_SWITCH_FUNCTION_GYRO0ACCX
+set assist enabled 0
+set assist enabled 69
+set matrix entry 0 0 56 0.2 0 0 0 2 33
+
+INDEX_MATRIX_SWITCH_FUNCTION_GYRO0ANGX
+set assist enabled 0
+set matrix entry 0 0 59 10 0 0 0 2 33
+
+INDEX_MATRIX_SWITCH_FUNCTION_SUNAZ
+set assist enabled 0
+set matrix entry 0 0 69 199 0 0 0 2 33
+set matrix entry 0 1 69 200 0 0 0 3 33
+
+INDEX_MATRIX_SWITCH_FUNCTION_SUNALT
+set assist enabled 0
+set matrix entry 0 0 70 82.60 0 0 0 2 33
+set matrix entry 0 1 70 83.0 0 0 0 3 33
+
+INDEX_MATRIX_SWITCH_FUNCTION_SDCARD_INSERTED
+set assist enabled 0
+set matrix entry 0 0 90 1 0 0 0 1 33
+
+INDEX_MATRIX_SWITCH_FUNCTION_SDCARD_MOUNTED
+set assist enabled 0
+set matrix entry 0 0 91 1 0 0 0 1 33
+
+set assist disabled 0
+set matrix mod 0 1000000 15000
+set matrix mod 0 0 0
+
+
+8/17/2025
+
+SatIO to do:
+
+	- Backplane for connecting multiple SatIO's to a central SatIO.
+
+	- Ethernet: sentence output selection serial/ethernet/wireless/etc.
+
+	- Display(s): primary + consider IIC OLEDs for specific information/notifications.
+
+	- USB: output/command over onboard USB A port instead of USB C port OR keyboard/mouse etc.
+
+
+Building projects on SatIO in the near future:
+
+	- aerial sensor drones.
+
+	- ground sensor vehicles.
+
+	- home automation.
+
+	- wearables.
+
+	- robots.
+
+	- AI.
+
+	- vehicles.
+
+
+Primary Display (>=5"):
+
+	Home screen: Solar System.
+
+	Configuration Pages.
+
+
+Small IIC OLED Secondary Display(s):
+
+	Notifications.
+
+	Alerts.
+
+	Warnings.
+
+
+IIC Sensor Modules:
+	
+	RF.
+
+	AI.
+
+	Upgrade port controller:
+		
+		- input: read analog/digital on command so that it can work as a sensor input device as well as currently supporting output.
+
+		- make second port controller and use it for dedicated input (analog/digital multiplexers can go on there too).
+
+
+GPS:
+
+   - consider swapping out the WTGPS300P for a module that does/does not have INS (WTGPS300P INS is non operational).
+
+
+Gyro:
+
+     - build electronic mechanical gyro to house MEMS gyro.
+
+     - swap out WT901 gyro for gyro with 1000Hz return rate (gyro resolution 1ms).
+
+     - consider making dipole gyro module.
+
+
+PCB:
+
+   - continue development indefinitely until satisfied that its time to design and fabricate the PCB (printed circuit board).
+
+   - ensure IO is fully utilized before designing and fabricating the SatIO PCB.
+
+
+8/18/2025-8/20/2025
+consider making libs for:
+	- meteor:                     done
+	- volcano:                    done
+	- multiplexers:               done (consider adding data struct to lib)
+	- wtgps300p                   done
+	- wt901                       done
+	- sidereal planets helper     done
+	- port controller	      pending. merge with matrix lib and rename matrix lib?
+	- matrix                      done
+	- ins                         done
+	- satioData                   done
+	- sentence output             done
+	- command process             done
+end intention may be to have main consisting mostly just of tasks and main loop.
+to do: tie up any loose ends left over from migrating functionality to libraries (sort anything remaining into pertaining libs).
+to do: tidy up main loop.
+to do: tidy up main and libraries.
+
+
+8/21/2025
+Matrix efficiency:
+	- remove setOutputValues loop.
+	- remove setOutputValues loop.
+- tighten up the timing again after having migrated functionality to libraries.
+Main loop:
+- move GetINSPosition() & Speed to task.
+- move CmdProcess() & outputSentences() & Stat to task.
+
+8/21/2025
+- todo: reimplement synchronization of system intervals and timings done
+
+8/21/2025
+1 : todo : Simplify libraries and main, focusing on code reduction, efficiency and performance.
+2 : portcontroller modulation:
+	option 1 : +-70 IIC chips for each ATMEGA2560 pin.
+	option 2 : +-70 IIC chips directly on the IIC extension bus (retire the portcon).
+3 : upgrade portcontroller to work as general input device as well as general output device.
+
+8/22/2025
+- todo: serial command general tidy
+- common constants
+
+8/23/2025
+Replace all arbitrary index access ints with constants
+MatrixSwitch can now use switch case instead of else if.
+
+8/24/2025
+Created Caldwell table in SiderealObjects extras directory.
+Converted Caldwell table to C array and plugged into SiderealObjects library.
+Began converting sidereal planets extras to pythonic lists for easy transformations into C arrays, other formatting.
+Each new table should include at least the following:
+	Index
+	NGC
+	Distance
+	Magnitude
+	RA
+	DEC
+Then finish volcanos list.
+
+8/27/2025
+Added new fields for SiderealObjects for NGC, Caldwell, IC, Messier, Herschell where applicable else fields are left empty:
+	- name
+	- type
+	- constellation
+	- distance
+Remaining:
+	- stars.
+
+To do after Stars name, type, constellation, distance:
+	- distance identification function for S Values (pc/mpc/gpc).
+	- distance conversion functions (some preferred/global metric).
+	- plug distances into front end(s) (currently serial).
+
+
+8/29/2025
+Created new values for SiderealObjects:
+void setStars() {
+    clearAllObjects();
+    setObjectTableName();
+    setID();
+    setObjectStarName();
+    setObjectStarType();
+    setObjectStarDist();
+}
+void setNGC() {
+    clearAllObjects();
+    setObjectTableName();
+    setID();
+    setObjectNGCType();
+    setObjectNGCConstellation(); 
+}
+void setIC() {
+    clearAllObjects();
+    setObjectTableName();
+    setID();
+    setObjectICType();
+    setObjectICConstellation();
+}
+void setMessier() {
+    clearAllObjects();
+    setObjectTableName();
+    setAltID();
+    setObjectMessierName();
+    setObjectMessierType();
+    setObjectMessierConstellation();
+    setObjectMessierDist();
+}
+void setCaldwell() {
+    clearAllObjects();
+    setObjectTableName();
+    setAltID();
+    setObjectCaldwellName();
+    setObjectCaldwelllType();
+    setObjectCaldwellConstellation();
+    setObjectCaldwellDist();
+}
+void setHerschel400() {
+    clearAllObjects();
+    setObjectTableName();
+    setAltID();
+    setObjectHerschelType();
+    setObjectHerschelConstellation();
+    distance from earth (ngc)
+}
+What I would do differently next time? Create .csv data files and have
+sidereal_helper.cpp read said .csv files rather than packing the data
+into SiderealObjectsTables.h because then there would be infinite more
+space for more data relative to siderealObjects compared to how much data
+we can try to stuff into the MCU.
+Consider migrating extra universe data to sdcard or other storage medium,
+and removing extra universe data from SiderealObjectsTables.h.
+
+8/30/2025
+A choice:
+	- move large amounts of data to external storage or not.
+	- external storage also required for SRTM data.
+	- move to external storage.
+	- make a standard way to easily add data to the system to be available in the matrix after flashing.
+
+10/6/2025
+Created storage library for sdcard/etc handling.
+Created storage task that should: (1) checks sdcard presence, (2) read/write according to read/write flags.
+Todo: optionally add sdcard mounted to matrix.
+
+INDEX_MATRIX_SWITCH_FUNCTION_SDCARD_INSERTED
+set assist enabled 0
+set matrix entry 0 0 90 1 0 0 0 1 33
+
+INDEX_MATRIX_SWITCH_FUNCTION_SDCARD_MOUNTED
+set assist enabled 0
+set matrix entry 0 0 91 1 0 0 0 1 33
+
+10/6/2025
+To do: consider decreasing baudrate in event of errors so that
+in the future if there are errors then the errors will be legible.
+
+10/8/2025
+Modified SD_MMC library to end() gracefully by ensuring LDO power handle is stored
+on begin() and is available for when end() is called which will then use
+LDO power handle to delete the current LDO power handle.
+This modification allows same/different cards to be inserted/removed from the 
+slot and be mounted successfully.
+Also modified ffconfig to support exFAT filesystem formats.
+
+10/9/2025
+Updated and simplified sdcard library and use logic.
+System starts with no card and if card inserted later then card will be mounted.
+System starts with card and card is mounted.
+Card can be hard removed and will be unmounted.
+Card can be unmounted by software.
+Card can be mounted by software.
+Card can be completely powered down indefinitely (like during task delays).
+Card presence is detected separately from card mounted.
+Card can be FAT/exFat.
+While system is running FAT can be removed and exFat mounted and vis versa.
+Card mounted available in matrix for indicators and or any other use.
+
+10/11/2025
+Optimize TaskSerialInfoCMD as it is falling short of the performance of other tasks due
+due to the interval flags.
+Note that placing the counters systemData.i_count_read_mplex directly in serial_infocmd.cpp struct
+fooData.i_count_read_mplex removes any noticeable delays yielding 10/10 gps sentences 10 times a second
+out of serial0 txd to pc.
+
+10/12/2025
+Moved intervals set true for performance and consistency:
+Sentence output (-a, all) is now approximately 7765 times a second. 
+
+10/13/2025
+Save/load/delete: Matrix files.
+Save/load/delete: System configuration file.
+Save/load/delete: Mapping file.
+
+10/13/2025
+To do: Programmable serial input sentence parsing.
+       Reads the serial looking for: $tag(s)a
+       Parses sentence according to user programming.
+       Stores values and makes values available for use in matrix.
+To do: Programmable IIC input parsing.
+       Reads the serial looking for: $tag(s)
+       Parses data according to user programming.
+       Stores values and makes values available for use in matrix.
+To Do: Display with cyber/sci-fi like font and theme.
+
+Mapping example for analog stick:
+set map mode 0 1  : center map x0
+set map mode 1 2  : center map x1
+set map mode 2 1  : center map x0
+set map mode 3 2  : center map x1
+
+set output map 0 0
+set output map 1 1
+set output map 2 2
+set output map 3 3
+
+set output mode 0 1
+set output mode 1 1
+set output mode 2 1
+set output mode 3 1
+
+set assist enabled 0 
+set assist enabled 1 
+set assist enabled 2 
+set assist enabled 3 
+
+10/14/2025
+increased minimum command length back to >=2 due to bug causing reset at >=1.
+
+
+10/14/2025
+Simplified commands.
+
+System:
+system --save
+system --load
+system --restore-defaults
+
+Mapping:
+mapping --save
+mapping --load
+mapping --delete
+mapping -s n
+mapping -m n
+mapping -c0 n
+mapping -c1 n
+mapping -c2 n
+mapping -c3 n
+mapping -c4 n
+mapping -c5 n
+
+Matrix:
+matrix --new
+matrix --save n
+matrix --load n
+matrix --delete n
+matrix --startup-enable
+matrix --startup-disable
+matrix -s n
+matrix -p n
+matrix -f n
+matrix -fn n
+matrix -fx n
+matrix -fy n
+matrix -fz n
+matrix -fi n
+matrix -fo n
+matrix --pwm0 n
+matrix --pwm1 n
+matrix --flux n
+matrix --oride n
+matrix --computer-assist n
+matrix --omode n
+matrix --map-slot n
+
+INS:
+ins -m n
+ins -gyro n
+ins -p n
+ins -s n
+ins -r n
+ins --reset-forced n
+
+Satio:
+satio --speed-units n
+satio --utc-offset n
+satio --mode-gngga
+satio --mode-gnrmc
+
+Gyro:
+gyro --calacc
+gyro --calmag-start
+gyro --calmag-end
+
+SDCard:
+sdcard --mount
+sdcard --unmount
+
+
+
+
+
+
+
+
