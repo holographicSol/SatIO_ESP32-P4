@@ -240,8 +240,6 @@
     Additions: 1: doXRiseSetTimes(). This allows for calculating rise and set times of all planets and objects according to time and location.
                2: inRange60(). Ensures minutes and second values are wihin 0-59 for planet/object rise, set times.
                3: inRange24(). Ensures hour values are wihin 0-23 for planet/object rise, set times.
-  
-    ToDo: 20 programmable modulators on each output pin on the port controller. 
     
     ToDo: Terrain elevation: Experiments have been made decompressing NASA's SRTMGL1 (Shuttle Radar Topography Mission) files quickly.
   
