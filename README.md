@@ -331,8 +331,6 @@ Logic may require or not require values X,Y,Z.
 
 -----
 
-[SERIAL]
-
 System
 
     system --save
