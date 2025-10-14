@@ -269,28 +269,6 @@
 
 -----
 
-Complete PlatformIO project files, libraries and modified libraries:
-
-https://drive.google.com/drive/folders/13yynSxkKL-zxb7iLSkg0v0VXkSLgmtW-?usp=sharing
-    
------
-
-![plot](./Extras/images/DSC_0001_BURST20250312163521251_COVER_Doc.JPG)
-
------
-
-![plot](./Extras/images/DSC_0001_BURST20250312163521251_COVER.JPG)
-
------
-
-![plot](./Extras/images/DSC_0000_BURST20250312163643601.JPG)
-
------
-
-![plot](./Extras/images/UnidentifiedStudios.png)
-
------
-
 [ MATRIX SWITCH LOGIC ]
 
 Logic may require or not require values X,Y,Z.
