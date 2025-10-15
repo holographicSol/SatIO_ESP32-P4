@@ -9,6 +9,8 @@
   A huge matrix switch in a small package, supporting stacks of logic across
   70 output pins and 100 mapping slots.
 
+  For ESP32-P4
+
 -----
 
   Inference in Bayesian Reasoning? Moon tracking for example can be used to track the moon, it can also be used for one example; to 
@@ -361,19 +363,10 @@ Other
           ESP32: I2C SDA -> ATMEGA2560: I2C SDA
           ESP32: I2C SCL -> ATMEGA2560: I2C SCL
 
-          ESP32: 2nd ATMEGA2560 with shield as Control Panel (not on multiplexer):
-          ESP32: io25    -> ATMEGA2560: io22
-          ESP32: I2C SDA -> ATMEGA2560: I2C SDA
-          ESP32: I2C SCL -> ATMEGA2560: I2C SCL
-
-          Other ESP32 i2C Devices (not on multiplexer):
+          Other ESP32 I2C Devices (not on multiplexer):
           ESP32: SDA0 SCL0 -> DS3231 (RTC): SDA, SCL (5v)
 
-          ESP32: WTGPS300P (5v) (for getting a downlink):
-          ESP32: io27 RXD -> WTGPS300P: TXD
-          ESP32: null TXD -> WTGPS300P: RXD
-
-          ESP32 i2C: i2C Multiplexing (3.3v) (for peripherals):
+          ESP32 i2C: I2C Multiplexing (3.3v) (for peripherals):
           ESP32: i2C -> TCA9548A: SDA, SCL
 
           ESP32: Analog/Digital Multiplexing (3.3v) (for peripherals):
@@ -384,17 +377,9 @@ Other
           ESP32: io17   -> CD74HC4067: S3
           CD74HC4067 C0 -> DHT11: SIG
 
-          ESP32 VSPI: SDCARD (5v) (for matrix and system data):
-          ESP32: io5  -> HW-125: CS (SS)
-          ESP32: io23 -> HW-125: DI (MOSI)
-          ESP32: io19 -> HW-125: DO (MISO)
-          ESP32: io18 -> HW-125: SCK (SCLK)
-
-          ESP32 HSPI: SSD1351 OLED (5v) (short wires recommended):
-          ESP32: io14 -> SSD1351: SCL/SCLK
-          ESP32: io12 -> SSD1351: MISO/DC
-          ESP32: io13 -> SSD1351: SDA
-          ESP32: io26 -> SSD1351: CS
+          ESP32: WTGPS300P (5v) (for getting a downlink):
+          ESP32: io27 RXD -> WTGPS300P: TXD
+          ESP32: null TXD -> WTGPS300P: RXD
 
 -----
 
@@ -409,6 +394,7 @@ Other
   https://drive.google.com/drive/folders/13yynSxkKL-zxb7iLSkg0v0VXkSLgmtW-?usp=sharing
 
 -----
+
 
 
 
