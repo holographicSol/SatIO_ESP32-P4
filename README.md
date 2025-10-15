@@ -198,7 +198,7 @@ System
 
 Mapping
 
-Many of values can be mapped and then used in the matrix and or sent directly to the port controller.
+Many values can be mapped and then used in the matrix and or sent directly to the port controller.
 
     mapping --save
     mapping --load
@@ -388,6 +388,7 @@ Other
     Full SatIO (Active): Everything.
 
 -----
+
 
 
 
