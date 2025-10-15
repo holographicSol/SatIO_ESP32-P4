@@ -381,6 +381,10 @@ Other
           ESP32: io27 RXD -> WTGPS300P: TXD
           ESP32: null TXD -> WTGPS300P: RXD
 
+          ESP32: WT901 9-Axis Gyro:
+          ESP32: Serial2 RXD -> WT901 TXD
+          ESP32: Serial2 TXD -> WT901 RXD
+          
 -----
 
     To Do: AI I2C modules returning int's as classifiers.
@@ -394,6 +398,7 @@ Other
   https://drive.google.com/drive/folders/13yynSxkKL-zxb7iLSkg0v0VXkSLgmtW-?usp=sharing
 
 -----
+
 
 
 
