@@ -334,6 +334,7 @@ Other
     To Do: SRTM data. Use NASA shuttle radar topographical mission data.
     To Do: Ability to add custom IIC sensor modules after flashing.
     To Do: PCB fabrication.
+    To Do: UI after migration complete.
 
 -----
 
@@ -341,6 +342,7 @@ Other
   https://drive.google.com/drive/folders/13yynSxkKL-zxb7iLSkg0v0VXkSLgmtW-?usp=sharing
 
 -----
+
 
 
 
