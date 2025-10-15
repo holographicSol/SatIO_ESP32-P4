@@ -198,6 +198,8 @@ System
 
 Mapping
 
+Many of values can be mapped and then used in the matrix and or sent directly to the port controller.
+
     mapping --save
     mapping --load
     mapping --delete
@@ -221,6 +223,8 @@ example map analog stick axis x1 on admplex0 channel 1 into map slot 1:
 -----
 
 Matrix
+
+Setup the matrix:
 
     matrix --new                Clears matrix in memory.
     matrix --save n             Specify file slot.
@@ -269,6 +273,8 @@ example set matrix logic output mode:
 
 INS
 
+Customizable Inertial navigation system.
+
     ins -m n              Set INS mode n. (0 : Off) (1 : Dynamic, set by gps every 100ms) (2 : Fixed, remains on after conditions met).
     ins -gyro n           INS uses gyro for attitude. (0 : gyro heading) (1 : gps heading).
     ins -p n              Set INS mimimum required gps precision factor to initialize.
@@ -299,14 +305,6 @@ SDCard
 
     sdcard --mount
     sdcard --unmount
-
------
-
-Other
-
-    -v    Enable verbosoity.
-    -vv   Enable extra verbosoity.
-    help
 
 -----
 
@@ -342,6 +340,14 @@ Stat
     stat --sentence --uranus    Takes arguments -e, -d.
     stat --sentence --neptune   Takes arguments -e, -d.
     stat --sentence --meteors   Takes arguments -e, -d.
+
+-----
+
+Other
+
+    -v    Enable verbosoity.
+    -vv   Enable extra verbosoity.
+    help
 
 -----
 
@@ -382,6 +388,7 @@ Stat
     Full SatIO (Active): Everything.
 
 -----
+
 
 
 
