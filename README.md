@@ -355,39 +355,61 @@ Other
 
 -----
 
-    Summary: Over one quintillion possible combinations of stackable logic across 20 switches for
-    a general purpose part or standalone device.
+  Wiring For Keystudio ESP32 PLUS Development Board:
 
-    Requires using modified SiderealPlanets library (hopefully thats okay as the modifications
-    allow calculating rise/set of potentially any celestial body as described in this paper:
-    https://stjarnhimlen.se/comp/riset.html).
-    Additions: 1: doXRiseSetTimes(). This allows for calculating rise and set times of all planets
-                  and objects according to time and location.
-               2: inRange60(). Ensures minutes and second values are wihin 0-59 for planet/object
-                  rise, set times.
-               3: inRange24(). Ensures hour values are wihin 0-23 for planet/object rise, set times.
+          ESP32: 1st ATMEGA2560 with shield as Port Controller (not on multiplexer):
+          ESP32: I2C SDA -> ATMEGA2560: I2C SDA
+          ESP32: I2C SCL -> ATMEGA2560: I2C SCL
 
-    Requires modified ffconf.h to enable exFAT support (system tested with exFAT and FAT).
+          ESP32: 2nd ATMEGA2560 with shield as Control Panel (not on multiplexer):
+          ESP32: io25    -> ATMEGA2560: io22
+          ESP32: I2C SDA -> ATMEGA2560: I2C SDA
+          ESP32: I2C SCL -> ATMEGA2560: I2C SCL
 
-    Requires modified SD_MMC library so that SD_MMC.end() releases its LDO power channel so that
-    SD_MMC.begin() can be called successfully again after SD_MMC.end(). This enables same/different
-    cards to be removed/inserted, mounted successfully without LDO errors.
+          Other ESP32 i2C Devices (not on multiplexer):
+          ESP32: SDA0 SCL0 -> DS3231 (RTC): SDA, SCL (5v)
 
-    ToDo: Terrain elevation: Experiments have been made decompressing NASA's SRTMGL1 (Shuttle Radar
-    Topography Mission) files quickly.
+          ESP32: WTGPS300P (5v) (for getting a downlink):
+          ESP32: io27 RXD -> WTGPS300P: TXD
+          ESP32: null TXD -> WTGPS300P: RXD
 
-    ToDo: More data and calculate more data from existing data.
+          ESP32 i2C: i2C Multiplexing (3.3v) (for peripherals):
+          ESP32: i2C -> TCA9548A: SDA, SCL
 
-    ToDo: Macros.
+          ESP32: Analog/Digital Multiplexing (3.3v) (for peripherals):
+          ESP32: io4    -> CD74HC4067: SIG
+          ESP32: io32   -> CD74HC4067: S0
+          ESP32: io33   -> CD74HC4067: S1
+          ESP32: io16   -> CD74HC4067: S2
+          ESP32: io17   -> CD74HC4067: S3
+          CD74HC4067 C0 -> DHT11: SIG
 
-    Complete PlatformIO project files, libraries and modified libraries:
-    https://drive.google.com/drive/folders/13yynSxkKL-zxb7iLSkg0v0VXkSLgmtW-?usp=sharing
+          ESP32 VSPI: SDCARD (5v) (for matrix and system data):
+          ESP32: io5  -> HW-125: CS (SS)
+          ESP32: io23 -> HW-125: DI (MOSI)
+          ESP32: io19 -> HW-125: DO (MISO)
+          ESP32: io18 -> HW-125: SCK (SCLK)
 
-    Builds:
-    Nano SatIO (Passive): Serial input/output only, headless. Useful for LLMs and things.
-    Full SatIO (Active): Everything.
+          ESP32 HSPI: SSD1351 OLED (5v) (short wires recommended):
+          ESP32: io14 -> SSD1351: SCL/SCLK
+          ESP32: io12 -> SSD1351: MISO/DC
+          ESP32: io13 -> SSD1351: SDA
+          ESP32: io26 -> SSD1351: CS
 
 -----
+
+    To Do: AI I2C modules returning int's as classifiers.
+    To Do: SRTM data. Use NASA shuttle radar topographical mission data.
+    To Do: Ability to add custom IIC sensor modules after flashing.
+    To Do: PCB fabrication.
+
+-----
+
+  There are some required custom libs included in complete project files:
+  https://drive.google.com/drive/folders/13yynSxkKL-zxb7iLSkg0v0VXkSLgmtW-?usp=sharing
+
+-----
+
 
 
 
