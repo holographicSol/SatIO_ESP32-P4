@@ -27,6 +27,9 @@
 #include <float.h>
 #include "matrix.h"
 
+bool debug_bool=true;
+void debug(String debug_str) {if (debug_bool==true) {Serial.println(debug_str);}}
+
 ArgParser parser;
 PlainArgParser plainparser;
 
@@ -263,7 +266,7 @@ static void PrintHelp(void) {
                                   [2] Over
                                   [3] Under
                                   [4] Range
-                                  
+
       matrix --pwm0 n             Set switch -s uS time off period (0uS = remain on)
       matrix --pwm1 n             Set switch -s uS time on period  (0uS = remain off after on)
       matrix --flux n             Set switch -s output fluctuation threshold.
@@ -292,11 +295,15 @@ static void PrintHelp(void) {
 
       example map analog stick axis x0 on admplex0 channel 0 into map slot 0:
       mapping -s 0 -m 1 -c0 16 -c1 1974 -c2 1974 -c3 1894 -c4 255 -c5 50
+      matrix -s 0 --map-slot 0
       Optional: matrix -s 0 --omode 1
+      Optional: matrix -s 0 --computer-assist 1
 
       example map analog stick axis x1 on admplex0 channel 1 into map slot 1:
       mapping -s 1 -m 2 -c0 17 -c1 1974 -c2 1974 -c3 1894 -c4 255 -c5 50
+      matrix -s 1 --map-slot 1
       Optional: matrix -s 1 --omode 1
+      Optional: matrix -s 1 --computer-assist 1
 
   [ INS ]
 
@@ -651,10 +658,14 @@ void setOverrideOutputValue(int switch_idx, uint32_t override_value) {
 char *cmd_proc_xyzptr;
 
 void setComputerAssist(int switch_idx, bool computer_assist) {
+  debug("[setComputerAssist] switch_idx:" + String(switch_idx) + "  computer_assist: " + String(computer_assist));
+  debug("[setComputerAssist] current computer_assist: " + String(matrixData.computer_assist[0][switch_idx]));
   if (switch_idx>=0 && switch_idx<MAX_MATRIX_SWITCHES && computer_assist>=0 && computer_assist<=1) {
     matrixData.computer_assist[0][switch_idx]=computer_assist;
     matrixData.matrix_switch_write_required[0][switch_idx]=true;
   }
+  else {debug("[setComputerAssist] failed to change computer assist!");}
+  debug("[setComputerAssist] computer_assist: " + String(matrixData.computer_assist[0][switch_idx]));
 }
 
 void setINSMode(int ins_mode) {
@@ -716,6 +727,7 @@ void setMapConfig(int map_slot,
 
 void setMapSlot(int matrix_switch,
                 int map_slot) {
+  // Serial.println("[setMapSlot] matrix_switch:" + String(matrix_switch) + "  map_slot:" + String(map_slot));
   if (matrix_switch>=0 && matrix_switch<MAX_MAP_SLOTS &&
       map_slot>=0 && map_slot<=1) {
     mappingData.index_mapped_value[0][matrix_switch]=map_slot;
@@ -954,7 +966,7 @@ void CmdProcess(void) {
         else if (argparser_has_flag(&parser, "restore-defaults")) {restore_system_defaults();}
       }
       else if (strcmp(pos[0], "mapping")==0) {
-        if (argparser_has_flag(&parser, "new")) {set_all_mapping_default(); return;}
+        if (argparser_has_flag(&parser, "new")) {set_all_mapping_default(); {return;}}
         else if (argparser_has_flag(&parser, "save")) {sdmmcFlagData.save_mapping=true;}
         else if (argparser_has_flag(&parser, "load")) {sdmmcFlagData.load_mapping=true;}
         else if (argparser_has_flag(&parser, "delete")) {sdmmcFlagData.delete_mapping=true;}
@@ -993,7 +1005,7 @@ void CmdProcess(void) {
             setMatrixZ(argparser_get_int8(&parser, "s", -1), argparser_get_int8(&parser, "f", 0), argparser_get_double(&parser, "fz", 0));
           }
           if (argparser_has_flag(&parser, "s") && argparser_has_flag(&parser, "f") && argparser_has_flag(&parser, "fi")) {
-            setMatrixInverted(argparser_get_int8(&parser, "s", -1), argparser_get_int8(&parser, "f", 0), argparser_get_bool(&parser, "fi"));
+            setMatrixInverted(argparser_get_int8(&parser, "s", -1), argparser_get_int8(&parser, "f", 0), argparser_get_int8(&parser, "fi", 0));
           }
           if (argparser_has_flag(&parser, "s") && argparser_has_flag(&parser, "f") && argparser_has_flag(&parser, "fo")) {
             setMatrixOperator(argparser_get_int8(&parser, "s", -1), argparser_get_int8(&parser, "f", 0), argparser_get_int8(&parser, "fo", 0));
@@ -1008,7 +1020,7 @@ void CmdProcess(void) {
             setOverrideOutputValue(argparser_get_int8(&parser, "s", -1), argparser_get_int32(&parser, "oride", -1));
           }
           if (argparser_has_flag(&parser, "s") && argparser_has_flag(&parser, "computer-assist")) {
-            setComputerAssist(argparser_get_int8(&parser, "s", -1), argparser_get_bool(&parser, "computer-assist"));
+            setComputerAssist(argparser_get_int8(&parser, "s", -1), argparser_get_int8(&parser, "computer-assist", -1));
           }
           if (argparser_has_flag(&parser, "s") && argparser_has_flag(&parser, "omode")) {
             setOutputMode(argparser_get_int8(&parser, "s", -1), argparser_get_int8(&parser, "omode", -1));
@@ -1020,7 +1032,7 @@ void CmdProcess(void) {
       }
       else if (strcmp(pos[0], "ins")==0) {
         if (argparser_has_flag(&parser, "m")) {setINSMode(argparser_get_int8(&parser, "m", INS_MODE_DYNAMIC));}
-        if (argparser_has_flag(&parser, "gyro")) {insData.INS_USE_GYRO_HEADING=argparser_get_bool(&parser, "gyro");}
+        if (argparser_has_flag(&parser, "gyro")) {insData.INS_USE_GYRO_HEADING=argparser_get_int8(&parser, "gyro", 1);}
         if (argparser_has_flag(&parser, "p")) {setINSGPSPrecision(argparser_get_double(&parser, "p", 0.5));}
         if (argparser_has_flag(&parser, "s")) {setINSMinSpeed(argparser_get_double(&parser, "s", 0.3));}
         if (argparser_has_flag(&parser, "r")) {setINSHeadingRangeDiff(argparser_get_double(&parser, "r", 0));}

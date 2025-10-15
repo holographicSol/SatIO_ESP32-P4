@@ -1573,7 +1573,7 @@ void set_matrix_default(int matrix_switch) {
 }
 
 void set_all_matrix_default(void) {
-  for (int Mi=0; Mi < MAX_MAP_SLOTS; Mi++) {set_mapping_default(Mi);}
+  for (int Mi=0; Mi < MAX_MATRIX_SWITCHES; Mi++) {set_matrix_default(Mi);}
 }
 
 void setAllMatrixSwitchesStateFalse() {
