@@ -174,7 +174,10 @@ Logic may require or not require values X,Y,Z.
     [90] SDCARDInserted
     [91] SDCARDMounted
 
+-----
+
 [Available Switch Function Operators]
+
     [0] None
     [1] Equal
     [2] Over
@@ -188,6 +191,8 @@ System
     system --save
     system --load
     system --restore-defaults
+
+-----
 
 Mapping
 
@@ -204,10 +209,14 @@ Mapping
     mapping -c5 n      Configuration map slot -s. (mode 1 only : DEADZONE : expected flutuation at center)
 
 example map analog stick axis x0 on admplex0 channel 0 into map slot 0:
+
     mapping -s 0 -m 1 -c0 16 -c1 1974 -c2 1974 -c3 1894 -c4 255 -c5 50
 
 example map analog stick axis x1 on admplex0 channel 1 into map slot 1:
+
     mapping -s 1 -m 2 -c0 17 -c1 1974 -c2 1974 -c3 1894 -c4 255 -c5 50
+
+-----
 
 Matrix
 
@@ -235,19 +244,26 @@ Matrix
     matrix --map-slot n         Set switch -s output as map slot n value.
 
 example default all switch configurations:
+
     matrix --new
 
 example stat switch zero:
+
     stat --matrix 0
 
 example set switch zero:
+
     matrix -s 0 -f 0 -p 33 -fn 91 -fx 1 -fo 1 --pwm0 1000000 --pwm1 15000 --computer-assist 1
 
 example set mapped output mode:
+
     matrix -s 0 --omode 1
 
 example set matrix logic output mode:
+
     matrix -s 0 --omode 0
+
+-----
 
 INS
 
@@ -258,6 +274,8 @@ INS
     ins -r n              Set INS maximum required heading range difference to initialize (difference between gps heading and gyro heading).
     ins --reset-forced n  Reset INS remains on after conditions met.
 
+-----
+
 Satio
 
     satio --speed-units n  Set displayed units (0 : M/S) (1 : MPH) (2 : KPH) (3 : KTS estimated)
@@ -265,22 +283,30 @@ Satio
     satio --mode-gngga     Use GNGGA data for location.
     satio --mode-gnrmc     Use GNRMC data for location.
 
+-----
+
 Gyro
 
     gyro --calacc        Callibrate the accelerometer.
     gyro --calmag-start  Begin calibrating the magnetometer.
     gyro --calmag-end    End calibrating the magnetometer.
 
+-----
+
 SDCard
 
     sdcard --mount
     sdcard --unmount
+
+-----
 
 Other
 
     -v    Enable verbosoity.
     -vv   Enable extra verbosoity.
     help
+
+-----
 
 Stat
 
@@ -354,6 +380,7 @@ Stat
     Full SatIO (Active): Everything.
 
 -----
+
 
 
 
