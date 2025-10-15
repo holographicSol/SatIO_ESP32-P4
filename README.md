@@ -20,63 +20,6 @@
 
 -----
 
-  Wiring For Keystudio ESP32 PLUS Development Board:
-
-          ESP32: 1st ATMEGA2560 with shield as Port Controller (not on multiplexer):
-          ESP32: I2C SDA -> ATMEGA2560: I2C SDA
-          ESP32: I2C SCL -> ATMEGA2560: I2C SCL
-
-          ESP32: 2nd ATMEGA2560 with shield as Control Panel (not on multiplexer):
-          ESP32: io25    -> ATMEGA2560: io22
-          ESP32: I2C SDA -> ATMEGA2560: I2C SDA
-          ESP32: I2C SCL -> ATMEGA2560: I2C SCL
-
-          Other ESP32 i2C Devices (not on multiplexer):
-          ESP32: SDA0 SCL0 -> DS3231 (RTC): SDA, SCL (5v)
-
-          ESP32: WTGPS300P (5v) (for getting a downlink):
-          ESP32: io27 RXD -> WTGPS300P: TXD
-          ESP32: null TXD -> WTGPS300P: RXD
-
-          ESP32 i2C: i2C Multiplexing (3.3v) (for peripherals):
-          ESP32: i2C -> TCA9548A: SDA, SCL
-
-          ESP32: Analog/Digital Multiplexing (3.3v) (for peripherals):
-          ESP32: io4    -> CD74HC4067: SIG
-          ESP32: io32   -> CD74HC4067: S0
-          ESP32: io33   -> CD74HC4067: S1
-          ESP32: io16   -> CD74HC4067: S2
-          ESP32: io17   -> CD74HC4067: S3
-          CD74HC4067 C0 -> DHT11: SIG
-
-          ESP32 VSPI: SDCARD (5v) (for matrix and system data):
-          ESP32: io5  -> HW-125: CS (SS)
-          ESP32: io23 -> HW-125: DI (MOSI)
-          ESP32: io19 -> HW-125: DO (MISO)
-          ESP32: io18 -> HW-125: SCK (SCLK)
-
-          ESP32 HSPI: SSD1351 OLED (5v) (short wires recommended):
-          ESP32: io14 -> SSD1351: SCL/SCLK
-          ESP32: io12 -> SSD1351: MISO/DC
-          ESP32: io13 -> SSD1351: SDA
-          ESP32: io26 -> SSD1351: CS
-
------
-
-    To Do: AI I2C modules returning int's as classifiers.
-    To Do: SRTM data. Use NASA shuttle radar topographical mission data.
-    To Do: Ability to add custom IIC sensor modules after flashing.
-    To Do: PCB fabrication.
-
------
-
-  There are some required custom libs included in complete project files:
-  https://drive.google.com/drive/folders/13yynSxkKL-zxb7iLSkg0v0VXkSLgmtW-?usp=sharing
-
------
-
------
-
 [ MATRIX SWITCH LOGIC ]
 
 Logic may require or not require values X,Y,Z.
@@ -398,6 +341,7 @@ Other
   https://drive.google.com/drive/folders/13yynSxkKL-zxb7iLSkg0v0VXkSLgmtW-?usp=sharing
 
 -----
+
 
 
 
