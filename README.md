@@ -1,224 +1,65 @@
 ![plot](./Data/UnidentifiedStudios.png)
 
-    SatIO - Written by Benjamin Jack Cullen.
+  SatIO - Written by Benjamin Jack Cullen.
 
-    A general purpose programmable I/O platform for automation and throughput.
+  A general purpose programmable I/O platform for automation, throughput and LLM's.
 
-    Supporting stacks of logic across 70 output pins and 100 mapping slots.
-
-  What can SatIO tell you is true? Potentially infinite things.
-
-  Applications? Potentially infinite applications.
+  A huge matrix switch in a small package, supporting stacks of logic across
+  70 output pins and 100 mapping slots.
 
   Inference in Bayesian Reasoning? Moon tracking for example can be used to track the moon, it can also be used for one example; to 
   track the tides, if the system is aware of moon/planetary positioning and datetime then marine life values may also be inferred
   relative to the inferred tide values and known datetime. There is a lot of data that can be used in many ways, with a kind of network
   effect. Or more simply 'SatIO is one hell of a switch'.
 
-  Matrix logic is an attempt to maximize programmable potential and hardware configuration is designed to attempt maximum IO potential.
-  If more output is needed then add another I2C port controller, if more input is needed then add another custom I2C sensor module.
-  If more matrix logic is needed then build on another MCU, matrix switches and switch functions have been balanced to allow for plenty
-  of switches and functions for said switches, with regards to available memory/storage (10 functions per switch not including switch linking
-  where logic can be stacked accross multiple/all matrix switches).
+  Wiring For Keystudio ESP32 PLUS Development Board:
 
-        Design: Break out all the things and build I2C peripherals as required to orbit the ESP32/Central-MCU.
+          ESP32: 1st ATMEGA2560 with shield as Port Controller (not on multiplexer):
+          ESP32: I2C SDA -> ATMEGA2560: I2C SDA
+          ESP32: I2C SCL -> ATMEGA2560: I2C SCL
 
-                                Wiring For Keystudio ESP32 PLUS Development Board
+          ESP32: 2nd ATMEGA2560 with shield as Control Panel (not on multiplexer):
+          ESP32: io25    -> ATMEGA2560: io22
+          ESP32: I2C SDA -> ATMEGA2560: I2C SDA
+          ESP32: I2C SCL -> ATMEGA2560: I2C SCL
 
-                                ESP32: 1st ATMEGA2560 with shield as Port Controller (not on multiplexer):
-                                ESP32: I2C SDA -> ATMEGA2560: I2C SDA
-                                ESP32: I2C SCL -> ATMEGA2560: I2C SCL
+          Other ESP32 i2C Devices (not on multiplexer):
+          ESP32: SDA0 SCL0 -> DS3231 (RTC): SDA, SCL (5v)
 
-                                ESP32: 2nd ATMEGA2560 with shield as Control Panel (not on multiplexer):
-                                ESP32: io25    -> ATMEGA2560: io22
-                                ESP32: I2C SDA -> ATMEGA2560: I2C SDA
-                                ESP32: I2C SCL -> ATMEGA2560: I2C SCL
+          ESP32: WTGPS300P (5v) (for getting a downlink):
+          ESP32: io27 RXD -> WTGPS300P: TXD
+          ESP32: null TXD -> WTGPS300P: RXD
 
-                                Other ESP32 i2C Devices (not on multiplexer):
-                                ESP32: SDA0 SCL0 -> DS3231 (RTC): SDA, SCL (5v)
+          ESP32 i2C: i2C Multiplexing (3.3v) (for peripherals):
+          ESP32: i2C -> TCA9548A: SDA, SCL
 
-                                ESP32: WTGPS300P (5v) (for getting a downlink):
-                                ESP32: io27 RXD -> WTGPS300P: TXD
-                                ESP32: null TXD -> WTGPS300P: RXD
+          ESP32: Analog/Digital Multiplexing (3.3v) (for peripherals):
+          ESP32: io4    -> CD74HC4067: SIG
+          ESP32: io32   -> CD74HC4067: S0
+          ESP32: io33   -> CD74HC4067: S1
+          ESP32: io16   -> CD74HC4067: S2
+          ESP32: io17   -> CD74HC4067: S3
+          CD74HC4067 C0 -> DHT11: SIG
 
-                                ESP32 i2C: i2C Multiplexing (3.3v) (for peripherals):
-                                ESP32: i2C -> TCA9548A: SDA, SCL
+          ESP32 VSPI: SDCARD (5v) (for matrix and system data):
+          ESP32: io5  -> HW-125: CS (SS)
+          ESP32: io23 -> HW-125: DI (MOSI)
+          ESP32: io19 -> HW-125: DO (MISO)
+          ESP32: io18 -> HW-125: SCK (SCLK)
 
-                                ESP32: Analog/Digital Multiplexing (3.3v) (for peripherals):
-                                ESP32: io4    -> CD74HC4067: SIG
-                                ESP32: io32   -> CD74HC4067: S0
-                                ESP32: io33   -> CD74HC4067: S1
-                                ESP32: io16   -> CD74HC4067: S2
-                                ESP32: io17   -> CD74HC4067: S3
-                                CD74HC4067 C0 -> DHT11: SIG
+          ESP32 HSPI: SSD1351 OLED (5v) (short wires recommended):
+          ESP32: io14 -> SSD1351: SCL/SCLK
+          ESP32: io12 -> SSD1351: MISO/DC
+          ESP32: io13 -> SSD1351: SDA
+          ESP32: io26 -> SSD1351: CS
+  
+  To Do: AI I2C modules returning int's as classifiers.
+  To Do: SRTM data. Use NASA shuttle radar topographical mission data.
+  To Do: Ability to add custom IIC sensor modules after flashing.
+  To Do: PCB fabrication.
 
-                                ESP32 VSPI: SDCARD (5v) (for matrix and system data):
-                                ESP32: io5  -> HW-125: CS (SS)
-                                ESP32: io23 -> HW-125: DI (MOSI)
-                                ESP32: io19 -> HW-125: DO (MISO)
-                                ESP32: io18 -> HW-125: SCK (SCLK)
-
-                                ESP32 HSPI: SSD1351 OLED (5v) (short wires recommended):
-                                ESP32: io14 -> SSD1351: SCL/SCLK
-                                ESP32: io12 -> SSD1351: MISO/DC
-                                ESP32: io13 -> SSD1351: SDA
-                                ESP32: io26 -> SSD1351: CS
-
-                                           $SATIO SENTENCE
-                              
-                              RTC Sync Time (UTC)             System Uptime (Seconds)
-                              |      RTC Sync Date (UTC)      |
-        Tag                   |      |                        |   Longitude Degrees
-        |                     |      |                        |   |
-        $SATIO,000000,00000000,000000,00000000,000000,00000000,0,0,0,*CHECKSUM
-              |      |                        |      |          |
-              |      |                        |      |          Latitude Degrees
-              |      RTC Date (UTC)           |      Local Date (UTC Offset)
-              RTC Time (UTC)                  Local Time (UTC Offset)
-
-                                          $MATRIX SENTENCE 
-
-                                                                              Matrix Switch Output Port 19
-                                                                              |
-                                                                              |    Matrix Switch State 0
-                                                                              |    |
-    $MATRIX,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,*CHECKSUM
-           |                                                                                                                                                   |
-          Matrix Switch Output Port 0                                                                                                                          Matrix Switch State 19
-                                                                                          
-
-                                          $SENSORS SENTENCE
-
-                      Sensor 0
-                      |
-              $SENSORS,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,*CHECKSUM
-                                                                                  |
-                                                                                  Sensor 15
-
-
-                                          $SUN SENTENCE
-                                                    
-                                    Right Ascension 
-                                    |       Azimuth 
-                                    |       |       Rise
-                                    |       |       |
-                                $SUN,0.0,0.0,0.0,0.0,0.0,0.0,*CHECKSUM
-                                        |       |       |
-                                        |       |       Set 
-                                        |       Altitude
-                                        Declination 
-
-
-                                          $MOON SENTENCE
-
-                                                Rise
-                                Right Ascension |
-                                |       Azimuth | 
-                                |       |       |       Phase
-                                |       |       |       |
-                          $MOON,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,*CHECKSUM
-                                    |       |       |       |
-                                    |       |       Set     Luminessence
-                                    |       Altitude
-                                    Declination
-
-
-                                        $MERCURY SENTENCE
-
-                                      Rise
-                      Right Ascension |       Helio Ecliptic Latitude
-                      |       Azimuth |       |       Radius Vector   
-                      |       |       |       |       |       Ecliptic Latitude
-                      |       |       |       |       |       |
-              $MERCURY,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0*CHECKSUM
-                          |       |       |       |       |       |
-                          |       |       Set     |       |       Ecliptic Longitude
-                          |       Altitude        |       Distance
-                          Declination             Helio Ecliptic Longitude  
-
-
-                                         $VENUS SENTENCE
-
-                                      Rise
-                      Right Ascension |       Helio Ecliptic Latitude
-                      |       Azimuth |       |       Radius Vector   
-                      |       |       |       |       |       Ecliptic Latitude
-                      |       |       |       |       |       |
-                $VENUS,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0*CHECKSUM
-                          |       |       |       |       |       |
-                          |       |       Set     |       |       Ecliptic Longitude
-                          |       Altitude        |       Distance
-                          Declination             Helio Ecliptic Longitude  
-
-
-                                        $MARS SENTENCE
-
-                                      Rise
-                      Right Ascension |       Helio Ecliptic Latitude
-                      |       Azimuth |       |       Radius Vector   
-                      |       |       |       |       |       Ecliptic Latitude
-                      |       |       |       |       |       |
-                 $MARS,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0*CHECKSUM
-                          |       |       |       |       |       |
-                          |       |       Set     |       |       Ecliptic Longitude
-                          |       Altitude        |       Distance
-                          Declination             Helio Ecliptic Longitude
-
-
-                                      $JUPITER SENTENCE
-
-                                      Rise
-                      Right Ascension |       Helio Ecliptic Latitude
-                      |       Azimuth |       |       Radius Vector   
-                      |       |       |       |       |       Ecliptic Latitude
-                      |       |       |       |       |       |
-              $JUPITER,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0*CHECKSUM
-                          |       |       |       |       |       |
-                          |       |       Set     |       |       Ecliptic Longitude
-                          |       Altitude        |       Distance
-                          Declination             Helio Ecliptic Longitude
-
-
-                                      $SATURN SENTENCE
-
-                                      Rise
-                      Right Ascension |       Helio Ecliptic Latitude
-                      |       Azimuth |       |       Radius Vector   
-                      |       |       |       |       |       Ecliptic Latitude
-                      |       |       |       |       |       |
-               $SATURN,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0*CHECKSUM
-                          |       |       |       |       |       |
-                          |       |       Set     |       |       Ecliptic Longitude
-                          |       Altitude        |       Distance
-                          Declination             Helio Ecliptic Longitude
-
-
-                                      $URANUS SENTENCE
-
-                                      Rise
-                      Right Ascension |       Helio Ecliptic Latitude
-                      |       Azimuth |       |       Radius Vector   
-                      |       |       |       |       |       Ecliptic Latitude
-                      |       |       |       |       |       |
-               $URANUS,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0*CHECKSUM
-                          |       |       |       |       |       |
-                          |       |       Set     |       |       Ecliptic Longitude
-                          |       Altitude        |       Distance
-                          Declination             Helio Ecliptic Longitude 
-
-
-                                      $NEPTUNE SENTENCE
-
-                                      Rise
-                      Right Ascension |       Helio Ecliptic Latitude
-                      |       Azimuth |       |       Radius Vector   
-                      |       |       |       |       |       Ecliptic Latitude
-                      |       |       |       |       |       |
-              $NEPTUNE,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0*CHECKSUM
-                          |       |       |       |       |       |
-                          |       |       Set     |       |       Ecliptic Longitude
-                          |       Altitude        |       Distance
-                          Declination             Helio Ecliptic Longitude  
+  There are some required custom libs included in complete project files:
+  https://drive.google.com/drive/folders/13yynSxkKL-zxb7iLSkg0v0VXkSLgmtW-?usp=sharing
 
 -----
 
@@ -501,6 +342,7 @@ Stat
     Full SatIO (Active): Everything.
 
 -----
+
 
 
 
