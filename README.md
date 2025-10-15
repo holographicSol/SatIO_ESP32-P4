@@ -78,8 +78,8 @@
 [ MATRIX SWITCH LOGIC ]
 
 Logic may require or not require values X,Y,Z.
-    
-[Available Matrix Switch Functions]
+
+All of the following values can be used in the matrix:
 
     [0] None
     [1] On
@@ -176,7 +176,9 @@ Logic may require or not require values X,Y,Z.
 
 -----
 
-[Available Switch Function Operators]
+[ Available Switch Function Operators ]
+
+Many matrix functions accept operators, where required:
 
     [0] None
     [1] Equal
@@ -380,6 +382,7 @@ Stat
     Full SatIO (Active): Everything.
 
 -----
+
 
 
 
