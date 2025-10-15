@@ -157,12 +157,113 @@ static void PrintHelp(void) {
       matrix -s n                 Specify switch index n.
       matrix -f n                 Specify function index n.
       matrix -p n                 Set port for switch -s.
+
       matrix -fn n                Set function -f for switch -s. See available matrix functions.
+                                  [0] None
+                                  [1] On
+                                  [2] SwitchLink
+                                  [3] LocalTime
+                                  [4] Weekday
+                                  [5] DateDayX
+                                  [6] DateMonthX
+                                  [7] DateYearX
+                                  [8] DegLat
+                                  [9] DegLon
+                                  [10] DegLatLon
+                                  [11] INSLat
+                                  [12] INSLon
+                                  [13] INSLatLon
+                                  [14] INSHeading
+                                  [15] INSSpeed
+                                  [16] INSAltitude
+                                  [17] UTCTimeGNGGA
+                                  [18] PosStatusGNGGA
+                                  [19] SatCount
+                                  [20] HemiGNGGANorth
+                                  [21] HemiGNGGASouth
+                                  [22] HemiGNGGAEast
+                                  [23] HemiGNGGAWest
+                                  [24] GPSPrecision
+                                  [25] AltGNGGA
+                                  [26] UTCTimeGNRMC
+                                  [27] PosStatusGNRMCA
+                                  [28] PosStatusGNRMCV
+                                  [29] ModeGNRMCA
+                                  [30] ModeGNRMCD
+                                  [31] ModeGNRMCE
+                                  [32] ModeGNRMCN
+                                  [33] HemiGNRMCNorth
+                                  [34] HemiGNRMCSouth
+                                  [35] HemiGNRMCEast
+                                  [36] HemiGNRMCWest
+                                  [37] GSpeedGNRMC
+                                  [38] HeadingGNRMC
+                                  [39] UTCDateGNRMC
+                                  [40] LFlagGPATT
+                                  [41] SFlagGPATT
+                                  [42] RSFlagGPATT
+                                  [43] INSGPATT
+                                  [44] SpeedNumGPATT
+                                  [45] MileageGPATT
+                                  [46] GSTDataGPATT
+                                  [47] YawGPATT
+                                  [48] RollGPATT
+                                  [49] PitchGPATT
+                                  [50] GNGGAValidCS
+                                  [51] GNRMCValidCS
+                                  [52] GPATTValidCS
+                                  [53] GNGGAValidCD
+                                  [54] GNRMCValidCD
+                                  [55] GPATTValidCD
+                                  [56] Gyro0AccX
+                                  [57] Gyro0AccY
+                                  [58] Gyro0AccZ
+                                  [59] Gyro0AngX
+                                  [60] Gyro0AngY
+                                  [61] Gyro0AngZ
+                                  [62] Gyro0MagX
+                                  [63] Gyro0MagY
+                                  [64] Gyro0MagZ
+                                  [65] Gyro0GyroX
+                                  [66] Gyro0GyroY
+                                  [67] Gyro0GyroZ
+                                  [68] Meteors
+                                  [69] SunAz
+                                  [70] SunAlt
+                                  [71] MoonAz
+                                  [72] MoonAlt
+                                  [73] MoonPhase
+                                  [74] MercuryAz
+                                  [75] MercuryAlt
+                                  [76] VenusAz
+                                  [77] VenusAlt
+                                  [78] MarsAz
+                                  [79] MarsAlt
+                                  [80] JupiterAz
+                                  [81] JupiterAlt
+                                  [82] SaturnAz
+                                  [83] SaturnAlt
+                                  [84] UranusAz
+                                  [85] UranusAlt
+                                  [86] NeptuneAz
+                                  [87] NeptuneAlt
+                                  [88] ADMPlex0
+                                  [89] MappedValue
+                                  [90] SDCARDInserted
+                                  [91] SDCARDMounted
+
       matrix -fx n                Set function -f value x for switch -s.
       matrix -fy n                Set function -f value y for switch -s.
       matrix -fz n                Set function -f value z for switch -s.
       matrix -fi n                Set function -f logic inverted for switch -s.
+
       matrix -fo n                Set function -f operator for switch -s.
+                                  [0] None
+                                  [1] Equal
+                                  [2] Over
+                                  [3] Under
+                                  [4] Range
+                                  
       matrix --pwm0 n             Set switch -s uS time off period (0uS = remain on)
       matrix --pwm1 n             Set switch -s uS time on period  (0uS = remain off after on)
       matrix --flux n             Set switch -s output fluctuation threshold.
