@@ -2,15 +2,21 @@
 
   SatIO - Written by Benjamin Jack Cullen.
 
+-----
+
   A general purpose programmable I/O platform for automation, throughput and LLM's.
 
   A huge matrix switch in a small package, supporting stacks of logic across
   70 output pins and 100 mapping slots.
 
+-----
+
   Inference in Bayesian Reasoning? Moon tracking for example can be used to track the moon, it can also be used for one example; to 
   track the tides, if the system is aware of moon/planetary positioning and datetime then marine life values may also be inferred
   relative to the inferred tide values and known datetime. There is a lot of data that can be used in many ways, with a kind of network
   effect. Or more simply 'SatIO is one hell of a switch'.
+
+-----
 
   Wiring For Keystudio ESP32 PLUS Development Board:
 
@@ -52,14 +58,20 @@
           ESP32: io12 -> SSD1351: MISO/DC
           ESP32: io13 -> SSD1351: SDA
           ESP32: io26 -> SSD1351: CS
-  
-  To Do: AI I2C modules returning int's as classifiers.
-  To Do: SRTM data. Use NASA shuttle radar topographical mission data.
-  To Do: Ability to add custom IIC sensor modules after flashing.
-  To Do: PCB fabrication.
+
+-----
+
+    To Do: AI I2C modules returning int's as classifiers.
+    To Do: SRTM data. Use NASA shuttle radar topographical mission data.
+    To Do: Ability to add custom IIC sensor modules after flashing.
+    To Do: PCB fabrication.
+
+-----
 
   There are some required custom libs included in complete project files:
   https://drive.google.com/drive/folders/13yynSxkKL-zxb7iLSkg0v0VXkSLgmtW-?usp=sharing
+
+-----
 
 -----
 
@@ -342,6 +354,7 @@ Stat
     Full SatIO (Active): Everything.
 
 -----
+
 
 
 
