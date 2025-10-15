@@ -1,21 +1,24 @@
 
+/*
+  strval - Written By Benjamin Jack Cullen
+*/
+
 #include "strval.h"
 
-bool is_alnum(const char *data) {
-    if (data == NULL || *data == '\0') return false;
-    for (size_t i = 0; data[i] != '\0'; i++) {
-        if (!isalnum((unsigned char)data[i])) return false;
+bool is_alnum(const char *str) {
+    if (str == NULL || *str == '\0') return false;
+    for (size_t i = 0; str[i] != '\0'; i++) {
+        if (!isalnum((unsigned char)str[i])) return false;
     }
     return true;
 }
 
-bool str_is_bool(const char * data) {
-  if (strlen(data)!=1) {return false;}
-  if ((strcmp(data, "0")==0) || (strcmp(data, "1")==0)) {return true;}
+bool str_is_bool(const char * str) {
+  if (strlen(str)!=1) {return false;}
+  if ((strcmp(str, "0")==0) || (strcmp(str, "1")==0)) {return true;}
   return false;
 }
 
-// Function to safely check and convert a char array to float
 bool str_is_float(const char *str) {
     // Check for null or empty string
     if (str == NULL || *str == '\0') {
@@ -89,7 +92,6 @@ bool str_is_float(const char *str) {
     return true;
 }
 
-// Function to safely check and convert a char array to double
 bool str_is_double(const char *str) {
     // Check for null or empty string
     if (str == NULL || *str == '\0') {
@@ -163,7 +165,6 @@ bool str_is_double(const char *str) {
     return true;
 }
 
-// Function to safely check and convert a char array of digits to long
 bool str_is_long(const char *str) {
     // Check for null or empty string
     if (str == NULL || *str == '\0') {
@@ -224,7 +225,6 @@ bool str_is_long(const char *str) {
     return true;
 }
 
-// Function to safely check and convert a char array of digits to uint64_t
 bool str_is_uint64(const char *str) {
     // Check for null or empty string
     if (str == NULL || *str == '\0') {
@@ -274,7 +274,6 @@ bool str_is_uint64(const char *str) {
     return true;
 }
 
-// Function to safely check and convert a char array of digits to int64_t
 bool str_is_int64(const char *str) {
     // Check for null or empty string
     if (str == NULL || *str == '\0') {
@@ -335,7 +334,6 @@ bool str_is_int64(const char *str) {
     return true;
 }
 
-// Function to safely check and convert a char array of digits to uint32_t
 bool str_is_uint32(const char *str) {
     // Check for null or empty string
     if (str == NULL || *str == '\0') {
@@ -390,7 +388,6 @@ bool str_is_uint32(const char *str) {
     return true;
 }
 
-// Function to safely check and convert a char array of digits to int32_t
 bool str_is_int32(const char *str) {
     // Check for null or empty string
     if (str == NULL || *str == '\0') {
@@ -451,7 +448,6 @@ bool str_is_int32(const char *str) {
     return true;
 }
 
-// Function to safely check and convert a char array of digits to uint16_t
 bool str_is_uint16(const char *str) {
     // Check for null or empty string
     if (str == NULL || *str == '\0') {
@@ -506,7 +502,6 @@ bool str_is_uint16(const char *str) {
     return true;
 }
 
-// Function to safely check and convert a char array of digits to int16_t
 bool str_is_int16(const char *str) {
     // Check for null or empty string
     if (str == NULL || *str == '\0') {
@@ -567,7 +562,6 @@ bool str_is_int16(const char *str) {
     return true;
 }
 
-// Function to safely check and convert a char array of digits to uint8_t
 bool str_is_uint8(const char *str) {
     // Check for null or empty string
     if (str == NULL || *str == '\0') {
@@ -622,7 +616,6 @@ bool str_is_uint8(const char *str) {
     return true;
 }
 
-// Function to safely check and convert a char array of digits to int8_t
 bool str_is_int8(const char *str) {
     // Check for null or empty string
     if (str == NULL || *str == '\0') {

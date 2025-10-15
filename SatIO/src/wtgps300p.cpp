@@ -4,18 +4,15 @@
     1 : From main call readGPS().
     2 : From main call validateGPSData().
     3 : All wtgps300p sentence data will now be available in:
-        - gnggaData.
-        - gnrmcData.
-        - gpattData. 
+        - gnggaData
+        - gnrmcData
+        - gpattData
 */
 
 #include "wtgps300p.h"
 #include <Arduino.h>
 #include "hextodig.h"
 
-// ----------------------------------------------------------------------------------------
-// Global Data.
-// ----------------------------------------------------------------------------------------
 struct Serial1DataStruct serial1Data = {
     .nbytes = 0,
     .iter_token = 0,
@@ -165,9 +162,6 @@ struct GPATTStruct gpattData = {
 
 int gpatt_total_bad_elements = 0;
 
-// ----------------------------------------------------------------------------------------
-// Validation Functions.
-// ----------------------------------------------------------------------------------------
 bool val_utc_time(const char *data) {
     if (!val_element_size(data)) return false;
     if (strlen(data) != 9) return false;
@@ -453,9 +447,6 @@ bool val_element_size(const char *data) {
     return true;
 }
 
-// ----------------------------------------------------------------------------------------
-// GNGGA Parsing.
-// ----------------------------------------------------------------------------------------
 void GNGGA(void) {
     serial1Data.iter_token = 0;
     serial1Data.token = strtok(gnggaData.sentence, ",");
@@ -613,7 +604,7 @@ void GNGGA(void) {
                 }
                 break;
             case 15:
-                // Skip checksum
+                // checksum validated before sentence tokenized
                 break;
             default:
                 break;
@@ -632,9 +623,6 @@ void GNGGA(void) {
     gnggaData.total_bad_elements = gngga_total_bad_elements;
 }
 
-// ----------------------------------------------------------------------------------------
-// GNRMC Parsing.
-// ----------------------------------------------------------------------------------------
 void GNRMC(void) {
     serial1Data.iter_token = 0;
     serial1Data.token = strtok(gnrmcData.sentence, ",");
@@ -772,7 +760,7 @@ void GNRMC(void) {
                 }
                 break;
             case 13:
-                // Skip checksum
+                // checksum validated before sentence tokenized
                 break;
             default:
                 break;
@@ -791,9 +779,6 @@ void GNRMC(void) {
     gnrmcData.total_bad_elements = gnrmc_total_bad_elements;
 }
 
-// ----------------------------------------------------------------------------------------
-// GPATT Parsing.
-// ----------------------------------------------------------------------------------------
 void GPATT(void) {
     serial1Data.iter_token = 0;
     serial1Data.token = strtok(gpattData.sentence, ",");
@@ -1227,9 +1212,6 @@ void GPATT(void) {
     gpattData.total_bad_elements = gpatt_total_bad_elements;
 }
 
-// ------------------------------------------------------------------------------------------------------------------------------
-// readGPS
-// ------------------------------------------------------------------------------------------------------------------------------
 void readGPS(void) {
     serial1Data.gngga_bool=false;
     serial1Data.gnrmc_bool=false;
@@ -1293,9 +1275,9 @@ void readGPS(void) {
     }
 }
 
-// ------------------------------------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 // Isolate the checksum.
-// ------------------------------------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 int getCheckSumSerial1(char * string) {
   for (serial1Data.XOR=0, serial1Data.i_XOR=0; serial1Data.i_XOR < strlen(string); serial1Data.i_XOR++) {
     serial1Data.c_XOR=(unsigned char)string[serial1Data.i_XOR];
@@ -1305,9 +1287,9 @@ int getCheckSumSerial1(char * string) {
   return serial1Data.XOR;
 }
 
-// ------------------------------------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 // Checksum validator.
-// ------------------------------------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 bool validateChecksumSerial1(char * buffer) {
   memset(serial1Data.gotSum, 0, sizeof(serial1Data.gotSum));
   serial1Data.gotSum[0]=buffer[strlen(buffer) - 3];
@@ -1318,9 +1300,9 @@ bool validateChecksumSerial1(char * buffer) {
   return false;
 }
 
-// ------------------------------------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 // Data validate.
-// ------------------------------------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 void validateGPSData(void) {
     // --------------------------------------------------------------------------
     // Parse data if all sentences have been collected.

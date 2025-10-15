@@ -1,268 +1,30 @@
-                                  SatIO - Written by Benjamin Jack Cullen.
+![plot](./Data/UnidentifiedStudios.png)
 
-              A general purpose programmable I/O platform for automation and manual throughput.
-    Supporting stacks (up to 10 functions per output pin) of logic across 20 output pins on the portcontroller.
+  SatIO - Written by Benjamin Jack Cullen.
 
-  What can SatIO tell you is true? Potentially infinite things.
+-----
 
-  Applications? Potentially infinite applications.
+  A general purpose programmable I/O platform for automation, throughput and LLM's.
 
-  Limitations? Being vastly general purpose comes at a perfromnce cost. SatIO is designed to be vastly general purpose.
+  A huge matrix switch in a small package, supporting stacks of logic across
+  70 output pins and 100 mapping slots.
+
+  For ESP32-P4
+
+-----
 
   Inference in Bayesian Reasoning? Moon tracking for example can be used to track the moon, it can also be used for one example; to 
-  track the tides, if the system is aware moon/planetary positioning and datetime then marine life values may also be inferred relative
-  to the inferred tide values and known datetime. There is a lot of data that can be used in many ways, with a kind of network effect.
-  Or more simply 'SatIO is one hell of a switch'.
-
-  The amount of data and I/O available on this project makes this project a more than adequately general purpose platform for all
-  kinds of future projects, from universally aware LLMs harnessing SatIO's optional serial output, to sensor drones, or even just a
-  GPS syncronized astro clock. Everything other than the ESP32 running SatIO should be considered as optional and modular, meaning
-  SatIO builds can be from a headless chip with GPS pouring out data over serial, or a full system with extra I/O and display.
-
-  Short of quantum navigation on a microchip, GPS is currently used for navigation, providing values that many more values
-  can be calculated from, providing there is not something potentially terminally wrong with the universe.
-
-  Matrix logic is an attempt to maximize programmable potential and hardware configuration is designed to attempt maximum IO potential.
-  If more output is needed then add another I2C port controller, if more input is needed then add another custom I2C sensor module.
-  If more matrix logic is needed then build on another MCU, matrix switches and switch functions have been balanced to allow for plenty
-  of switches and functions for said switches, with regards to available memory/storage (10 functions per switch not including switch linking
-  where logic can be stacked accross multiple/all switches/memory allocations).
-
-        Design: Break out all the things and build I2C peripherals as required to orbit the ESP32/Central-MCU.
-
-                                Wiring For Keystudio ESP32 PLUS Development Board
-
-                                ESP32: 1st ATMEGA2560 with shield as Port Controller (not on multiplexer):
-                                ESP32: I2C SDA -> ATMEGA2560: I2C SDA
-                                ESP32: I2C SCL -> ATMEGA2560: I2C SCL
-
-                                ESP32: 2nd ATMEGA2560 with shield as Control Panel (not on multiplexer):
-                                ESP32: io25    -> ATMEGA2560: io22
-                                ESP32: I2C SDA -> ATMEGA2560: I2C SDA
-                                ESP32: I2C SCL -> ATMEGA2560: I2C SCL
-
-                                Other ESP32 i2C Devices (not on multiplexer):
-                                ESP32: SDA0 SCL0 -> DS3231 (RTC): SDA, SCL (5v)
-
-                                ESP32: WTGPS300P (5v) (for getting a downlink):
-                                ESP32: io27 RXD -> WTGPS300P: TXD
-                                ESP32: null TXD -> WTGPS300P: RXD
-
-                                ESP32 i2C: i2C Multiplexing (3.3v) (for peripherals):
-                                ESP32: i2C -> TCA9548A: SDA, SCL
-
-                                ESP32: Analog/Digital Multiplexing (3.3v) (for peripherals):
-                                ESP32: io4    -> CD74HC4067: SIG
-                                ESP32: io32   -> CD74HC4067: S0
-                                ESP32: io33   -> CD74HC4067: S1
-                                ESP32: io16   -> CD74HC4067: S2
-                                ESP32: io17   -> CD74HC4067: S3
-                                CD74HC4067 C0 -> DHT11: SIG
-
-                                ESP32 VSPI: SDCARD (5v) (for matrix and system data):
-                                ESP32: io5  -> HW-125: CS (SS)
-                                ESP32: io23 -> HW-125: DI (MOSI)
-                                ESP32: io19 -> HW-125: DO (MISO)
-                                ESP32: io18 -> HW-125: SCK (SCLK)
-
-                                ESP32 HSPI: SSD1351 OLED (5v) (short wires recommended):
-                                ESP32: io14 -> SSD1351: SCL/SCLK
-                                ESP32: io12 -> SSD1351: MISO/DC
-                                ESP32: io13 -> SSD1351: SDA
-                                ESP32: io26 -> SSD1351: CS
-
-                                           $SATIO SENTENCE
-                              
-                              RTC Sync Time (UTC)             System Uptime (Seconds)
-                              |      RTC Sync Date (UTC)      |
-        Tag                   |      |                        |   Longitude Degrees
-        |                     |      |                        |   |
-        $SATIO,000000,00000000,000000,00000000,000000,00000000,0,0,0,*CHECKSUM
-              |      |                        |      |          |
-              |      |                        |      |          Latitude Degrees
-              |      RTC Date (UTC)           |      Local Date (UTC Offset)
-              RTC Time (UTC)                  Local Time (UTC Offset)
-
-                                          $MATRIX SENTENCE 
-
-                                                                              Matrix Switch Output Port 19
-                                                                              |
-                                                                              |    Matrix Switch State 0
-                                                                              |    |
-    $MATRIX,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,*CHECKSUM
-           |                                                                                                                                                   |
-          Matrix Switch Output Port 0                                                                                                                          Matrix Switch State 19
-                                                                                          
-
-                                          $SENSORS SENTENCE
-
-                      Sensor 0
-                      |
-              $SENSORS,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,*CHECKSUM
-                                                                                  |
-                                                                                  Sensor 15
-
-
-                                          $SUN SENTENCE
-                                                    
-                                    Right Ascension 
-                                    |       Azimuth 
-                                    |       |       Rise
-                                    |       |       |
-                                $SUN,0.0,0.0,0.0,0.0,0.0,0.0,*CHECKSUM
-                                        |       |       |
-                                        |       |       Set 
-                                        |       Altitude
-                                        Declination 
-
-
-                                          $MOON SENTENCE
-
-                                                Rise
-                                Right Ascension |
-                                |       Azimuth | 
-                                |       |       |       Phase
-                                |       |       |       |
-                          $MOON,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,*CHECKSUM
-                                    |       |       |       |
-                                    |       |       Set     Luminessence
-                                    |       Altitude
-                                    Declination
-
-
-                                        $MERCURY SENTENCE
-
-                                      Rise
-                      Right Ascension |       Helio Ecliptic Latitude
-                      |       Azimuth |       |       Radius Vector   
-                      |       |       |       |       |       Ecliptic Latitude
-                      |       |       |       |       |       |
-              $MERCURY,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0*CHECKSUM
-                          |       |       |       |       |       |
-                          |       |       Set     |       |       Ecliptic Longitude
-                          |       Altitude        |       Distance
-                          Declination             Helio Ecliptic Longitude  
-
-
-                                         $VENUS SENTENCE
-
-                                      Rise
-                      Right Ascension |       Helio Ecliptic Latitude
-                      |       Azimuth |       |       Radius Vector   
-                      |       |       |       |       |       Ecliptic Latitude
-                      |       |       |       |       |       |
-                $VENUS,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0*CHECKSUM
-                          |       |       |       |       |       |
-                          |       |       Set     |       |       Ecliptic Longitude
-                          |       Altitude        |       Distance
-                          Declination             Helio Ecliptic Longitude  
-
-
-                                        $MARS SENTENCE
-
-                                      Rise
-                      Right Ascension |       Helio Ecliptic Latitude
-                      |       Azimuth |       |       Radius Vector   
-                      |       |       |       |       |       Ecliptic Latitude
-                      |       |       |       |       |       |
-                 $MARS,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0*CHECKSUM
-                          |       |       |       |       |       |
-                          |       |       Set     |       |       Ecliptic Longitude
-                          |       Altitude        |       Distance
-                          Declination             Helio Ecliptic Longitude
-
-
-                                      $JUPITER SENTENCE
-
-                                      Rise
-                      Right Ascension |       Helio Ecliptic Latitude
-                      |       Azimuth |       |       Radius Vector   
-                      |       |       |       |       |       Ecliptic Latitude
-                      |       |       |       |       |       |
-              $JUPITER,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0*CHECKSUM
-                          |       |       |       |       |       |
-                          |       |       Set     |       |       Ecliptic Longitude
-                          |       Altitude        |       Distance
-                          Declination             Helio Ecliptic Longitude
-
-
-                                      $SATURN SENTENCE
-
-                                      Rise
-                      Right Ascension |       Helio Ecliptic Latitude
-                      |       Azimuth |       |       Radius Vector   
-                      |       |       |       |       |       Ecliptic Latitude
-                      |       |       |       |       |       |
-               $SATURN,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0*CHECKSUM
-                          |       |       |       |       |       |
-                          |       |       Set     |       |       Ecliptic Longitude
-                          |       Altitude        |       Distance
-                          Declination             Helio Ecliptic Longitude
-
-
-                                      $URANUS SENTENCE
-
-                                      Rise
-                      Right Ascension |       Helio Ecliptic Latitude
-                      |       Azimuth |       |       Radius Vector   
-                      |       |       |       |       |       Ecliptic Latitude
-                      |       |       |       |       |       |
-               $URANUS,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0*CHECKSUM
-                          |       |       |       |       |       |
-                          |       |       Set     |       |       Ecliptic Longitude
-                          |       Altitude        |       Distance
-                          Declination             Helio Ecliptic Longitude 
-
-
-                                      $NEPTUNE SENTENCE
-
-                                      Rise
-                      Right Ascension |       Helio Ecliptic Latitude
-                      |       Azimuth |       |       Radius Vector   
-                      |       |       |       |       |       Ecliptic Latitude
-                      |       |       |       |       |       |
-              $NEPTUNE,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0*CHECKSUM
-                          |       |       |       |       |       |
-                          |       |       Set     |       |       Ecliptic Longitude
-                          |       Altitude        |       Distance
-                          Declination             Helio Ecliptic Longitude  
-
-
-  
-    Summary: Over one quintillion possible combinations of stackable logic across 20 switches for a general purpose
-    part or standalone device.
-  
-    Whats the point? Working with ESP32 is cheap and from this project I intend to have reusable, general purpose parts
-    as modules that can work both together and standalone, creating a platform I can go to when working with ESP32.
-  
-    Requires using modified SiderealPlanets library (hopefully thats okay as the modifications allow calculating rise/set
-    of potentially any celestial body as described in this paper: https://stjarnhimlen.se/comp/riset.html).
-    Additions: 1: doXRiseSetTimes(). This allows for calculating rise and set times of all planets and objects according to time and location.
-               2: inRange60(). Ensures minutes and second values are wihin 0-59 for planet/object rise, set times.
-               3: inRange24(). Ensures hour values are wihin 0-23 for planet/object rise, set times.
-  
-    ToDo: 20 programmable modulators on each output pin on the port controller. 
-    
-    ToDo: Terrain elevation: Experiments have been made decompressing NASA's SRTMGL1 (Shuttle Radar Topography Mission) files quickly.
-  
-    ToDo: More data and calculate more data from existing data.
-  
-    ToDo: Macros.
-  
-    Complete PlatformIO project files, libraries and modified libraries:
-    https://drive.google.com/drive/folders/13yynSxkKL-zxb7iLSkg0v0VXkSLgmtW-?usp=sharing
-  
-    Builds:
-    Nano SatIO (Passive): Serial input/output only, headless. Useful for LLMs and things.
-    Full SatIO (Active): Everything.
+  track the tides, if the system is aware of moon/planetary positioning and datetime then marine life values may also be inferred
+  relative to the inferred tide values and known datetime. There is a lot of data that can be used in many ways, with a kind of network
+  effect. Or more simply 'SatIO is one hell of a switch'.
 
 -----
 
 [ MATRIX SWITCH LOGIC ]
 
 Logic may require or not require values X,Y,Z.
-    
-[Available Matrix Switch Functions]
+
+All of the following values can be used in the matrix:
 
     [0] None
     [1] On
@@ -357,7 +119,12 @@ Logic may require or not require values X,Y,Z.
     [90] SDCARDInserted
     [91] SDCARDMounted
 
-[Available Switch Function Operators]
+-----
+
+[ Available Switch Function Operators ]
+
+Many matrix functions accept operators, where required:
+
     [0] None
     [1] Equal
     [2] Over
@@ -366,15 +133,17 @@ Logic may require or not require values X,Y,Z.
 
 -----
 
-[SERIAL]
-
 System
 
     system --save
     system --load
     system --restore-defaults
 
+-----
+
 Mapping
+
+Many values can be mapped and then used in the matrix and or sent directly to the port controller.
 
     mapping --save
     mapping --load
@@ -389,11 +158,18 @@ Mapping
     mapping -c5 n      Configuration map slot -s. (mode 1 only : DEADZONE : expected flutuation at center)
 
 example map analog stick axis x0 on admplex0 channel 0 into map slot 0:
+
     mapping -s 0 -m 1 -c0 16 -c1 1974 -c2 1974 -c3 1894 -c4 255 -c5 50
+
 example map analog stick axis x1 on admplex0 channel 1 into map slot 1:
+
     mapping -s 1 -m 2 -c0 17 -c1 1974 -c2 1974 -c3 1894 -c4 255 -c5 50
 
+-----
+
 Matrix
+
+Setup the matrix:
 
     matrix --new                Clears matrix in memory.
     matrix --save n             Specify file slot.
@@ -421,19 +197,28 @@ Matrix
 example default all switch configurations:
 
     matrix --new
+
 example stat switch zero:
 
     stat --matrix 0
+
 example set switch zero:
 
     matrix -s 0 -f 0 -p 33 -fn 91 -fx 1 -fo 1 --pwm0 1000000 --pwm1 15000 --computer-assist 1
+
 example set mapped output mode:
+
     matrix -s 0 --omode 1
 
 example set matrix logic output mode:
+
     matrix -s 0 --omode 0
 
+-----
+
 INS
+
+Customizable Inertial navigation system.
 
     ins -m n              Set INS mode n. (0 : Off) (1 : Dynamic, set by gps every 100ms) (2 : Fixed, remains on after conditions met).
     ins -gyro n           INS uses gyro for attitude. (0 : gyro heading) (1 : gps heading).
@@ -442,6 +227,8 @@ INS
     ins -r n              Set INS maximum required heading range difference to initialize (difference between gps heading and gyro heading).
     ins --reset-forced n  Reset INS remains on after conditions met.
 
+-----
+
 Satio
 
     satio --speed-units n  Set displayed units (0 : M/S) (1 : MPH) (2 : KPH) (3 : KTS estimated)
@@ -449,22 +236,22 @@ Satio
     satio --mode-gngga     Use GNGGA data for location.
     satio --mode-gnrmc     Use GNRMC data for location.
 
+-----
+
 Gyro
 
     gyro --calacc        Callibrate the accelerometer.
     gyro --calmag-start  Begin calibrating the magnetometer.
     gyro --calmag-end    End calibrating the magnetometer.
 
+-----
+
 SDCard
 
     sdcard --mount
     sdcard --unmount
 
-Other
-
-    -v    Enable verbosoity.
-    -vv   Enable extra verbosoity.
-    help
+-----
 
 Stat
 
@@ -498,5 +285,59 @@ Stat
     stat --sentence --uranus    Takes arguments -e, -d.
     stat --sentence --neptune   Takes arguments -e, -d.
     stat --sentence --meteors   Takes arguments -e, -d.
+
+-----
+
+Other
+
+    -v    Enable verbosoity.
+    -vv   Enable extra verbosoity.
+    help
+
+-----
+
+![plot](./Data/SatIO_Stat.png)
+
+-----
+
+  Wiring For Keystudio ESP32 PLUS Development Board:
+
+          ESP32: 1st ATMEGA2560 with shield as Port Controller (not on multiplexer):
+          ESP32: I2C SDA -> ATMEGA2560: I2C SDA
+          ESP32: I2C SCL -> ATMEGA2560: I2C SCL
+
+          Other ESP32 I2C Devices (not on multiplexer):
+          ESP32: SDA0 SCL0 -> DS3231 (RTC): SDA, SCL (5v)
+
+          ESP32 i2C: I2C Multiplexing (3.3v) (for peripherals):
+          ESP32: i2C -> TCA9548A: SDA, SCL
+
+          ESP32: Analog/Digital Multiplexing (3.3v) (for peripherals):
+          ESP32: io4    -> CD74HC4067: SIG
+          ESP32: io32   -> CD74HC4067: S0
+          ESP32: io33   -> CD74HC4067: S1
+          ESP32: io16   -> CD74HC4067: S2
+          ESP32: io17   -> CD74HC4067: S3
+          CD74HC4067 C0 -> DHT11: SIG
+
+          ESP32: WTGPS300P (5v) (for getting a downlink):
+          ESP32: io27 RXD -> WTGPS300P: TXD
+          ESP32: null TXD -> WTGPS300P: RXD
+
+          ESP32: WT901 9-Axis Gyro:
+          ESP32: Serial2 RXD -> WT901 TXD
+          ESP32: Serial2 TXD -> WT901 RXD
+          
+-----
+
+    To Do: AI I2C modules returning int's as classifiers.
+    To Do: SRTM data. Use NASA shuttle radar topographical mission data.
+    To Do: Ability to add custom IIC sensor modules after flashing.
+    To Do: PCB fabrication.
+
+-----
+
+  There are some required custom libs included in complete project files:
+  https://drive.google.com/drive/folders/13yynSxkKL-zxb7iLSkg0v0VXkSLgmtW-?usp=sharing
 
 -----

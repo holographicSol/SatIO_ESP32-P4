@@ -12,9 +12,13 @@ extern "C" {
 #include <stdint.h>
 #include "config.h"
 
-// ------------------------------------------------------------------------
-// Gyro data structure.
-// ------------------------------------------------------------------------
+
+/**
+ * @struct GyroData
+ * 
+ * Data for gyroscope sensor data from WT901, including acceleration,
+ * gyroscope readings, angles, magnetic fields, and configuration.
+ */
 struct GyroData {
   uint8_t gyro_0_s_cDataUpdate; // Update flags
   float gyro_0_fAcc[3];         // Acceleration (x, y, z)
@@ -38,17 +42,55 @@ struct GyroData {
 };
 extern struct GyroData gyroData;
 
-// ------------------------------------------------------------------------
-// Function prototypes.
-// ------------------------------------------------------------------------
-void Gyro0UartSend(uint8_t *p_data, uint32_t uiSize); // Send data over UART
-void Gyro0Delayms(uint16_t ucMs); // Delay in milliseconds
-void Gyro0DataUpdata(uint32_t uiReg, uint32_t uiRegNum); // Update data flags
-void Gyro0AutoScan(void); // Auto-scan baud rates
+/**
+ * Sends data over UART for the gyroscope communication.
+ * @param p_data Pointer to the data buffer to send
+ * @param uiSize Size of the data to send in bytes
+ */
+void Gyro0UartSend(uint8_t *p_data, uint32_t uiSize); 
+
+/**
+ * Delays execution for the specified number of milliseconds.
+ * @param ucMs Number of milliseconds to delay
+ */
+void Gyro0Delayms(uint16_t ucMs); 
+
+/**
+ * Updates data flags based on register values.
+ * @param uiReg Register value to process
+ * @param uiRegNum Number of registers to update
+ */
+void Gyro0DataUpdata(uint32_t uiReg, uint32_t uiRegNum); 
+
+/**
+ * Performs automatic scanning to detect the baud rate of the gyroscope sensor.
+ */
+void Gyro0AutoScan(void); 
+
+/**
+ * Reads the latest data from the gyroscope sensor.
+ * @return True if data was read successfully
+ */
 bool readGyro(void);
+
+/**
+ * Initializes the WT901 gyroscope sensor.
+ */
 void initWT901(void);
+
+/**
+ * Calibrates the accelerometer of the WT901 sensor.
+ */
 void WT901CalAcc(void);
+
+/**
+ * Starts the magnetic field calibration process for the WT901 sensor.
+ */
 void WT901CalMagStart(void);
+
+/**
+ * Ends the magnetic field calibration process for the WT901 sensor.
+ */
 void WT901CalMagEnd(void);
 
 #ifdef __cplusplus

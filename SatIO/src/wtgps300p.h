@@ -4,9 +4,9 @@
     1 : From main call readGPS().
     2 : From main call validateGPSData().
     3 : All wtgps300p sentence data will now be available in:
-        - gnggaData.
-        - gnrmcData.
-        - gpattData. 
+        - gnggaData
+        - gnrmcData
+        - gpattData
 */
 
 #ifndef WTGPS300P_H
@@ -21,9 +21,9 @@ extern "C" {
 #include "strval.h"   // For string validation functions
 #include "config.h"
 
-// ----------------------------------------------------------------------------------------
-// Serial Data Struct.
-// ----------------------------------------------------------------------------------------
+/**
+ * @struct Serial1DataStruct
+ */
 struct Serial1DataStruct {
     unsigned long nbytes;                // Number of bytes read by serial
     unsigned long iter_token;            // Count token iterations
@@ -41,21 +41,11 @@ struct Serial1DataStruct {
     int XOR;                             // XOR result
     int c_XOR;                           // Checksum XOR
 };
-
 extern struct Serial1DataStruct serial1Data;
 
-// ----------------------------------------------------------------------------------------
-// unnamedData Struct.
-// ----------------------------------------------------------------------------------------
-struct ConvertedDataStruct {
-
-};
-
-extern struct ConvertedDataStruct convertedData;
-
-// ----------------------------------------------------------------------------------------
-// GNGGA Struct.
-// ----------------------------------------------------------------------------------------
+/**
+ * @struct GNGGAStruct
+ */
 struct GNGGAStruct {
     char sentence[MAX_GLOBAL_SERIAL_BUFFER_SIZE];
     char outsentence[MAX_GLOBAL_SERIAL_BUFFER_SIZE];
@@ -82,13 +72,12 @@ struct GNGGAStruct {
     bool valid_checksum;                                 // Checksum validity
     int total_bad_elements;                              // Total bad elements
 };
-
 extern struct GNGGAStruct gnggaData;
 extern int gngga_total_bad_elements;
 
-// ----------------------------------------------------------------------------------------
-// GNRMC Struct.
-// ----------------------------------------------------------------------------------------
+/**
+ * @struct GNRMCStruct
+ */
 struct GNRMCStruct {
     char sentence[MAX_GLOBAL_SERIAL_BUFFER_SIZE];
     char outsentence[MAX_GLOBAL_SERIAL_BUFFER_SIZE];
@@ -113,13 +102,12 @@ struct GNRMCStruct {
     bool valid_checksum;                                 // Checksum validity
     int total_bad_elements;                              // Total bad elements
 };
-
 extern struct GNRMCStruct gnrmcData;
 extern int gnrmc_total_bad_elements;
 
-// ----------------------------------------------------------------------------------------
-// GPATT Struct.
-// ----------------------------------------------------------------------------------------
+/**
+ * @struct GPATTStruct
+ */
 struct GPATTStruct {
     char sentence[MAX_GLOBAL_SERIAL_BUFFER_SIZE];
     char outsentence[MAX_GLOBAL_SERIAL_BUFFER_SIZE];
@@ -172,71 +160,384 @@ struct GPATTStruct {
     bool valid_checksum;                                 // Checksum validity
     int total_bad_elements;                              // Total bad elements
 };
-
 extern struct GPATTStruct gpattData;
 extern int gpatt_total_bad_elements;
 
-// ----------------------------------------------------------------------------------------
-// Validation Function Prototypes
-// ----------------------------------------------------------------------------------------
+// internal
+/**
+ * Validates the UTC time format in the provided data string.
+ * @param data Pointer to the string to validate
+ * @return True if the UTC time format is valid
+ */
 bool val_utc_time(const char *data);
+
+/**
+ * Validates the UTC date format in the provided data string.
+ * @param data Pointer to the string to validate
+ * @return True if the UTC date format is valid
+ */
 bool val_utc_date(const char *data);
+
+/**
+ * Validates the latitude format in the provided data string.
+ * @param data Pointer to the string to validate
+ * @return True if the latitude format is valid
+ */
 bool val_latitude(const char *data);
+
+/**
+ * Validates the longitude format in the provided data string.
+ * @param data Pointer to the string to validate
+ * @return True if the longitude format is valid
+ */
 bool val_longitude(const char *data);
+
+/**
+ * Validates the latitude hemisphere (N/S) in the provided data string.
+ * @param data Pointer to the string to validate
+ * @return True if the latitude hemisphere is valid
+ */
 bool val_latitude_H(const char *data);
+
+/**
+ * Validates the longitude hemisphere (E/W) in the provided data string.
+ * @param data Pointer to the string to validate
+ * @return True if the longitude hemisphere is valid
+ */
 bool val_longitude_H(const char *data);
+
+/**
+ * Validates the positioning solution status for GNGGA in the provided data string.
+ * @param data Pointer to the string to validate
+ * @return True if the GNGGA positioning status is valid
+ */
 bool val_positioning_status_gngga(const char *data);
+
+/**
+ * Validates the satellite count in the provided data string.
+ * @param data Pointer to the string to validate
+ * @return True if the satellite count is valid
+ */
 bool val_satellite_count(const char *data);
+
+/**
+ * Validates the GPS precision factor (HDOP) in the provided data string.
+ * @param data Pointer to the string to validate
+ * @return True if the GPS precision factor is valid
+ */
 bool val_gps_precision_factor(const char *data);
+
+/**
+ * Validates the altitude value in the provided data string.
+ * @param data Pointer to the string to validate
+ * @return True if the altitude is valid
+ */
 bool val_altitude(const char *data);
+
+/**
+ * Validates the altitude units in the provided data string.
+ * @param data Pointer to the string to validate
+ * @return True if the altitude units are valid
+ */
 bool val_altitude_units(const char *data);
+
+/**
+ * Validates the geoidal height in the provided data string.
+ * @param data Pointer to the string to validate
+ * @return True if the geoidal height is valid
+ */
 bool val_geoidal(const char *data);
+
+/**
+ * Validates the geoidal units in the provided data string.
+ * @param data Pointer to the string to validate
+ * @return True if the geoidal units are valid
+ */
 bool val_geoidal_units(const char *data);
+
+/**
+ * Validates the differential delay in the provided data string.
+ * @param data Pointer to the string to validate
+ * @return True if the differential delay is valid
+ */
 bool val_differential_delay(const char *data);
+
+/**
+ * Validates the base station ID in the provided data string.
+ * @param data Pointer to the string to validate
+ * @return True if the base station ID is valid
+ */
 bool val_basestation_id(const char *data);
+
+/**
+ * Validates the positioning status for GNRMC in the provided data string.
+ * @param data Pointer to the string to validate
+ * @return True if the GNRMC positioning status is valid
+ */
 bool val_positioning_status_gnrmc(const char *data);
+
+/**
+ * Validates the ground speed in the provided data string.
+ * @param data Pointer to the string to validate
+ * @return True if the ground speed is valid
+ */
 bool val_ground_speed(const char *data);
+
+/**
+ * Validates the ground heading in the provided data string.
+ * @param data Pointer to the string to validate
+ * @return True if the ground heading is valid
+ */
 bool val_ground_heading(const char *data);
+
+/**
+ * Validates the installation angle in the provided data string.
+ * @param data Pointer to the string to validate
+ * @return True if the installation angle is valid
+ */
 bool val_installation_angle(const char *data);
+
+/**
+ * Validates the installation angle direction (E/W) in the provided data string.
+ * @param data Pointer to the string to validate
+ * @return True if the installation angle direction is valid
+ */
 bool val_installation_angle_direction(const char *data);
+
+/**
+ * Validates the mode indication in the provided data string.
+ * @param data Pointer to the string to validate
+ * @return True if the mode indication is valid
+ */
 bool val_mode_indication(const char *data);
+
+/**
+ * Validates the pitch angle for GPATT in the provided data string.
+ * @param data Pointer to the string to validate
+ * @return True if the GPATT pitch angle is valid
+ */
 bool val_pitch_gpatt(const char *data);
+
+/**
+ * Validates the roll angle for GPATT in the provided data string.
+ * @param data Pointer to the string to validate
+ * @return True if the GPATT roll angle is valid
+ */
 bool val_roll_gpatt(const char *data);
+
+/**
+ * Validates the yaw angle for GPATT in the provided data string.
+ * @param data Pointer to the string to validate
+ * @return True if the GPATT yaw angle is valid
+ */
 bool val_yaw_gpatt(const char *data);
+
+/**
+ * Validates the pitch angle channel for GPATT in the provided data string.
+ * @param data Pointer to the string to validate
+ * @return True if the GPATT pitch angle channel is valid
+ */
 bool val_angle_channle_p_gpatt(const char *data);
+
+/**
+ * Validates the roll angle channel for GPATT in the provided data string.
+ * @param data Pointer to the string to validate
+ * @return True if the GPATT roll angle channel is valid
+ */
 bool val_angle_channle_r_gpatt(const char *data);
+
+/**
+ * Validates the yaw angle channel for GPATT in the provided data string.
+ * @param data Pointer to the string to validate
+ * @return True if the GPATT yaw angle channel is valid
+ */
 bool val_angle_channle_y_gpatt(const char *data);
+
+/**
+ * Validates the software version for GPATT in the provided data string.
+ * @param data Pointer to the string to validate
+ * @return True if the GPATT software version is valid
+ */
 bool val_software_version_gpatt(const char *data);
+
+/**
+ * Validates the software version channel for GPATT in the provided data string.
+ * @param data Pointer to the string to validate
+ * @return True if the GPATT software version channel is valid
+ */
 bool val_version_channel_s_gpatt(const char *data);
+
+/**
+ * Validates the product ID for GPATT in the provided data string.
+ * @param data Pointer to the string to validate
+ * @return True if the GPATT product ID is valid
+ */
 bool val_product_id_gpatt(const char *data);
+
+/**
+ * Validates the product ID channel for GPATT in the provided data string.
+ * @param data Pointer to the string to validate
+ * @return True if the GPATT product ID channel is valid
+ */
 bool val_id_channel_gpatt(const char *data);
+
+/**
+ * Validates the INS status for GPATT in the provided data string.
+ * @param data Pointer to the string to validate
+ * @return True if the GPATT INS status is valid
+ */
 bool val_ins_gpatt(const char *data);
+
+/**
+ * Validates the INS channel for GPATT in the provided data string.
+ * @param data Pointer to the string to validate
+ * @return True if the GPATT INS channel is valid
+ */
 bool val_ins_channel_gpatt(const char *data);
+
+/**
+ * Validates the hardware version for GPATT in the provided data string.
+ * @param data Pointer to the string to validate
+ * @return True if the GPATT hardware version is valid
+ */
 bool val_hardware_version_gpatt(const char *data);
+
+/**
+ * Validates the run state flag for GPATT in the provided data string.
+ * @param data Pointer to the string to validate
+ * @return True if the GPATT run state flag is valid
+ */
 bool val_run_state_flag_gpatt(const char *data);
+
+/**
+ * Validates the misalignment angle number for GPATT in the provided data string.
+ * @param data Pointer to the string to validate
+ * @return True if the GPATT misalignment angle number is valid
+ */
 bool val_mis_angle_num_gpatt(const char *data);
+
+/**
+ * Validates the static flag for GPATT in the provided data string.
+ * @param data Pointer to the string to validate
+ * @return True if the GPATT static flag is valid
+ */
 bool val_static_flag_gpatt(const char *data);
+
+/**
+ * Validates the user code for GPATT in the provided data string.
+ * @param data Pointer to the string to validate
+ * @return True if the GPATT user code is valid
+ */
 bool val_user_code_gpatt(const char *data);
+
+/**
+ * Validates the GST data for GPATT in the provided data string.
+ * @param data Pointer to the string to validate
+ * @return True if the GPATT GST data is valid
+ */
 bool val_gst_data_gpatt(const char *data);
+
+/**
+ * Validates the line flag for GPATT in the provided data string.
+ * @param data Pointer to the string to validate
+ * @return True if the GPATT line flag is valid
+ */
 bool val_line_flag_gpatt(const char *data);
+
+/**
+ * Validates the misalignment attitude flag for GPATT in the provided data string.
+ * @param data Pointer to the string to validate
+ * @return True if the GPATT misalignment attitude flag is valid
+ */
 bool val_mis_att_flag_gpatt(const char *data);
+
+/**
+ * Validates the IMU kind for GPATT in the provided data string.
+ * @param data Pointer to the string to validate
+ * @return True if the GPATT IMU kind is valid
+ */
 bool val_imu_kind_gpatt(const char *data);
+
+/**
+ * Validates the UBI car kind for GPATT in the provided data string.
+ * @param data Pointer to the string to validate
+ * @return True if the GPATT UBI car kind is valid
+ */
 bool val_ubi_car_kind_gpatt(const char *data);
+
+/**
+ * Validates the mileage for GPATT in the provided data string.
+ * @param data Pointer to the string to validate
+ * @return True if the GPATT mileage is valid
+ */
 bool val_mileage_gpatt(const char *data);
+
+/**
+ * Validates the run inertial flag for GPATT in the provided data string.
+ * @param data Pointer to the string to validate
+ * @return True if the GPATT run inertial flag is valid
+ */
 bool val_run_inetial_flag_gpatt(const char *data);
+
+/**
+ * Validates the speed enable flag for GPATT in the provided data string.
+ * @param data Pointer to the string to validate
+ * @return True if the GPATT speed enable flag is valid
+ */
 bool val_speed_enable_gpatt(const char *data);
+
+/**
+ * Validates the speed number for GPATT in the provided data string.
+ * @param data Pointer to the string to validate
+ * @return True if the GPATT speed number is valid
+ */
 bool val_speed_num_gpatt(const char *data);
+
+/**
+ * Validates custom flag fields for GPATT in the provided data string.
+ * @param data Pointer to the string to validate
+ * @return True if the custom flag is valid
+ */
 bool val_custom_flag(const char *data);
+
+/**
+ * Validates the checksum in the provided data string.
+ * @param data Pointer to the string to validate
+ * @return True if the checksum is valid
+ */
 bool val_checksum(const char *data);
+
+/**
+ * Validates the element size in the provided data string.
+ * @param data Pointer to the string to validate
+ * @return True if the element size is valid
+ */
 bool val_element_size(const char *data);
 
-// ----------------------------------------------------------------------------------------
-// Parsing Function Prototypes.
-// ----------------------------------------------------------------------------------------
+// external 
+/**
+ * Processes and parses a GNGGA NMEA sentence from the serial buffer.
+ */
 void GNGGA(void);
+
+/**
+ * Processes and parses a GNRMC NMEA sentence from the serial buffer.
+ */
 void GNRMC(void);
+
+/**
+ * Processes and parses a GPATT proprietary sentence from the serial buffer.
+ */
 void GPATT(void);
+
+/**
+ * Reads GPS data from the serial port into the buffer and identifies sentences.
+ */
 void readGPS(void);
+
+/**
+ * Validates all collected GPS sentence data, including checksums and element formats.
+ */
 void validateGPSData(void);
 
 #ifdef __cplusplus

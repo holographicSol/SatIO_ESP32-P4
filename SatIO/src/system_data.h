@@ -14,11 +14,10 @@ extern "C" {
 #include "esp_attr.h"
 #include "config.h"
 
-// ------------------------------------------------------------------------------------------------------------------------------
-//                                                                                                                    SYSTEM TIME
-// ------------------------------------------------------------------------------------------------------------------------------
-
-// Bitpacked Struct
+/**
+ * @struct System data containing flags, counters, and statistics for system monitoring and control.
+ * @warning This struct is bitpacked.
+ */
 struct systemStruct {
   // Packed breach flags (6 bits)
   unsigned interval_breach_gps : 1;
@@ -103,11 +102,19 @@ struct systemStruct {
 };
 extern struct systemStruct systemData;
 
-// ----------------------------------------------------------------------------------------
-// Function Prototypes.
-// ----------------------------------------------------------------------------------------
+/**
+ * Checks system intervals for breaches and updates breach flags.
+ */
 void systemIntervalCheck(void);
+
+/**
+ * Handles the 1-second interval breach processing, updating totals and counters.
+ */
 void intervalBreach1Second(void);
+
+/**
+ * Restores the system to default configuration values.
+ */
 void restore_system_defaults(void);
 
 #ifdef __cplusplus

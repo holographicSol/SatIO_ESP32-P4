@@ -19,21 +19,16 @@
 #include "system_data.h"
 #include "sdmmc_helper.h"
 
-// ------------------------------------------------------------------------------------------------------------------------------
-//                                                                                                                   DATA: MATRIX
-// ------------------------------------------------------------------------------------------------------------------------------
-
 struct MatrixStruct matrixData = {
-
   .i_count_matrix=0,
-  .load_matrix_on_startup=0,    // default is false.
-  .i_computer_assist_enabled=0, // count computer assist enabled 
-  .i_computer_assist_disabled=0, // count computer assist disabled
-  .i_switch_intention_high=0, // count intention high
-  .i_switch_intention_low=0, // count intention low
-  .i_computer_intention_high=0, // count intention high
-  .i_computer_intention_low=0, // count intention low
-  .matrix_sentence={0}, // an NMEA inspired sentence reflecting true/false per switch
+  .load_matrix_on_startup=0,
+  .i_computer_assist_enabled=0,
+  .i_computer_assist_disabled=0,
+  .i_switch_intention_high=0,
+  .i_switch_intention_low=0,
+  .i_computer_intention_high=0,
+  .i_computer_intention_low=0,
+  .matrix_sentence={0},
   .computer_assist={
     {
       false, false, false, false, false, false, false, false, false, false, // 0-9
@@ -221,80 +216,6 @@ struct MatrixStruct matrixData = {
       {false, false, false, false, false, false, false, false, false, false}, // 67
       {false, false, false, false, false, false, false, false, false, false}, // 68
       {false, false, false, false, false, false, false, false, false, false}, // 69
-    }
-  },
-  .matrix_switch_operator_index={
-    {
-      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 0
-      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 1
-      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 2
-      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 3
-      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 4
-      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 5
-      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 6
-      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 7
-      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 8
-      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 9
-      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 10
-      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 11
-      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 12
-      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 13
-      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 14
-      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 15
-      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 16
-      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 17
-      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 18
-      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 19
-      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 20
-      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 21
-      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 22
-      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 23
-      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 24
-      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 25
-      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 26
-      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 27
-      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 28
-      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 29
-      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 30
-      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 31
-      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 32
-      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 33
-      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 34
-      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 35
-      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 36
-      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 37
-      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 38
-      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 39
-      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 40
-      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 41
-      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 42
-      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 43
-      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 44
-      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 45
-      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 46
-      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 47
-      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 48
-      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 49
-      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 50
-      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 51
-      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 52
-      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 53
-      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 54
-      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 55
-      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 56
-      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 57
-      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 58
-      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 59
-      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 60
-      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 61
-      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 62
-      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 63
-      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 64
-      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 65
-      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 66
-      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 67
-      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 68
-      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 69
     }
   },
   .matrix_function={
@@ -651,13 +572,87 @@ struct MatrixStruct matrixData = {
       },
       {
         {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, // 69
-        {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0123456789, 0.0, 0.0}, {0.0123456789, 0.0, 0.0}
+        {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}
       },
+    }
+  },
+  .matrix_switch_operator_index={
+    {
+      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 0
+      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 1
+      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 2
+      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 3
+      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 4
+      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 5
+      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 6
+      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 7
+      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 8
+      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 9
+      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 10
+      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 11
+      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 12
+      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 13
+      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 14
+      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 15
+      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 16
+      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 17
+      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 18
+      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 19
+      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 20
+      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 21
+      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 22
+      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 23
+      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 24
+      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 25
+      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 26
+      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 27
+      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 28
+      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 29
+      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 30
+      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 31
+      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 32
+      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 33
+      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 34
+      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 35
+      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 36
+      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 37
+      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 38
+      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 39
+      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 40
+      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 41
+      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 42
+      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 43
+      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 44
+      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 45
+      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 46
+      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 47
+      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 48
+      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 49
+      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 50
+      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 51
+      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 52
+      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 53
+      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 54
+      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 55
+      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 56
+      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 57
+      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 58
+      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 59
+      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 60
+      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 61
+      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 62
+      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 63
+      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 64
+      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 65
+      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 66
+      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 67
+      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 68
+      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 69
     }
   },
   .matrix_function_operator_name =
   {
-    "None",  // 0 : empty for functions that take no matrix_function_operator_name
+    "None",  // 0
     "Equal", // 1 
     "Over",  // 2
     "Under", // 3
@@ -759,14 +754,6 @@ struct MatrixStruct matrixData = {
     "SDCARDMounted", // 91
   },
 };
-
-// ------------------------------------------------------------------------------------------------------------------------------
-//                                                                                                    MATRIX FUNCTION EXPRESSIONS
-// ------------------------------------------------------------------------------------------------------------------------------ 
-/*
-Matrix switch requires all function checks to return true for a matrix switch to return true, therefore checks can be inverted as
-required, to return true when otherwise a check would return false, which allows more flexibility.
-*/
 
 bool in_range_check_true(double n0, double n1, double r) {
   // Serial.println(
@@ -906,10 +893,6 @@ bool check_bool_false(bool _bool) {
   return false;
 }
 
-// ------------------------------------------------------------------------------------------------------------------------------
-//                                                                                                                 MATRIX: SWITCH
-// ------------------------------------------------------------------------------------------------------------------------------ 
-
 bool final_bool=true;
 String temp_string_x="";
 String temp_string_y="";
@@ -923,69 +906,56 @@ bool handle_digit=false;
 int final_counter=0;
 
 bool matrixSwitch(void) {
-  // -----------------------------------------------------------------------------------------------------------------------
+
   // Iterate over each matrix switch.
-  // -----------------------------------------------------------------------------------------------------------------------
   for (int Mi=0; Mi < MAX_MATRIX_SWITCHES; Mi++) {
-    // -------------------------------------------------------------------------------------------------------------------
+
     // Temporary switch is zero (each switch has 0 to 10 functions that must all be true for the switch to turn high/low).
-    // -------------------------------------------------------------------------------------------------------------------
     bool tmp_matrix[10]={};
     final_counter=0;
-    // -------------------------------------------------------------------------------------------------------------------
+    
     // Iterate over each function in the current matrix switch.
-    // -------------------------------------------------------------------------------------------------------------------
     for (int Fi=0; Fi < MAX_MATRIX_SWITCH_FUNCTIONS; Fi++) {
+      handle_char=false;
+      handle_digit=false;
+
       // uncomment to debug
       // Serial.println("-----------------------------------------------" + String());
       // Serial.println("[Mi] " + String(Mi));
       // Serial.println("[Fi] " + String(Fi));
       // Serial.println("[matrixData.matrix_function[0][Mi][Fi]] " + String(matrixData.matrix_function[0][Mi][Fi]));
-      handle_char=false;
-      handle_digit=false;
-      // ----------------------------------------------------------------------------------------------------------------------
-      //                                                                                                          FIRST IS NONE
-      // ----------------------------------------------------------------------------------------------------------------------
+
       // Perfromance prefers adding function names in matrix from index zero, so if function index zero is 'none' then break.
-      // ----------------------------------------------------------------------------------------------------------------------
       if ((matrixData.matrix_function[0][Mi][Fi]==INDEX_MATRIX_SWITCH_FUNCTION_NONE) && (Fi==0)) {tmp_matrix[Fi]=false; break;}
-      // ----------------------------------------------------------------------------------------------------------------------
-      //                                                                                                                   NONE
-      // ----------------------------------------------------------------------------------------------------------------------
+
       // Put true in temporary matrix for 'none' at non-zero function indices (allows for 1-N functions to be set).
       // requires functions set consecutively from index 0-N.
-      // ----------------------------------------------------------------------------------------------------------------------
       else if ((matrixData.matrix_function[0][Mi][Fi]==INDEX_MATRIX_SWITCH_FUNCTION_NONE) && (Fi!=0))  {
         for (int i=Fi; i < MAX_MATRIX_SWITCH_FUNCTIONS; i++) {tmp_matrix[i]=true;}
         break;
       }
-      // ----------------------------------------------------------------------------------------------------------------------
-      //                                                                                                                     ON
-      // ----------------------------------------------------------------------------------------------------------------------
+
       // Put true in temporary matrix if switch is function name is set to Enabled (return true with no further logic required).
-      // ----------------------------------------------------------------------------------------------------------------------
       else if ((matrixData.matrix_function[0][Mi][Fi]==INDEX_MATRIX_SWITCH_FUNCTION_ON) && (Fi==0)) {
         for (int i=0; i < MAX_MATRIX_SWITCH_FUNCTIONS; i++) {tmp_matrix[i]=true;}
         break;
       }
-      // ----------------------------------------------------------------------------------------------------------------------
-      //                                                                                                             SWITCHLINK
-      // ----------------------------------------------------------------------------------------------------------------------
+
       // A special function that allows stacking matrix switch logic (specify matrix switch n to link).
-      // ----------------------------------------------------------------------------------------------------------------------
       else if ((matrixData.matrix_function[0][Mi][Fi]==INDEX_MATRIX_SWITCH_FUNCTION_SWITCHLINK) && (Fi==0)) {
         if (matrixData.matrix_switch_inverted_logic[0][Mi][Fi]==false) {
-          tmp_matrix[Fi]=check_equal_true(matrixData.switch_intention[0][(int)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_X]], true);
+          tmp_matrix[Fi]=check_equal_true(
+            matrixData.switch_intention[0][(int)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_X]],
+            true);
         }
         else if (matrixData.matrix_switch_inverted_logic[0][Mi][Fi]==true) {
-          tmp_matrix[Fi]=check_equal_false(matrixData.switch_intention[0][(int)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_X]], true);
+          tmp_matrix[Fi]=check_equal_false(
+            matrixData.switch_intention[0][(int)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_X]],
+            true);
         }
       }
-      // --------------------------------------------------------------------------------------------------------------------------------------
-      //                                                                                                       CASE XYZ (FLOATING POINT CHECKS)
-      // --------------------------------------------------------------------------------------------------------------------------------------
-      // Check digits. Don't set xyz unless required. If required then we also require operator functions (so set handle_digit true).
-      // --------------------------------------------------------------------------------------------------------------------------------------
+
+      // Check digits.
       else if ((matrixData.matrix_function[0][Mi][Fi]==INDEX_MATRIX_SWITCH_FUNCTION_LOCALTIME)) {
         tmp_x = atol(satioData.padded_local_time_HHMMSS);
         tmp_y = 0;
@@ -1263,8 +1233,9 @@ bool matrixSwitch(void) {
         handle_digit=true;
       }
       else if ((matrixData.matrix_function[0][Mi][Fi]==INDEX_MATRIX_SWITCH_FUNCTION_METEORS)) {
-        // user x: select meteor shower y: select datetime range or peak datetime range compered to sysetm x:
-        tmp_x = meteor_shower_warning_system[(int)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_X]][(int)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Y]];
+        tmp_x = meteor_shower_warning_system
+                [(int)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_X]]
+                [(int)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Y]];
         tmp_y = 0;
         tmp_z = 0;
         handle_digit=true;
@@ -1384,13 +1355,15 @@ bool matrixSwitch(void) {
         handle_digit=true;
       }
       else if ((matrixData.matrix_function[0][Mi][Fi]==INDEX_MATRIX_SWITCH_FUNCTION_ADMPLEX0)) {
-        tmp_x = multiplexerData.ADMPLEX_0_DATA[(int)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z]];
+        tmp_x = multiplexerData.ADMPLEX_0_DATA
+                [(int)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z]];
         tmp_y = 0;
         tmp_z = 0;
         handle_digit=true;
       }
       else if ((matrixData.matrix_function[0][Mi][Fi]==INDEX_MATRIX_SWITCH_FUNCTION_MAPPEDVALUE)) {
-        tmp_x = mappingData.mapped_value[0][(int)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z]];
+        tmp_x = mappingData.mapped_value
+                [0][(int)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z]];
         tmp_y = 0;
         tmp_z = 0;
         handle_digit=true;
@@ -1407,9 +1380,7 @@ bool matrixSwitch(void) {
         tmp_z = 0;
         handle_digit=true;
       }
-      // -------------------------------
       // Handle digits.
-      // -------------------------------
       if (handle_digit==true) {
         if ((matrixData.matrix_switch_operator_index[0][Mi][Fi]==INDEX_MATRIX_SWITCH_OPERATOR_OVER)) {
           if (matrixData.matrix_switch_inverted_logic[0][Mi][Fi]==false) {
@@ -1454,67 +1425,74 @@ bool matrixSwitch(void) {
           }
         }
       }
-      // -------------------------------
       // Check chars.
-      // -------------------------------
       else {
-        if ((matrixData.matrix_function[0][Mi][Fi]==INDEX_MATRIX_SWITCH_FUNCTION_HEMIGNGGANORTH)) {temp_string_x="N"; temp_string_y=String(gnggaData.latitude_hemisphere); handle_char=true;}
-        else if ((matrixData.matrix_function[0][Mi][Fi]==INDEX_MATRIX_SWITCH_FUNCTION_HEMIGNGGASOUTH)) {temp_string_x="S"; temp_string_y=String(gnggaData.latitude_hemisphere); handle_char=true;}
-        else if ((matrixData.matrix_function[0][Mi][Fi]==INDEX_MATRIX_SWITCH_FUNCTION_HEMIGNGGAEAST)) {temp_string_x="E"; temp_string_y=String(gnggaData.longitude_hemisphere); handle_char=true;}
-        else if ((matrixData.matrix_function[0][Mi][Fi]==INDEX_MATRIX_SWITCH_FUNCTION_HEMIGNGGAWEST)) {temp_string_x="W"; temp_string_y=String(gnggaData.longitude_hemisphere); handle_char=true;}
-        else if ((matrixData.matrix_function[0][Mi][Fi]==INDEX_MATRIX_SWITCH_FUNCTION_POSSTATUSGNRMCA)) {temp_string_x="A"; temp_string_y=String(gnrmcData.positioning_status); handle_char=true;}
-        else if ((matrixData.matrix_function[0][Mi][Fi]==INDEX_MATRIX_SWITCH_FUNCTION_POSSTATUSGNRMCV)) {temp_string_x="V"; temp_string_y=String(gnrmcData.positioning_status); handle_char=true;}
-        else if ((matrixData.matrix_function[0][Mi][Fi]==INDEX_MATRIX_SWITCH_FUNCTION_MODEGNRMCA)) {temp_string_x="A"; temp_string_y=String(gnrmcData.mode_indication); handle_char=true;}
-        else if ((matrixData.matrix_function[0][Mi][Fi]==INDEX_MATRIX_SWITCH_FUNCTION_MODEGNRMCD)) {temp_string_x="D"; temp_string_y=String(gnrmcData.mode_indication); handle_char=true;}
-        else if ((matrixData.matrix_function[0][Mi][Fi]==INDEX_MATRIX_SWITCH_FUNCTION_MODEGNRMCE)) {temp_string_x="E"; temp_string_y=String(gnrmcData.mode_indication); handle_char=true;}
-        else if ((matrixData.matrix_function[0][Mi][Fi]==INDEX_MATRIX_SWITCH_FUNCTION_MODEGNRMCN)) {temp_string_x="N"; temp_string_y=String(gnrmcData.mode_indication); handle_char=true;}
-        else if ((matrixData.matrix_function[0][Mi][Fi]==INDEX_MATRIX_SWITCH_FUNCTION_HEMIGNRMCNORTH)) {temp_string_x="N"; temp_string_y=String(gnrmcData.latitude_hemisphere); handle_char=true;}
-        else if ((matrixData.matrix_function[0][Mi][Fi]==INDEX_MATRIX_SWITCH_FUNCTION_HEMIGNRMCSOUTH)) {temp_string_x="S"; temp_string_y=String(gnrmcData.latitude_hemisphere); handle_char=true;}
-        else if ((matrixData.matrix_function[0][Mi][Fi]==INDEX_MATRIX_SWITCH_FUNCTION_HEMIGNRMCEAST)) {temp_string_x="E"; temp_string_y=String(gnrmcData.longitude_hemisphere); handle_char=true;}
-        else if ((matrixData.matrix_function[0][Mi][Fi]==INDEX_MATRIX_SWITCH_FUNCTION_HEMIGNRMCWEST)) {temp_string_x="W"; temp_string_y=String(gnrmcData.longitude_hemisphere); handle_char=true;}
+        if ((matrixData.matrix_function[0][Mi][Fi]==INDEX_MATRIX_SWITCH_FUNCTION_HEMIGNGGANORTH))
+          {temp_string_x="N"; temp_string_y=String(gnggaData.latitude_hemisphere); handle_char=true;}
+        else if ((matrixData.matrix_function[0][Mi][Fi]==INDEX_MATRIX_SWITCH_FUNCTION_HEMIGNGGASOUTH))
+          {temp_string_x="S"; temp_string_y=String(gnggaData.latitude_hemisphere); handle_char=true;}
+        else if ((matrixData.matrix_function[0][Mi][Fi]==INDEX_MATRIX_SWITCH_FUNCTION_HEMIGNGGAEAST))
+          {temp_string_x="E"; temp_string_y=String(gnggaData.longitude_hemisphere); handle_char=true;}
+        else if ((matrixData.matrix_function[0][Mi][Fi]==INDEX_MATRIX_SWITCH_FUNCTION_HEMIGNGGAWEST))
+          {temp_string_x="W"; temp_string_y=String(gnggaData.longitude_hemisphere); handle_char=true;}
+        else if ((matrixData.matrix_function[0][Mi][Fi]==INDEX_MATRIX_SWITCH_FUNCTION_POSSTATUSGNRMCA))
+          {temp_string_x="A"; temp_string_y=String(gnrmcData.positioning_status); handle_char=true;}
+        else if ((matrixData.matrix_function[0][Mi][Fi]==INDEX_MATRIX_SWITCH_FUNCTION_POSSTATUSGNRMCV))
+          {temp_string_x="V"; temp_string_y=String(gnrmcData.positioning_status); handle_char=true;}
+        else if ((matrixData.matrix_function[0][Mi][Fi]==INDEX_MATRIX_SWITCH_FUNCTION_MODEGNRMCA))
+          {temp_string_x="A"; temp_string_y=String(gnrmcData.mode_indication); handle_char=true;}
+        else if ((matrixData.matrix_function[0][Mi][Fi]==INDEX_MATRIX_SWITCH_FUNCTION_MODEGNRMCD))
+          {temp_string_x="D"; temp_string_y=String(gnrmcData.mode_indication); handle_char=true;}
+        else if ((matrixData.matrix_function[0][Mi][Fi]==INDEX_MATRIX_SWITCH_FUNCTION_MODEGNRMCE))
+          {temp_string_x="E"; temp_string_y=String(gnrmcData.mode_indication); handle_char=true;}
+        else if ((matrixData.matrix_function[0][Mi][Fi]==INDEX_MATRIX_SWITCH_FUNCTION_MODEGNRMCN))
+          {temp_string_x="N"; temp_string_y=String(gnrmcData.mode_indication); handle_char=true;}
+        else if ((matrixData.matrix_function[0][Mi][Fi]==INDEX_MATRIX_SWITCH_FUNCTION_HEMIGNRMCNORTH))
+          {temp_string_x="N"; temp_string_y=String(gnrmcData.latitude_hemisphere); handle_char=true;}
+        else if ((matrixData.matrix_function[0][Mi][Fi]==INDEX_MATRIX_SWITCH_FUNCTION_HEMIGNRMCSOUTH))
+          {temp_string_x="S"; temp_string_y=String(gnrmcData.latitude_hemisphere); handle_char=true;}
+        else if ((matrixData.matrix_function[0][Mi][Fi]==INDEX_MATRIX_SWITCH_FUNCTION_HEMIGNRMCEAST))
+          {temp_string_x="E"; temp_string_y=String(gnrmcData.longitude_hemisphere); handle_char=true;}
+        else if ((matrixData.matrix_function[0][Mi][Fi]==INDEX_MATRIX_SWITCH_FUNCTION_HEMIGNRMCWEST))
+          {temp_string_x="W"; temp_string_y=String(gnrmcData.longitude_hemisphere); handle_char=true;}
         if (handle_char==true) {
-          // -------------------------------
-          // Handle chars.
-          // -------------------------------
-          if (matrixData.matrix_switch_inverted_logic[0][Mi][Fi]==false) {tmp_matrix[Fi]=check_strncmp_true(temp_string_x.c_str(), temp_string_y.c_str(), strlen(temp_string_x.c_str()));}
-          else if (matrixData.matrix_switch_inverted_logic[0][Mi][Fi]==true) {tmp_matrix[Fi]=check_strncmp_false(temp_string_x.c_str(), temp_string_y.c_str(), strlen(temp_string_x.c_str()));}
+          // Handle Chars.
+          if (matrixData.matrix_switch_inverted_logic[0][Mi][Fi]==false)
+            {tmp_matrix[Fi]=check_strncmp_true(temp_string_x.c_str(),
+                                               temp_string_y.c_str(),
+                                               strlen(temp_string_x.c_str()));}
+          else if (matrixData.matrix_switch_inverted_logic[0][Mi][Fi]==true)
+            {tmp_matrix[Fi]=check_strncmp_false(temp_string_x.c_str(),
+                                                temp_string_y.c_str(),
+                                                strlen(temp_string_x.c_str()));}
         }
       }
+    } // End function iteration for this switch.
 
-    } // end function iteration
-    // ----------------------------------------------------------------------------------------------------------------------
-    //                                                                                                           FINAL SWITCH
-    // ----------------------------------------------------------------------------------------------------------------------
-    // The final bool: Default final bool is true. If a single false is found then final bool is set to false.
-    // ----------------------------------------------------------------------------------------------------------------------
+    /**
+     * Summarize results per switch.
+     */
     final_bool=true;
-    // ----------------------------------------------------------------------------------------------------------------------
-    for (int FC=0; FC < MAX_MATRIX_SWITCH_FUNCTIONS; FC++) {if (tmp_matrix[FC]==false) {final_bool=false; break;}}
-    // --------------------------------------------------------------------------------------------------------------------
-    //
-    // Set matrix intended switch state as true/false according to final bool.
-    // Checking enabled after logic allows logic to be checked without setting intended switch state true/false (experimental)
-    // 
-    // If enabled:
-    //           - Computer_intention true/false is set by matrix switch (here).
-    //           - Switch_intention true/false is set by matrix switch (here).
-    // If disabled:
-    //           - Computer_intention true/false is set by matrix switch (here).
-    //
-    // --------------------------------------------------------------------------------------------------------------------
-    matrixData.switch_intention[0][Mi]=false;
-    if (matrixData.computer_assist[0][Mi]==true) {matrixData.switch_intention[0][Mi]=final_bool;} // switch intention
-    matrixData.computer_intention[0][Mi]=final_bool; // computer intention
-    // -------------------------------------------------------------------------------------------------------
+    for (int FC=0; FC < MAX_MATRIX_SWITCH_FUNCTIONS; FC++)
+      {if (tmp_matrix[FC]==false) {final_bool=false; break;}}
+    /**
+     * If computer_assist enabled:
+     * - Computer_intention true/false is set.
+     * - Switch_intention true/false is set.
+     * 
+     * If computer_assist disabled:
+     * - Computer_intention true/false is set.
+     * - Switch_intention true/false is not set.
+     */
+    matrixData.switch_intention[0][Mi]=false; // switch intention default false
+    if (matrixData.computer_assist[0][Mi]==true) {matrixData.switch_intention[0][Mi]=final_bool;}
+    matrixData.computer_intention[0][Mi]=final_bool; // computer intention always set
     // 1 : Check state changed before making write required
-    // -------------------------------------------------------------------------------------------------------
     if (matrixData.prev_switch_intention[0][Mi]!=matrixData.switch_intention[0][Mi]) {
       matrixData.matrix_switch_write_required[0][Mi]=true;
       matrixData.prev_switch_intention[0][Mi]=matrixData.switch_intention[0][Mi];
     }
-    // -------------------------------------------------------------------------------------------------------
     // 2 : Check output value changed before making write required
-    // -------------------------------------------------------------------------------------------------------
     if (final_bool==true) {
       if ( (matrixData.output_value[0][Mi] > matrixData.prev_output_value[0][Mi] + matrixData.flux_value[0][Mi]) || 
            (matrixData.output_value[0][Mi] < matrixData.prev_output_value[0][Mi] - matrixData.flux_value[0][Mi]))
@@ -1524,16 +1502,10 @@ bool matrixSwitch(void) {
         matrixData.prev_switch_intention[0][Mi]=matrixData.switch_intention[0][Mi];
       }
     }
-  } // end switch iteration
-  // ------------------------------------------------
-  // Counter.
-  // ------------------------------------------------
+
+  } // End switch iteration
   return true;
 }
-
-// ------------------------------------------------------------------------------------------------------------------------------
-//                                                                                                                 STATS COUNTERS
-// ------------------------------------------------------------------------------------------------------------------------------
 
 void SwitchStat(void) {
   int tmp_i_computer_assist_enabled=0;
@@ -1546,9 +1518,12 @@ void SwitchStat(void) {
   int tmp_i_computer_intention_low=0;
 
   for (int Mi=0; Mi < MAX_MATRIX_SWITCHES; Mi++) {
-    if (matrixData.computer_assist[0][Mi]==true) {tmp_i_computer_assist_enabled++;} else {tmp_i_computer_assist_disabled++;}
-    if (matrixData.switch_intention[0][Mi]==true) {tmp_i_switch_intention_high++;} else {tmp_i_switch_intention_low++;}
-    if (matrixData.computer_intention[0][Mi]==true) {tmp_i_computer_intention_high++;} else {tmp_i_computer_intention_low++;}
+    if (matrixData.computer_assist[0][Mi]==true)
+      {tmp_i_computer_assist_enabled++;} else {tmp_i_computer_assist_disabled++;}
+    if (matrixData.switch_intention[0][Mi]==true)
+      {tmp_i_switch_intention_high++;} else {tmp_i_switch_intention_low++;}
+    if (matrixData.computer_intention[0][Mi]==true)
+      {tmp_i_computer_intention_high++;} else {tmp_i_computer_intention_low++;}
   }
 
   matrixData.i_computer_assist_enabled=tmp_i_computer_assist_enabled;
@@ -1560,12 +1535,6 @@ void SwitchStat(void) {
   matrixData.i_computer_intention_high=tmp_i_computer_intention_high;
   matrixData.i_computer_intention_low=tmp_i_computer_intention_low;
 }
-
-// ------------------------------------------------------------------------------------------------------------------------------
-//                                                                                                                    ZERO MATRIX
-// ------------------------------------------------------------------------------------------------------------------------------ 
-// Zero all user programmable matrix logic.
-// ------------------------------------------------------------------------------------------------------------------------------ 
 
 void matrixZeroX() {
 }
@@ -1580,39 +1549,32 @@ void matrixZeroPort() {
 void matrixZeroInverted() {
 }
 
-void zero_matrix(void) {
-  Serial.println("[matrix] setting all matrix values to zero.");
-  // -------------------------------
-  // Iterate over each matrix matrix.
-  // -------------------------------
-  // ---------------------------
-  // Override.
-  // ---------------------------
-  for (int Mi=0; Mi < MAX_MATRIX_SWITCHES; Mi++) {matrixData.computer_assist[0][Mi]=false; matrixData.override_output_value[0][Mi]=0; matrixData.matrix_switch_write_required[0][Mi]=true;}
-  delay(100); // replace with something more specific
-  // ---------------------------
-  // Zero all.
-  // ---------------------------
-  for (int Mi=0; Mi < MAX_MATRIX_SWITCHES; Mi++) {
-    matrixData.matrix_port_map[0][Mi]=-1;
-    matrixData.output_mode[0][Mi]=0;
-    matrixData.output_pwm[0][Mi][0]=0;
-    matrixData.output_pwm[0][Mi][1]=0;
-    matrixData.flux_value[0][Mi]=0;
-    for (int Fi=0; Fi < MAX_MATRIX_SWITCH_FUNCTIONS; Fi++) {
-      matrixData.matrix_function[0][Mi][Fi]=0;
-      matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_X]=0.0;
-      matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Y]=0.0;
-      matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z]=0.0;
-      matrixData.matrix_switch_operator_index[0][Mi][Fi]=0;
-      matrixData.matrix_switch_inverted_logic[0][Mi][Fi]=false;
-    }
+void override_all_computer_assists() {
+  for (int Mi=0; Mi < MAX_MATRIX_SWITCHES; Mi++)
+    {matrixData.computer_assist[0][Mi]=false;
+     matrixData.override_output_value[0][Mi]=0;
+     matrixData.matrix_switch_write_required[0][Mi]=true;}
+}
+
+void set_matrix_default(int matrix_switch) {
+  matrixData.matrix_port_map[0][matrix_switch]=-1;
+  matrixData.output_mode[0][matrix_switch]=0;
+  matrixData.output_pwm[0][matrix_switch][0]=0;
+  matrixData.output_pwm[0][matrix_switch][1]=0;
+  matrixData.flux_value[0][matrix_switch]=0;
+  for (int Fi=0; Fi < MAX_MATRIX_SWITCH_FUNCTIONS; Fi++) {
+    matrixData.matrix_function[0][matrix_switch][Fi]=0;
+    matrixData.matrix_function_xyz[0][matrix_switch][Fi][INDEX_MATRIX_FUNTION_X]=0.0;
+    matrixData.matrix_function_xyz[0][matrix_switch][Fi][INDEX_MATRIX_FUNTION_Y]=0.0;
+    matrixData.matrix_function_xyz[0][matrix_switch][Fi][INDEX_MATRIX_FUNTION_Z]=0.0;
+    matrixData.matrix_switch_operator_index[0][matrix_switch][Fi]=0;
+    matrixData.matrix_switch_inverted_logic[0][matrix_switch][Fi]=false;
   }
 }
 
-// ------------------------------------------------------------------------------------------------------------------------------
-//                                                                                                        MATRIX SWITCH FUNCTIONS
-// ------------------------------------------------------------------------------------------------------------------------------
+void set_all_matrix_default(void) {
+  for (int Mi=0; Mi < MAX_MAP_SLOTS; Mi++) {set_mapping_default(Mi);}
+}
 
 void setAllMatrixSwitchesStateFalse() {
   for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {matrixData.switch_intention[0][i]=false;}
@@ -1621,14 +1583,6 @@ void setAllMatrixSwitchesStateFalse() {
 void setAllMatrixSwitchesStateTrue() {
   for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {matrixData.switch_intention[0][i]=true;}
 }
-
-// ------------------------------------------------------------------------------------------------------------------------------
-//                                                                                                                PORT CONTROLLER
-// ------------------------------------------------------------------------------------------------------------------------------
-
-// ------------------------------------------------------------------------------------------------------------------------------
-//                                                                                                                       I2C DATA
-// ------------------------------------------------------------------------------------------------------------------------------
 
 struct I2CLinkStruct {
   char * token;
@@ -1640,104 +1594,67 @@ struct I2CLinkStruct {
 };
 I2CLinkStruct I2CLink;
 
-// ------------------------------------------------------------------------------------------------------------------------------
-//                                                                                                                      I2C WRITE
-// ------------------------------------------------------------------------------------------------------------------------------
 void writeI2C(int I2C_Address) {
-  // --------------------
   // Compile bytes array.
-  // --------------------
   memset(I2CLink.OUTPUT_BUFFER, 0, sizeof(I2CLink.OUTPUT_BUFFER));
-  for (byte i=0;i<sizeof(I2CLink.OUTPUT_BUFFER);i++) {I2CLink.OUTPUT_BUFFER[i]=(byte)I2CLink.TMP_BUFFER_0[i];}
-  // --------------------
+  for (byte i=0;i<sizeof(I2CLink.OUTPUT_BUFFER);i++)
+    {I2CLink.OUTPUT_BUFFER[i]=(byte)I2CLink.TMP_BUFFER_0[i];}
   // Begin.
-  // --------------------
   Wire.beginTransmission(I2C_Address);
-  // --------------------
   // Write bytes array.
-  // --------------------
   Wire.write(I2CLink.OUTPUT_BUFFER, sizeof(I2CLink.OUTPUT_BUFFER));
-  // --------------------
   // End.
-  // --------------------
   Wire.endTransmission();
 }
 
-// ------------------------------------------------
-// Write efficiently.
-// ------------------------------------------------
 bool portControllerWriteRequired(int idx) {
-  if (matrixData.matrix_switch_write_required[0][idx]==true) {matrixData.matrix_switch_write_required[0][idx]=false; return true;}
+  if (matrixData.matrix_switch_write_required[0][idx]==true)
+    {matrixData.matrix_switch_write_required[0][idx]=false; return true;}
   return false;
 }
 
-// ------------------------------------------------
-// Clear: Set Pins Low.
-// ------------------------------------------------
 void writePortControllerM0(void) {
-  // -----------------------
   // Tag.
-  // -----------------------
   memset(I2CLink.TMP_BUFFER_0, 0, sizeof(I2CLink.TMP_BUFFER_0));
   strcpy(I2CLink.TMP_BUFFER_0, "M0");
-  // -----------------------
   // Write instruction.
-  // -----------------------
   writeI2C(I2C_ADDR_PORTCONTROLLER_0);
   systemData.i_count_port_controller++;
 }
 
-// ------------------------------------------------
-// Matrix Instructions
-// ------------------------------------------------
 void writePortControllerM1(void) {
   for (int Mi=0; Mi<MAX_MATRIX_SWITCHES; Mi++) {
-    // -----------------------
     // Check for change.
-    // -----------------------
     if (portControllerWriteRequired(Mi)==true) {
-      // -----------------------
       // Tag.
-      // -----------------------
       memset(I2CLink.TMP_BUFFER_0, 0, sizeof(I2CLink.TMP_BUFFER_0));
       strcpy(I2CLink.TMP_BUFFER_0, "M1,");
-      // -----------------------
       // Index.
-      // -----------------------
       memset(I2CLink.TMP_BUFFER_1, 0, sizeof(I2CLink.TMP_BUFFER_1));
       itoa(Mi, I2CLink.TMP_BUFFER_1, 10);
       strcat(I2CLink.TMP_BUFFER_0, I2CLink.TMP_BUFFER_1);
       strcat(I2CLink.TMP_BUFFER_0, ",");
-      // -----------------------
       // Port.
-      // -----------------------
       memset(I2CLink.TMP_BUFFER_1, 0, sizeof(I2CLink.TMP_BUFFER_1));
       itoa(matrixData.matrix_port_map[0][Mi], I2CLink.TMP_BUFFER_1, 10);
       strcat(I2CLink.TMP_BUFFER_0, I2CLink.TMP_BUFFER_1);
       strcat(I2CLink.TMP_BUFFER_0, ",");
-      // -----------------------
       // Output value.
-      // -----------------------
       memset(I2CLink.TMP_BUFFER_1, 0, sizeof(I2CLink.TMP_BUFFER_1));
       // Serial.println(matrixData.output_value[0][Mi]);
-      if (matrixData.computer_assist[0][Mi]==true) {ltoa(matrixData.output_value[0][Mi], I2CLink.TMP_BUFFER_1, 10);}
+      if (matrixData.computer_assist[0][Mi]==true)
+        {ltoa(matrixData.output_value[0][Mi], I2CLink.TMP_BUFFER_1, 10);}
       else {ltoa(matrixData.override_output_value[0][Mi], I2CLink.TMP_BUFFER_1, 10);}
       strcat(I2CLink.TMP_BUFFER_0, I2CLink.TMP_BUFFER_1);
       strcat(I2CLink.TMP_BUFFER_0, ",");
-      // -----------------------
       // Modulation time.
-      // -----------------------
       strcat(I2CLink.TMP_BUFFER_0, String(matrixData.output_pwm[0][Mi][INDEX_MATRIX_MOD_0]).c_str());
       strcat(I2CLink.TMP_BUFFER_0, ",");
       strcat(I2CLink.TMP_BUFFER_0, String(matrixData.output_pwm[0][Mi][INDEX_MATRIX_MOD_1]).c_str());
       strcat(I2CLink.TMP_BUFFER_0, ",");
-      // -----------------------
       // Write instruction.
-      // -----------------------
       writeI2C(I2C_ADDR_PORTCONTROLLER_0);
-      // -----------------------
       // Debug.
-      // -----------------------
       // Serial.println("[SND] " + String(I2CLink.TMP_BUFFER_0));
     }
   }
@@ -1746,31 +1663,25 @@ void writePortControllerM1(void) {
 
 void setOutputValues(void) {
   for (int Mi=0; Mi<MAX_MATRIX_SWITCHES; Mi++) {
-    // --------------------------------------------------------
     // A : Default output value: switch intention (digital 0/1).
-    // --------------------------------------------------------
     if (matrixData.output_mode[0][Mi]==0) {
       matrixData.output_value[0][Mi]=matrixData.switch_intention[0][Mi];
     }
-    // --------------------------------------------------------
     // B : Mapped values.
-    // --------------------------------------------------------
     else if ((matrixData.output_mode[0][Mi]==1)) {
       if ( (mappingData.mapped_value[0][Mi] > matrixData.output_value[0][Mi] + matrixData.flux_value[0][Mi]) || 
            (mappingData.mapped_value[0][Mi] < matrixData.output_value[0][Mi] - matrixData.flux_value[0][Mi]))
       {
-        matrixData.output_value[0][Mi]=mappingData.mapped_value[0][mappingData.index_mapped_value[0][Mi]]; // change output value
+        matrixData.output_value[0][Mi]=mappingData.mapped_value[0][mappingData.index_mapped_value[0][Mi]];
       }
     }
-    // --------------------------------------------------------
     // A : Update and write (passthrough).
-    // --------------------------------------------------------
     if (matrixData.matrix_function[0][Mi][0]==0) {
-      if (matrixData.output_value[0][Mi]!=matrixData.prev_output_value[0][Mi]) {matrixData.prev_output_value[0][Mi]=matrixData.output_value[0][Mi]; matrixData.matrix_switch_write_required[0][Mi]=true;}
+      if (matrixData.output_value[0][Mi]!=matrixData.prev_output_value[0][Mi])
+        {matrixData.prev_output_value[0][Mi]=matrixData.output_value[0][Mi];
+         matrixData.matrix_switch_write_required[0][Mi]=true;}
     }
-    // --------------------------------------------------------
     // B : Just update & let matrix passthrough if required.
-    // --------------------------------------------------------
     else {matrixData.output_value[0][Mi];}
   }
 }

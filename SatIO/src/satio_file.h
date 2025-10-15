@@ -1,6 +1,5 @@
 /*
   SatioFile - Written By Benjamin Jack Cullen.
-
 */
 
 #ifndef SATIO_FILE_HELPER_H
@@ -48,18 +47,22 @@ struct satioFileStruct {
     (11) COMPUTER_ASSIST           bool computer_assist[MAX_MATRIX_SWITCHES]
     */
     char matrix_tags[MAX_MATRIX_TAGS][MAX_GLOBAL_ELEMENT_SIZE];
+
     /*
         Predefined matrix filepaths that if exist can populate a matrix file slot.
     */
     char matix_filepaths[MAX_MATRIX_SLOTS][MAX_GLOBAL_ELEMENT_SIZE];
+
     /*
         A store of existing matrix files as index numbers pointing to matrix_filepaths.
     */
     int matrix_file_slots[MAX_MATRIX_SLOTS];
+
     /*
         Currently opened matrix file if any.
     */
     char current_matrix_filepath[MAX_GLOBAL_ELEMENT_SIZE];
+
     /*
     ----------------------------------------------------------------------------------------
     Mapping.
@@ -83,6 +86,7 @@ struct satioFileStruct {
     */
     char mapping_tags[MAX_MAPPING_TAGS][MAX_GLOBAL_ELEMENT_SIZE];
     char mapping_filepath[MAX_GLOBAL_ELEMENT_SIZE];
+
     /*
     ----------------------------------------------------------------------------------------
     System: File system.csv.
@@ -168,24 +172,68 @@ extern struct satioFileStruct satioFileData;
 // ----------------------------------------------------------------------------------------
 // Function Prototypes.
 // ----------------------------------------------------------------------------------------
+
+/**
+ * Save current mapping data.
+ * @param fs Filesystem. Example SD_MMC
+ * @param filepath Specify path to file
+ */
 bool saveMappingFile(FS &fs, const char *filepath);
 
+/**
+ * Load mapping data.
+ * @param fs Filesystem. Example SD_MMC
+ * @param filepath Specify path to file
+ */
 bool loadMappingFile(FS &fs, const char *filepath);
 
+/**
+ * Delete mapping data.
+ * @param fs Filesystem. Example SD_MMC
+ * @param filepath Specify path to file
+ */
 bool deleteMappingFile(FS &fs, const char *filepath);
 
-
+/**
+ * Save current matrix data.
+ * @param fs Filesystem. Example SD_MMC
+ * @param filepath Specify path to file
+ */
 bool saveMatrixFile(FS &fs, const char *filepath);
 
+/**
+ * Load matrix data.
+ * @param fs Filesystem. Example SD_MMC
+ * @param filepath Specify path to file
+ */
 bool loadMatrixFile(FS &fs, const char *filepath);
 
+/**
+ * Delete matrix data.
+ * @param fs Filesystem. Example SD_MMC
+ * @param filepath Specify path to file
+ */
 bool deleteMatrixFile(FS &fs, const char *filepath);
 
-
+/**
+ * Save system data.
+ * @param fs Filesystem. Example SD_MMC
+ * @param filepath Specify path to file
+ */
 bool saveSystemFile(FS &fs, const char *filepath);
 
+/**
+ * Load system data.
+ * @param fs Filesystem. Example SD_MMC
+ * @param filepath Specify path to file
+ */
 bool loadSystemFile(FS &fs, const char *filepath);
 
+/**
+ * Delete matrix data.
+ * @param fs Filesystem. Example SD_MMC
+ * @param filepath Specify path to file
+ */
 bool deleteSystemFile(FS &fs, const char *filepath);
 
 #endif

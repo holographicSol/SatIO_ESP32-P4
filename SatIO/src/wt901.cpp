@@ -6,9 +6,12 @@
 #include <Arduino.h>
 #include "./wit_c_sdk.h"
 
-// ------------------------------------------------------------------------
-// Define gyro data.
-// ------------------------------------------------------------------------
+/**
+ * @struct GyroData
+ * 
+ * Data for gyroscope sensor data from WT901, including acceleration,
+ * gyroscope readings, angles, magnetic fields, and configuration.
+ */
 struct GyroData gyroData = {
   .gyro_0_s_cDataUpdate = 0,
   .gyro_0_fAcc = {0.0f, 0.0f, 0.0f},
@@ -42,9 +45,6 @@ struct GyroData gyroData = {
 
 bool wt901_updated_data=false;
 
-// ------------------------------------------------------------------------
-// Gyro task implementation.
-// ------------------------------------------------------------------------
 bool readGyro(void) {
     // Read serial data
     while (Serial2.available()) {
@@ -96,24 +96,15 @@ bool readGyro(void) {
     return wt901_updated_data;
 }
 
-// ------------------------------------------------------------------------
-// Send data over UART.
-// ------------------------------------------------------------------------
 void Gyro0UartSend(uint8_t *p_data, uint32_t uiSize) {
   Serial2.write(p_data, uiSize);
   Serial2.flush();
 }
 
-// ------------------------------------------------------------------------
-// Delay in milliseconds.
-// ------------------------------------------------------------------------
 void Gyro0Delayms(uint16_t ucMs) {
   delay(ucMs);
 }
 
-// ------------------------------------------------------------------------
-// Update data flags.
-// ------------------------------------------------------------------------
 void Gyro0DataUpdata(uint32_t uiReg, uint32_t uiRegNum) {
   for (unsigned int i = 0; i < uiRegNum; i++) {
     switch (uiReg) {
@@ -137,9 +128,6 @@ void Gyro0DataUpdata(uint32_t uiReg, uint32_t uiRegNum) {
   }
 }
 
-// ------------------------------------------------------------------------
-// Auto-scan baud rates.
-// ------------------------------------------------------------------------
 void Gyro0AutoScan(void) {
   unsigned int i, iRetry;
   for (i = 0; i < sizeof(gyroData.gyro_0_c_uiBaud) / sizeof(gyroData.gyro_0_c_uiBaud[0]); i++) {
@@ -167,7 +155,7 @@ void Gyro0AutoScan(void) {
 
 void initWT901(void) {
   // --------------------------------------------------------------
-  // Gyro0 (9-Axis Gyro).
+  // Initialize.
   // --------------------------------------------------------------
 	WitInit(WIT_PROTOCOL_NORMAL, 0x50);
   Serial.println("[Gyro0] register serial write.");
@@ -177,7 +165,7 @@ void initWT901(void) {
   Serial.println("[Gyro0] register delay");
   WitDelayMsRegister(Gyro0Delayms);
   // --------------------------------------------------------------
-  // Gyro0 Baudrate.
+  // Set Baudrate.
   // --------------------------------------------------------------
   Serial.println("[Gyro0] performing baud rate autoscan...");
 	Gyro0AutoScan(); // scan for current baud rate (required before trying to configure)
@@ -191,12 +179,12 @@ void initWT901(void) {
   }
   else {Serial.println("[Gyro0] no need to change baudrate. ");}
   // --------------------------------------------------------------
-  // Gyro0 Return rate.
+  // Set Return rate.
   // --------------------------------------------------------------
   if (WitSetOutputRate(RRATE_200HZ) != WIT_HAL_OK) Serial.println("[Gyro0] Error setting return rate. (RRATE_200HZ)");
   else Serial.println("[Gyro0] Return rate modified successfully (RRATE_200HZ)");
   // --------------------------------------------------------------
-  // Gyro0 Bandwidth.
+  // Set Bandwidth.
   // --------------------------------------------------------------
   if (WitSetBandwidth(BANDWIDTH_256HZ) != WIT_HAL_OK) {Serial.println("[Gyro0] Error setting bandwidth (BANDWIDTH_256HZ).");}
   else {Serial.println("[Gyro0] Bandwidth modified successfully (BANDWIDTH_256HZ)");}

@@ -1,8 +1,5 @@
 /*
-  Serial Information Command Library.
-
-  Returns information over serial.
-  Commands system over serial. 
+  Serial Information Command - Written By Benjamin Jack Cullen
 */
 
 #ifndef SERIAL_INFOCMD_H
@@ -16,15 +13,14 @@ extern "C" {
 #include <stdbool.h>
 #include "config.h"
 
-// ----------------------------------------------------------------------------------------
-// Serial0Struct.
-// ----------------------------------------------------------------------------------------
+/**
+ * @struct Serial0Struct 
+ */
 struct Serial0Struct {
   unsigned long nbytes; // number of bytes read by serial.
   unsigned long iter_token; // count token iterations.
   char BUFFER[MAX_GLOBAL_SERIAL_BUFFER_SIZE]; // serial buffer.
   char * token; // token pointer.
-  int collected; // counts how many unique sentences have been collected.
   char checksum[MAX_CHECKSUM_SIZE];
   uint8_t checksum_of_buffer;
   uint8_t checksum_in_buffer;
@@ -35,11 +31,25 @@ struct Serial0Struct {
 };
 extern struct Serial0Struct serial0Data;
 
-// ----------------------------------------------------------------------------------------
-// Function Prototypes.
-// ----------------------------------------------------------------------------------------
+/**
+ * Serial Output.
+ * 
+ * @brief Checks flags to see if data should be output over a serial port. 
+ */
 void outputSentences(void);
+
+/**
+ * Command Process.
+ * 
+ * @brief Checks a serial port to see if commands have been recieved. 
+ */
 void CmdProcess(void);
+
+/**
+ * Output Stat.
+ * 
+ * @brief Prints various infomation for debugging purposes only. 
+ */
 void outputStat(void);
 
 #ifdef __cplusplus

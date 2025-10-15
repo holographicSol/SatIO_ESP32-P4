@@ -2,269 +2,64 @@
 
   SatIO - Written by Benjamin Jack Cullen.
 
-  A general purpose programmable I/O platform for automation and throughput.
+-----
 
-  Supporting stacks of logic across 70 output pins on the portcontroller
-  and 100 mapping slots.
+  A general purpose programmable I/O platform for automation, throughput and LLM's.
 
-  What can SatIO tell you is true? Potentially infinite things.
+  A huge matrix switch in a small package, supporting stacks of logic across
+  70 output pins and 100 mapping slots.
 
-  Applications? Potentially infinite applications.
+-----
 
   Inference in Bayesian Reasoning? Moon tracking for example can be used to track the moon, it can also be used for one example; to 
   track the tides, if the system is aware of moon/planetary positioning and datetime then marine life values may also be inferred
   relative to the inferred tide values and known datetime. There is a lot of data that can be used in many ways, with a kind of network
   effect. Or more simply 'SatIO is one hell of a switch'.
 
-  Matrix logic is an attempt to maximize programmable potential and hardware configuration is designed to attempt maximum IO potential.
-  If more output is needed then add another I2C port controller, if more input is needed then add another custom I2C sensor module.
-  If more matrix logic is needed then build on another MCU, matrix switches and switch functions have been balanced to allow for plenty
-  of switches and functions for said switches, with regards to available memory/storage (10 functions per switch not including switch linking
-  where logic can be stacked accross multiple/all matrix switches).
+-----
 
-        Design: Break out all the things and build I2C peripherals as required to orbit the ESP32/Central-MCU.
+  Wiring For Keystudio ESP32 PLUS Development Board:
 
-                                Wiring For Keystudio ESP32 PLUS Development Board
+          ESP32: 1st ATMEGA2560 with shield as Port Controller (not on multiplexer):
+          ESP32: I2C SDA -> ATMEGA2560: I2C SDA
+          ESP32: I2C SCL -> ATMEGA2560: I2C SCL
 
-                                ESP32: 1st ATMEGA2560 with shield as Port Controller (not on multiplexer):
-                                ESP32: I2C SDA -> ATMEGA2560: I2C SDA
-                                ESP32: I2C SCL -> ATMEGA2560: I2C SCL
+          Other ESP32 I2C Devices (not on multiplexer):
+          ESP32: SDA0 SCL0 -> DS3231 (RTC): SDA, SCL (5v)
 
-                                ESP32: 2nd ATMEGA2560 with shield as Control Panel (not on multiplexer):
-                                ESP32: io25    -> ATMEGA2560: io22
-                                ESP32: I2C SDA -> ATMEGA2560: I2C SDA
-                                ESP32: I2C SCL -> ATMEGA2560: I2C SCL
+          ESP32 i2C: I2C Multiplexing (3.3v) (for peripherals):
+          ESP32: i2C -> TCA9548A: SDA, SCL
 
-                                Other ESP32 i2C Devices (not on multiplexer):
-                                ESP32: SDA0 SCL0 -> DS3231 (RTC): SDA, SCL (5v)
+          ESP32: Analog/Digital Multiplexing (3.3v) (for peripherals):
+          ESP32: io4    -> CD74HC4067: SIG
+          ESP32: io32   -> CD74HC4067: S0
+          ESP32: io33   -> CD74HC4067: S1
+          ESP32: io16   -> CD74HC4067: S2
+          ESP32: io17   -> CD74HC4067: S3
+          CD74HC4067 C0 -> DHT11: SIG
 
-                                ESP32: WTGPS300P (5v) (for getting a downlink):
-                                ESP32: io27 RXD -> WTGPS300P: TXD
-                                ESP32: null TXD -> WTGPS300P: RXD
+          ESP32: WTGPS300P (5v) (for getting a downlink):
+          ESP32: io27 RXD -> WTGPS300P: TXD
+          ESP32: null TXD -> WTGPS300P: RXD
 
-                                ESP32 i2C: i2C Multiplexing (3.3v) (for peripherals):
-                                ESP32: i2C -> TCA9548A: SDA, SCL
+          ESP32: WT901 9-Axis Gyro:
+          ESP32: Serial2 RXD -> WT901 TXD
+          ESP32: Serial2 TXD -> WT901 RXD
 
-                                ESP32: Analog/Digital Multiplexing (3.3v) (for peripherals):
-                                ESP32: io4    -> CD74HC4067: SIG
-                                ESP32: io32   -> CD74HC4067: S0
-                                ESP32: io33   -> CD74HC4067: S1
-                                ESP32: io16   -> CD74HC4067: S2
-                                ESP32: io17   -> CD74HC4067: S3
-                                CD74HC4067 C0 -> DHT11: SIG
+-----
 
-                                ESP32 VSPI: SDCARD (5v) (for matrix and system data):
-                                ESP32: io5  -> HW-125: CS (SS)
-                                ESP32: io23 -> HW-125: DI (MOSI)
-                                ESP32: io19 -> HW-125: DO (MISO)
-                                ESP32: io18 -> HW-125: SCK (SCLK)
+    To Do: AI I2C modules returning int's as classifiers.
+    To Do: SRTM data. Use NASA shuttle radar topographical mission data.
+    To Do: Ability to add custom IIC sensor modules after flashing.
+    To Do: PCB fabrication.
 
-                                ESP32 HSPI: SSD1351 OLED (5v) (short wires recommended):
-                                ESP32: io14 -> SSD1351: SCL/SCLK
-                                ESP32: io12 -> SSD1351: MISO/DC
-                                ESP32: io13 -> SSD1351: SDA
-                                ESP32: io26 -> SSD1351: CS
+-----
 
-                                           $SATIO SENTENCE
-                              
-                              RTC Sync Time (UTC)             System Uptime (Seconds)
-                              |      RTC Sync Date (UTC)      |
-        Tag                   |      |                        |   Longitude Degrees
-        |                     |      |                        |   |
-        $SATIO,000000,00000000,000000,00000000,000000,00000000,0,0,0,*CHECKSUM
-              |      |                        |      |          |
-              |      |                        |      |          Latitude Degrees
-              |      RTC Date (UTC)           |      Local Date (UTC Offset)
-              RTC Time (UTC)                  Local Time (UTC Offset)
-
-                                          $MATRIX SENTENCE 
-
-                                                                              Matrix Switch Output Port 19
-                                                                              |
-                                                                              |    Matrix Switch State 0
-                                                                              |    |
-    $MATRIX,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,*CHECKSUM
-           |                                                                                                                                                   |
-          Matrix Switch Output Port 0                                                                                                                          Matrix Switch State 19
-                                                                                          
-
-                                          $SENSORS SENTENCE
-
-                      Sensor 0
-                      |
-              $SENSORS,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,*CHECKSUM
-                                                                                  |
-                                                                                  Sensor 15
-
-
-                                          $SUN SENTENCE
-                                                    
-                                    Right Ascension 
-                                    |       Azimuth 
-                                    |       |       Rise
-                                    |       |       |
-                                $SUN,0.0,0.0,0.0,0.0,0.0,0.0,*CHECKSUM
-                                        |       |       |
-                                        |       |       Set 
-                                        |       Altitude
-                                        Declination 
-
-
-                                          $MOON SENTENCE
-
-                                                Rise
-                                Right Ascension |
-                                |       Azimuth | 
-                                |       |       |       Phase
-                                |       |       |       |
-                          $MOON,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,*CHECKSUM
-                                    |       |       |       |
-                                    |       |       Set     Luminessence
-                                    |       Altitude
-                                    Declination
-
-
-                                        $MERCURY SENTENCE
-
-                                      Rise
-                      Right Ascension |       Helio Ecliptic Latitude
-                      |       Azimuth |       |       Radius Vector   
-                      |       |       |       |       |       Ecliptic Latitude
-                      |       |       |       |       |       |
-              $MERCURY,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0*CHECKSUM
-                          |       |       |       |       |       |
-                          |       |       Set     |       |       Ecliptic Longitude
-                          |       Altitude        |       Distance
-                          Declination             Helio Ecliptic Longitude  
-
-
-                                         $VENUS SENTENCE
-
-                                      Rise
-                      Right Ascension |       Helio Ecliptic Latitude
-                      |       Azimuth |       |       Radius Vector   
-                      |       |       |       |       |       Ecliptic Latitude
-                      |       |       |       |       |       |
-                $VENUS,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0*CHECKSUM
-                          |       |       |       |       |       |
-                          |       |       Set     |       |       Ecliptic Longitude
-                          |       Altitude        |       Distance
-                          Declination             Helio Ecliptic Longitude  
-
-
-                                        $MARS SENTENCE
-
-                                      Rise
-                      Right Ascension |       Helio Ecliptic Latitude
-                      |       Azimuth |       |       Radius Vector   
-                      |       |       |       |       |       Ecliptic Latitude
-                      |       |       |       |       |       |
-                 $MARS,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0*CHECKSUM
-                          |       |       |       |       |       |
-                          |       |       Set     |       |       Ecliptic Longitude
-                          |       Altitude        |       Distance
-                          Declination             Helio Ecliptic Longitude
-
-
-                                      $JUPITER SENTENCE
-
-                                      Rise
-                      Right Ascension |       Helio Ecliptic Latitude
-                      |       Azimuth |       |       Radius Vector   
-                      |       |       |       |       |       Ecliptic Latitude
-                      |       |       |       |       |       |
-              $JUPITER,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0*CHECKSUM
-                          |       |       |       |       |       |
-                          |       |       Set     |       |       Ecliptic Longitude
-                          |       Altitude        |       Distance
-                          Declination             Helio Ecliptic Longitude
-
-
-                                      $SATURN SENTENCE
-
-                                      Rise
-                      Right Ascension |       Helio Ecliptic Latitude
-                      |       Azimuth |       |       Radius Vector   
-                      |       |       |       |       |       Ecliptic Latitude
-                      |       |       |       |       |       |
-               $SATURN,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0*CHECKSUM
-                          |       |       |       |       |       |
-                          |       |       Set     |       |       Ecliptic Longitude
-                          |       Altitude        |       Distance
-                          Declination             Helio Ecliptic Longitude
-
-
-                                      $URANUS SENTENCE
-
-                                      Rise
-                      Right Ascension |       Helio Ecliptic Latitude
-                      |       Azimuth |       |       Radius Vector   
-                      |       |       |       |       |       Ecliptic Latitude
-                      |       |       |       |       |       |
-               $URANUS,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0*CHECKSUM
-                          |       |       |       |       |       |
-                          |       |       Set     |       |       Ecliptic Longitude
-                          |       Altitude        |       Distance
-                          Declination             Helio Ecliptic Longitude 
-
-
-                                      $NEPTUNE SENTENCE
-
-                                      Rise
-                      Right Ascension |       Helio Ecliptic Latitude
-                      |       Azimuth |       |       Radius Vector   
-                      |       |       |       |       |       Ecliptic Latitude
-                      |       |       |       |       |       |
-              $NEPTUNE,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0*CHECKSUM
-                          |       |       |       |       |       |
-                          |       |       Set     |       |       Ecliptic Longitude
-                          |       Altitude        |       Distance
-                          Declination             Helio Ecliptic Longitude  
-  
-  Summary: Over one quintillion possible combinations of stackable logic across N switches for a general purpose
-  part or standalone device providing data over serial and or analog/digital output.
-
-  Sentence/element serial output: - may be useful for projects such as with large language models requiring real time environmental data.
-                                  - broadcasting data.
-                                  - generally making data available for other systems.
-  Analog/Digital output: - is also included for projects requiring programmable/variable analog digital output.
-                         - indicator lights.
-                         - motors.
-                         - relays.
-                         - other systems/MCU's to read and make use of.
-                         - generally application specific.
-
-  To Do: AI I2C modules returning int's as classifiers to SatIO that can be output over serial and or used in compound logic.
-  To Do: SRTM data. Use NASA shuttle radar topographical mission data to increase positional awareness.
-  To Do: Upgrade gyro to a gyro with higher return rate to increase INS resolution and other gyro related resolutions.
-         Gyro experiments will also include a mechanical gyro housing a MEMS gyro core.
-         Mechanical gyro electronically rotates MEMS gyro core to calibrate MEMS gyro core.
-         This eliminates the need for humans dancing to calibrate the cheap MEMS gyro and may also provide some EMI shielding.
-         1 : mechanical gyro rotates MEMS gyro core to align with magentical north.
-         2 : calibration starts.
-         3 : mechanical gyro rotates MEMS gyro core 360 degrees on each axis.
-         4 : calibration ends.
-         5 : mechanical gyro rotates MEMS gyro core to face device frontside.
-         This MEMS gyro enhancement could glow in different ways to reflect its current state of calibration/non-calibration.
-  To Do: Ability to add custom IIC sensor modules after flashing:
-              - keep it simple.
-              - custom IIC sensor modules should only return int's representing a classifier.
-              - ints should be available in matrix compound logic and for output over serial.
-              - programmable address + slot space for values (int's).
-  To Do: Tuning.
-  To Do: PCB fabrication:
-              - NANO: no portcontroller, purely user defined data returns, possibly headless.
-              - Full: everything, controls and graphical user interface.
-
-  There are some custom libs included in complete project files.
-  System is currently headless while being built from draft.
-  Complete Project files:
+  There are some required custom libs included in complete project files:
   https://drive.google.com/drive/folders/13yynSxkKL-zxb7iLSkg0v0VXkSLgmtW-?usp=sharing
-*/
 
-// ------------------------------------------------------------------------------------------------------------------------------
-//                                                                                                                      LIBRARIES
-// ------------------------------------------------------------------------------------------------------------------------------
+-----
+*/
 
 #include <stdio.h>
 #include <limits.h>
@@ -281,7 +76,6 @@
 #include "./REG.h"
 #include "./strval.h"
 #include "./meteors.h"
-// #include "./volcanos.h"
 #include "./wtgps300p.h"
 #include "./wt901.h"
 #include "./multiplexers.h"
@@ -313,10 +107,6 @@
 #include "driver/uart.h"
 #include "SPIFFS.h"
 
-// ------------------------------------------------------------------------------------------------------------------------------
-//                                                                                                                          TASKS
-// ------------------------------------------------------------------------------------------------------------------------------
-
 TaskHandle_t TaskGPS;
 TaskHandle_t TaskUniverse;
 TaskHandle_t TaskMultiplexers;
@@ -342,38 +132,44 @@ bool TICK_DELAY_TASK_UNIVERSE=false;
 bool TICK_DELAY_TASK_GPS=false;
 bool TICK_DELAY_TASK_SWITCHES=false;
 bool TICK_DELAY_TASK_STORAGE=false;
-
 bool global_task_sync=false;
-
-// ------------------------------------------------------------------------------------------------------------------------------
-//                                                                                                                     SYNC TASKS
-// ------------------------------------------------------------------------------------------------------------------------------
 long system_sync_retry_max=2000;
+
+/**
+ * Syncronize Taks.
+ * 
+ * @brief Time syncronize tasks.
+ */
 void syncTasks() {
   Serial.println("[syncronizing system] please wait");
   global_task_sync=false;
   while (!sync_rtc_bool==true) {
     getSystemTime();
     system_sync_retry_max--;
-    if (system_sync_retry_max<=0) {Serial.println("[sync] took too long"); break;}
+    if (system_sync_retry_max<=0)
+      {Serial.println("[sync] took too long"); break;}
     delay(1);
   }
   global_task_sync=true;
   // Serial.println("unixtime sync: " + String(satioData.local_unixtime_uS));
-  // Serial.println("[sync] done");
 }
 
-// ------------------------------------------------------------------------------------------------------------------------------
-//                                                                                                                   STORAGE TASK
-// ------------------------------------------------------------------------------------------------------------------------------
-int TMP_DELAY_TASK_STORAGE;
+/**
+ * Storage Task.
+ * 
+ * @brief Performas many operations including:
+ *  (1) Card insertion checks.
+ *  (2) Mount automatically.
+ *  (3) Unmount automatically.
+ *  (4) Read/write operations.
+ *  (5) Other storage operations.
+ *  (6) Powers down the sdcard when not in use. 
+ */
 void taskStorage(void * pvParameters) {
   esp_task_wdt_add(nullptr);
-  
   while (global_task_sync==false) {vTaskDelay(1);}
   while (1) {
     esp_task_wdt_reset();
-    TMP_DELAY_TASK_STORAGE=DELAY_TASK_STORAGE;
     // ------------------------------------------------
     // SDCard Begin
     // ------------------------------------------------
@@ -390,87 +186,114 @@ void taskStorage(void * pvParameters) {
     // ------------------------------------------------
     // Delay next iteration of task.
     // ------------------------------------------------
-    // while (TMP_DELAY_TASK_STORAGE>0) {
-    //   if (sdmmcFlagData.no_delay_flag==true) {break;}
-    //   TMP_DELAY_TASK_STORAGE--;
-    //   vTaskDelay(1 / portTICK_PERIOD_MS);
-    // }
-    if (TICK_DELAY_TASK_STORAGE==false) {vTaskDelay(DELAY_TASK_STORAGE / portTICK_PERIOD_MS);}
-    else                                {vTaskDelay(DELAY_TASK_STORAGE);}
+    if (TICK_DELAY_TASK_STORAGE==false)
+      {vTaskDelay(DELAY_TASK_STORAGE / portTICK_PERIOD_MS);}
+    else {vTaskDelay(DELAY_TASK_STORAGE);}
   }
 }
 
-// ------------------------------------------------------------------------------------------------------------------------------
-//                                                                                                                       READ GPS
-// ------------------------------------------------------------------------------------------------------------------------------
+/**
+ * GPS Task.
+ * 
+ * @brief Performas many operations including:
+ *  (1) Collects, validates and stores GPS data.
+ *  (2) Syncs INS data on successful validation.
+ */
 void taskGPS(void * pvParameters) {
   esp_task_wdt_add(nullptr);
   while (1) {
     esp_task_wdt_reset();
-    // --------------------------------------------------------------------------
+    // ------------------------------------------------
     // Get, check and set gps data.
-    // --------------------------------------------------------------------------
+    // ------------------------------------------------
     readGPS();
     validateGPSData();
-    // ------------------------------------------------------------------------
+    // ------------------------------------------------
     // Set SatIO data.
-    // ------------------------------------------------------------------------
-    if ((gnggaData.valid_checksum=true) && (gnrmcData.valid_checksum=true) && (gpattData.valid_checksum=true)) {
-      setSatIOData();
-      // ---------------------------------------------------------
-      // GpPS set INS data.
-      // ---------------------------------------------------------
-      setINS(satioData.degrees_latitude, satioData.degrees_longitude, atof(gnggaData.altitude), atof(gnrmcData.ground_heading),
-        atof(gnrmcData.ground_speed), atof(gnggaData.gps_precision_factor), gyroData.gyro_0_ang_z);
-      // ------------------------------------------------
-      // Count reads.
-      // ------------------------------------------------
-      systemData.i_count_read_gps++;
-      systemData.interval_breach_gps = 1;
-      if (systemData.i_count_read_gps>=UINT32_MAX-2) {systemData.i_count_read_gps=0;}
+    // ------------------------------------------------
+    if ((gnggaData.valid_checksum=true) &&
+        (gnrmcData.valid_checksum=true) &&
+        (gpattData.valid_checksum=true)) {
+        setSatIOData();
+        // --------------------------------------------
+        // Set INS data.
+        // --------------------------------------------
+        set_ins(satioData.degrees_latitude,
+                satioData.degrees_longitude,
+                atof(gnggaData.altitude),
+                atof(gnrmcData.ground_heading),
+                atof(gnrmcData.ground_speed),
+                atof(gnggaData.gps_precision_factor),
+                gyroData.gyro_0_ang_z);
+        // --------------------------------------------
+        // Count reads.
+        // --------------------------------------------
+        systemData.i_count_read_gps++;
+        systemData.interval_breach_gps = 1;
+        if (systemData.i_count_read_gps>=UINT32_MAX-2)
+          {systemData.i_count_read_gps=0;}
     }
     // ------------------------------------------------
     // Delay next iteration of task.
     // ------------------------------------------------
-    if (TICK_DELAY_TASK_GPS==false) {vTaskDelay(DELAY_TASK_GPS / portTICK_PERIOD_MS);}
-    else                            {vTaskDelay(DELAY_TASK_GPS);}
+    if (TICK_DELAY_TASK_GPS==false)
+      {vTaskDelay(DELAY_TASK_GPS / portTICK_PERIOD_MS);}
+    else {vTaskDelay(DELAY_TASK_GPS);}
   }
 }
 
-// ------------------------------------------------------------------------------------------------------------------------------
-//                                                                                                                       UNIVERSE
-// ------------------------------------------------------------------------------------------------------------------------------
+/**
+ * Universe Task.
+ * 
+ * @brief Stores various information about the universe!
+ */
 void taskUniverse(void * pvParameters) {
   esp_task_wdt_add(nullptr);
   while (global_task_sync==false) {vTaskDelay(1);}
   while (1) {
     esp_task_wdt_reset();
-    // ----------------------------------------------------------------------------------
+    // ------------------------------------------------
     // Track Home Sun, Moon & Planets.
-    // ----------------------------------------------------------------------------------
-    trackPlanets(satioData.degrees_latitude, satioData.degrees_longitude,
-                 satioData.rtc_year, satioData.rtc_month, satioData.rtc_mday,
-                 satioData.rtc_hour, satioData.rtc_minute, satioData.rtc_second,
-                 satioData.local_hour, satioData.local_minute, satioData.local_second,
+    // ------------------------------------------------
+    trackPlanets(satioData.degrees_latitude,
+                 satioData.degrees_longitude,
+                 satioData.rtc_year,
+                 satioData.rtc_month,
+                 satioData.rtc_mday,
+                 satioData.rtc_hour,
+                 satioData.rtc_minute,
+                 satioData.rtc_second,
+                 satioData.local_hour,
+                 satioData.local_minute,
+                 satioData.local_second,
                  atol(gnggaData.altitude));
     systemData.i_count_track_planets++;
     systemData.interval_breach_track_planets = 1;
-    if (systemData.i_count_track_planets>=UINT32_MAX-2) {systemData.i_count_track_planets=0;}
-    // ----------------------------------------------------------------------------------
+    if (systemData.i_count_track_planets>=UINT32_MAX-2)
+      {systemData.i_count_track_planets=0;}
+    // ------------------------------------------------
     // Track Meteors.
-    // ----------------------------------------------------------------------------------
-    setMeteorShowerWarning(satioData.local_month, satioData.local_mday);
+    // ------------------------------------------------
+    setMeteorShowerWarning(satioData.local_month,
+                           satioData.local_mday);
     // ------------------------------------------------
     // Delay next iteration of task.
     // ------------------------------------------------
-    if (TICK_DELAY_TASK_UNIVERSE==false) {vTaskDelay(DELAY_TASK_UNIVERSE / portTICK_PERIOD_MS);}
-    else                                 {vTaskDelay(DELAY_TASK_UNIVERSE);}
+    if (TICK_DELAY_TASK_UNIVERSE==false)
+      {vTaskDelay(DELAY_TASK_UNIVERSE / portTICK_PERIOD_MS);}
+    else {vTaskDelay(DELAY_TASK_UNIVERSE);}
   }
 }
 
-// ------------------------------------------------------------------------------------------------------------------------------
-//                                                                                                                       SWITCHES
-// ------------------------------------------------------------------------------------------------------------------------------
+/**
+ * Switch Task.
+ * 
+ * @brief Performs various operations including:
+ *  (1) Martix calculations.
+ *  (2) Mapping values.
+ *  (3) Sets output values.
+ *  (4) Instructing the portcontroller accordingly.
+ */
 void taskSwitches(void * pvParameters) {
   esp_task_wdt_add(nullptr);
   while (global_task_sync==false) {vTaskDelay(1);}
@@ -478,39 +301,40 @@ void taskSwitches(void * pvParameters) {
     esp_task_wdt_reset();
     if (matrixSwitch()) {
       systemData.i_count_matrix++;
-      // systemData.interval_breach_matrix = 1; // enable if limiting matrix sentence to intervals (may miss changes)
-      if (systemData.i_count_matrix>=UINT64_MAX-2) {systemData.i_count_matrix=0;}
+      if (systemData.i_count_matrix>=UINT64_MAX-2)
+        {systemData.i_count_matrix=0;}
     }
-
-    setMappedValues();
+    map_values();
     setOutputValues();
     writePortControllerM1();
     SwitchStat();
     // ------------------------------------------------
     // Delay next iteration of task.
     // ------------------------------------------------
-    if (TICK_DELAY_TASK_SWITCHES==false) {vTaskDelay(DELAY_TASK_SWITCHES / portTICK_PERIOD_MS);}
-    else                                 {vTaskDelay(DELAY_TASK_SWITCHES);}
+    if (TICK_DELAY_TASK_SWITCHES==false)
+      {vTaskDelay(DELAY_TASK_SWITCHES / portTICK_PERIOD_MS);}
+    else {vTaskDelay(DELAY_TASK_SWITCHES);}
   }
 }
 
-// ------------------------------------------------------------------------------------------------------------------------------
-//                                                                                                                   MULTIPLEXERS
-// ------------------------------------------------------------------------------------------------------------------------------
 int i_chan=0;
-
+/**
+ * Multiplexer Task.
+ * 
+ * @brief Any reads/writes to multiplexers occur on this task.
+ */
 void taskMultiplexers(void * pvParameters) {
   esp_task_wdt_add(nullptr);
   while (global_task_sync==false) {vTaskDelay(1);}
   while (1) {
     esp_task_wdt_reset();
-    // ----------------------------------------------------
-    // Step over each analog/digital multiplexer channel
-    // ----------------------------------------------------
+    // ------------------------------------------------
+    // Step over analog/digital multiplexer channela
+    // ------------------------------------------------
     for (i_chan=0; i_chan < 16; i_chan++) {
-      // --------------------------------------------------
+      // ------------------------------------------------
       // Set multiplexer channel.
-      // --------------------------------------------------
+      // ------------------------------------------------
       setMultiplexChannel_AD(0, i_chan);
       multiplexerData.ADMPLEX_0_DATA[i_chan]=analogRead(ADMPLEX_0_SIG);
     }
@@ -519,18 +343,22 @@ void taskMultiplexers(void * pvParameters) {
     // ------------------------------------------------
     systemData.i_count_read_mplex++;
     systemData.interval_breach_mplex = 1;
-    if (systemData.i_count_read_mplex>=UINT32_MAX-2) {systemData.i_count_read_mplex=0;}
+    if (systemData.i_count_read_mplex>=UINT32_MAX-2)
+      {systemData.i_count_read_mplex=0;}
     // ------------------------------------------------
     // Delay next iteration of task.
     // ------------------------------------------------
-    if (TICK_DELAY_TASK_MULTIPLEXERS==false) {vTaskDelay(DELAY_TASK_MULTIPLEXERS / portTICK_PERIOD_MS);}
-    else                                     {vTaskDelay(DELAY_TASK_MULTIPLEXERS);}
+    if (TICK_DELAY_TASK_MULTIPLEXERS==false)
+      {vTaskDelay(DELAY_TASK_MULTIPLEXERS / portTICK_PERIOD_MS);}
+    else {vTaskDelay(DELAY_TASK_MULTIPLEXERS);}
   }
 }
 
-// ------------------------------------------------------------------------------------------------------------------------------
-//                                                                                                                           GYRO
-// ------------------------------------------------------------------------------------------------------------------------------
+/**
+ * Gyro Task.
+ * 
+ * @brief Reads and stores gyroscopic data.
+ */
 void taskGyro(void * pvParameters) {
   esp_task_wdt_add(nullptr);
   while (global_task_sync==false) {vTaskDelay(1);}
@@ -539,31 +367,40 @@ void taskGyro(void * pvParameters) {
     if (readGyro()==true) {
       systemData.i_count_read_gyro_0++;
       systemData.interval_breach_gyro_0 = 1;
-      if (systemData.i_count_read_gyro_0>=UINT32_MAX-2) {systemData.i_count_read_gyro_0=0;}
-      // ------------------------------------------------
+      if (systemData.i_count_read_gyro_0>=UINT32_MAX-2)
+        {systemData.i_count_read_gyro_0=0;}
+      // ----------------------------------------------
       // Estimate INS data.
       // INS data is fed bsck into INS.
-      // ------------------------------------------------
+      // ----------------------------------------------
       if (systemData.interval_breach_gyro_0==true) {
-      if (GetINSPosition(gyroData.gyro_0_ang_y, gyroData.gyro_0_ang_z, atof(gnrmcData.ground_heading), atof(gnrmcData.ground_speed),
-                        satioData.local_unixtime_uS)==true) {
-                          systemData.i_count_read_ins++;
-                          systemData.interval_breach_ins=1;
-                          if (systemData.i_count_read_ins>=UINT32_MAX-2) {systemData.i_count_read_ins=0;}
-                        }
+      if (ins_estimate_position(gyroData.gyro_0_ang_y,
+                                gyroData.gyro_0_ang_z,
+                                atof(gnrmcData.ground_heading),
+                                atof(gnrmcData.ground_speed),
+                                satioData.local_unixtime_uS)==true) {
+                                systemData.i_count_read_ins++;
+                                systemData.interval_breach_ins=1;
+                                if (systemData.i_count_read_ins>=UINT32_MAX-2)
+                                  {systemData.i_count_read_ins=0;}}
       }
     }
     // ------------------------------------------------
     // Delay next iteration of task.
     // ------------------------------------------------
-    if (TICK_DELAY_TASK_GYRO0==false) {vTaskDelay(DELAY_TASK_GYRO0 / portTICK_PERIOD_MS);}
-    else                              {vTaskDelay(DELAY_TASK_GYRO0);}
+    if (TICK_DELAY_TASK_GYRO0==false)
+      {vTaskDelay(DELAY_TASK_GYRO0 / portTICK_PERIOD_MS);}
+    else {vTaskDelay(DELAY_TASK_GYRO0);}
   }
 }
 
-// ------------------------------------------------------------------------------------------------------------------------------
-//                                                                                                                SERIAL INFO CMD
-// ------------------------------------------------------------------------------------------------------------------------------
+/**
+ * Info Command Task.
+ * 
+ * @brief Processes a serial TXD and RXD operations:
+ *  (1) Information out for other system and debug.
+ *  (2) Commands in.
+ */
 void taskSerialInfoCMD(void * pvParameters) {
   esp_task_wdt_add(nullptr);
   while (global_task_sync==false) {vTaskDelay(1);}
@@ -577,18 +414,22 @@ void taskSerialInfoCMD(void * pvParameters) {
     // ------------------------------------------------
     // Delay next iteration of task.
     // ------------------------------------------------
-    if (TICK_DELAY_TASK_SERIAL_INFOCMD==false) {vTaskDelay(DELAY_TASK_SERIAL_INFOCMD / portTICK_PERIOD_MS);}
-    else                                       {vTaskDelay(DELAY_TASK_SERIAL_INFOCMD);}
+    if (TICK_DELAY_TASK_SERIAL_INFOCMD==false)
+      {vTaskDelay(DELAY_TASK_SERIAL_INFOCMD / portTICK_PERIOD_MS);}
+    else {vTaskDelay(DELAY_TASK_SERIAL_INFOCMD);}
   }
 }
 
-// ------------------------------------------------------------------------------------------------------------------------------
-//                                                                                                                          SETUP
-// ------------------------------------------------------------------------------------------------------------------------------
+/**
+ * @brief Setup
+ */
 void setup() {
+  // --------------------------------------------------------------
+  // Required for operations in taks that may take longer than 5s..
+  // --------------------------------------------------------------
   esp_task_wdt_config_t config = {
     .timeout_ms = 60* 1000, // 20 seconds
-    .trigger_panic = true,  // Trigger panic if watchdog timer is not reset
+    .trigger_panic = true,  // Trigger panic if watchdog timer not reset
   };
   esp_task_wdt_reconfigure(&config);
   enableLoopWDT();
@@ -622,28 +463,37 @@ void setup() {
   // --------------------------------------------------------------
   // System Information.
   // --------------------------------------------------------------
-  Serial.println("[xPortGetCoreID] " + String(xPortGetCoreID()));
-  Serial.println("[ESP_PM_CPU_FREQ_MAX] " + String(ESP_PM_CPU_FREQ_MAX));
-  Serial.println("[ESP_PM_APB_FREQ_MAX] " + String(ESP_PM_APB_FREQ_MAX));
-  Serial.println("[ESP_PM_NO_LIGHT_SLEEP] " + String(ESP_PM_NO_LIGHT_SLEEP));
-  Serial.println("[CONFIG_ESPTOOLPY_FLASHFREQ] " + String(CONFIG_ESPTOOLPY_FLASHFREQ));
-  Serial.println("[CONFIG_ESPTOOLPY_FLASHMODE] " + String(CONFIG_ESPTOOLPY_FLASHMODE));
-  Serial.println("[CONFIG_LOG_DEFAULT_LEVEL] " + String(CONFIG_LOG_DEFAULT_LEVEL));
-  Serial.println("[CONFIG_BOOTLOADER_LOG_LEVEL] " + String(CONFIG_BOOTLOADER_LOG_LEVEL));
-  Serial.println("[CONFIG_ESP_CONSOLE_UART_BAUDRATE] " + String(CONFIG_ESP_CONSOLE_UART_BAUDRATE));
-  Serial.println("[CONFIG_COMPILER_OPTIMIZATION_ASSERTION_LEVEL] " + String(CONFIG_COMPILER_OPTIMIZATION_ASSERTION_LEVEL));
-  Serial.println("[getCpuFrequencyMhz] " + String(getCpuFrequencyMhz()));
-  Serial.println("[APB_CLK_FREQ] " + String(getApbFrequency()));
+  Serial.println("[xPortGetCoreID] " +
+    String(xPortGetCoreID()));
+  Serial.println("[ESP_PM_CPU_FREQ_MAX] " +
+    String(ESP_PM_CPU_FREQ_MAX));
+  Serial.println("[ESP_PM_APB_FREQ_MAX] " +
+    String(ESP_PM_APB_FREQ_MAX));
+  Serial.println("[ESP_PM_NO_LIGHT_SLEEP] " +
+    String(ESP_PM_NO_LIGHT_SLEEP));
+  Serial.println("[CONFIG_ESPTOOLPY_FLASHFREQ] " +
+    String(CONFIG_ESPTOOLPY_FLASHFREQ));
+  Serial.println("[CONFIG_ESPTOOLPY_FLASHMODE] " +
+    String(CONFIG_ESPTOOLPY_FLASHMODE));
+  Serial.println("[CONFIG_LOG_DEFAULT_LEVEL] " +
+    String(CONFIG_LOG_DEFAULT_LEVEL));
+  Serial.println("[CONFIG_BOOTLOADER_LOG_LEVEL] " +
+    String(CONFIG_BOOTLOADER_LOG_LEVEL));
+  Serial.println("[CONFIG_ESP_CONSOLE_UART_BAUDRATE] " +
+    String(CONFIG_ESP_CONSOLE_UART_BAUDRATE));
+  Serial.println("[CONFIG_COMPILER_OPTIMIZATION_ASSERTION_LEVEL] " +
+    String(CONFIG_COMPILER_OPTIMIZATION_ASSERTION_LEVEL));
+  Serial.println("[getCpuFrequencyMhz] " +
+    String(getCpuFrequencyMhz()));
+  Serial.println("[APB_CLK_FREQ] " +
+    String(getApbFrequency()));
   // --------------------------------------------------------------
   // Initialize NVS.
   // --------------------------------------------------------------
   esp_err_t ret = nvs_flash_init();
   if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
-      ret = nvs_flash_init();
-  }
-  if (ret != ESP_OK) {
-      printf("NVS init failed: %s\n", esp_err_to_name(ret));
-  }
+      ret = nvs_flash_init();}
+  if (ret != ESP_OK) {printf("NVS init failed: %s\n", esp_err_to_name(ret));}
   // --------------------------------------------------------------
   // Initialize SPIFFS.
   // --------------------------------------------------------------
@@ -654,18 +504,15 @@ void setup() {
   else {Serial.println("[SPIFFS] mounted successfully");}
   print_partition_table();
   print_ram_info();
-
   // --------------------------------------------------------------
-  // Initialize SDCARD.
+  // Initialize SDCard and attempt to load files.
   // --------------------------------------------------------------
-  // sdcardBegin(false, false, false, false, BOARD_MAX_SDMMC_FREQ, 43, 44, 39, 40, 41, 42);
   sdcardBegin();
   sdmmcFlagData.load_system=true;
   sdcardFlagHandler();
   if (matrixData.load_matrix_on_startup) {
     sdmmcFlagData.load_mapping=true; sdcardFlagHandler();
     sdmmcFlagData.load_matrix=true; sdcardFlagHandler();}
-
   // --------------------------------------------------------------
   // Initialize I2C.
   // --------------------------------------------------------------
@@ -840,24 +687,12 @@ void setup() {
   vTaskResume(TaskSwitches);
 }
 
-// ------------------------------------------------------------------------------------------------------------------------------
-//                                                                                                                      MAIN LOOP
-// ------------------------------------------------------------------------------------------------------------------------------
-int load_distribution=0;
+/**
+ * @brief Loop
+ */
 void loop() {
   getSystemTime();
   systemIntervalCheck();
   intervalBreach1Second();
-  // --------------------------------------------------------------
-  // Count loops.
-  // --------------------------------------------------------------
   systemData.loops_a_second++;
-  // vTaskDelay(1 / portTICK_PERIOD_MS);
 }
-
-// stat --enable -a
-// stat -a
-// stat --enable --matrix
-// stat --matrix
-// stat --enable --gngga
-// stat --gngga

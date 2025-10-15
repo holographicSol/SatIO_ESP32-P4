@@ -1,8 +1,5 @@
 /*
-  Serial Information Command Library.
-
-  Returns information over serial.
-  Commands system over serial. 
+  Serial Information Command - Written By Benjamin Jack Cullen
 */
 
 #include "serial_infocmd.h"
@@ -28,19 +25,16 @@
 #include "satio_file.h"
 #include <limits.h>
 #include <float.h>
+#include "matrix.h"
 
 ArgParser parser;
 PlainArgParser plainparser;
 
-// ------------------------------------------------------------------------------------------------------------------------------
-//                                                                                                                 DATA: SERIAL 0
-// ------------------------------------------------------------------------------------------------------------------------------
 struct Serial0Struct serial0Data = {
   .nbytes=0, // number of bytes read by serial.
   .iter_token=0, // count token iterations.
   .BUFFER={}, // serial buffer.
-  .token=0, // token pointer .
-  .collected=0, // counts how many unique sentences have been collected.
+  .token=0, // token pointer.
   .checksum=0,
   .checksum_of_buffer=0,
   .checksum_in_buffer=0,
@@ -50,505 +44,6 @@ struct Serial0Struct serial0Data = {
   .c_XOR=0,
 };
 
-// ----------------------------------------------------------------------------------------------------------------------------------
-//                                                                                                                         CmdProcess
-// ----------------------------------------------------------------------------------------------------------------------------------
-
-static void PrintHelp(void) {
-  
-  Serial.println();
-  Serial.println("---------------------------------------------------------------------------------------------------");
-  Serial.println("                                               SATIO                                               ");
-  Serial.println("---------------------------------------------------------------------------------------------------");
-  
-  Serial.println();
-  Serial.println("---------------------------------------------------------------------------------------------------");
-  Serial.println("                                                                            INFORMATION (SENTENCES)");
-  Serial.println("---------------------------------------------------------------------------------------------------");
-  Serial.println("switch output all                         Returns all following checksummed sentences.");
-  Serial.println("switch output satio                       Return SatIO Sentence With Checksum.");
-  Serial.println("switch output ins                         Return INS Sentence With Checksum.");
-  Serial.println("switch output gngga                       Return GNGGA Sentence With Checksum.");
-  Serial.println("switch output gnrmc                       Return GNRMC Sentence With Checksum.");
-  Serial.println("switch output gpatt                       Return GPATT Sentence With Checksum.");
-  Serial.println("switch output matrix                      Return Matrix Sentence With Checksum.");
-  Serial.println("switch output admplex0                    Return Analog/Digital Multiplexer Sentence With Checksum.");
-  Serial.println("switch output gyro0                       Return Gyro Sentence With Checksum.");
-  Serial.println("switch output sun                         Return Sun Sentence With Checksum.");
-  Serial.println("switch output moon                        Return Moon Sentence With Checksum.");
-  Serial.println("switch output mercury                     Return Mercury Sentence With Checksum.");
-  Serial.println("switch output venus                       Return Venus Sentence With Checksum.");
-  Serial.println("switch output mars                        Return Mars Sentence With Checksum.");
-  Serial.println("switch output jupiter                     Return Jupiter Sentence With Checksum.");
-  Serial.println("switch output saturn                      Return Saturn Sentence With Checksum.");
-  Serial.println("switch output uranus                      Return Uranus Sentence With Checksum.");
-  Serial.println("switch output neptune                     Return Neptune Sentence With Checksum.");
-  Serial.println("switch output meteors                     Return Meteors Sentence With Checksum.");
-
-  Serial.println();
-  Serial.println("---------------------------------------------------------------------------------------------------");
-  Serial.println("                                                                                INFORMATION (SATIO)");
-  Serial.println("---------------------------------------------------------------------------------------------------");
-  Serial.println("print satio latitude                      Return SATIO Degrees Latitude.");
-  Serial.println("print satio longitude                     Return SATIO Degrees Longitude.");
-  Serial.println("print satio ground heading                Return SATIO Ground Heading.");
-  Serial.println("print satio time                          Return SATIO Formatted Local Time.");
-  Serial.println("print satio date                          Return SATIO Formatted Local Date.");
-  Serial.println("print satio sync time                     Return SATIO Formatted RTC Sync Time.");
-  Serial.println("print satio sync date                     Return SATIO Formatted RTC Sync Date.");
-  Serial.println("print satio rtc time                      Return SATIO Formatted RTC Time.");
-  Serial.println("print satio rtc date                      Return SATIO Formatted RTC Date.");
-  Serial.println("print satio utc offset                    Return SATIO UTC Second Offset.");
-  Serial.println("print satio utc auto offset               Return SATIO UTC Second Offset Flag.");
-
-  Serial.println();
-  Serial.println("---------------------------------------------------------------------------------------------------");
-  Serial.println("                                                                               INFORMATION (MATRIX)");
-  Serial.println("---------------------------------------------------------------------------------------------------");
-  Serial.println("print matrix -v                           Return all matrix data.");
-  Serial.println("print matrix n                            Return matrix data for specified n.");
-  Serial.println("print matrix functions                    Return verbose all available matrix switch functions.");
-
-  Serial.println();
-  Serial.println("---------------------------------------------------------------------------------------------------");
-  Serial.println("                                                                                INFORMATION (GNGGA)");
-  Serial.println("---------------------------------------------------------------------------------------------------");
-  Serial.println("print gngga time                          Return GNGGA UTC Time.");
-  Serial.println("print gngga latitude                      Return GNGGA Latitude.");
-  Serial.println("print gngga latitude hemisphere           Return GNGGA Latitude Hemisphere.");
-  Serial.println("print gngga longitude                     Return GNGGA Longitude.");
-  Serial.println("print gngga longitude hemisphere          Return GNGGA Longitude Hemisphere.");
-  Serial.println("print gngga solution status               Return GNGGA Solution Status.");
-  Serial.println("print gngga satellite count               Return GNGGA Satellite Count.");
-  Serial.println("print gngga gps precision factor          Return GNGGA HDOP Precision Factor.");
-  Serial.println("print gngga altitude                      Return GNGGA Altitude.");
-  Serial.println("print gngga altitude units                Return GNGGA Altitude Units.");
-  Serial.println("print gngga geoidal                       Return GNGGA Geoidal.");
-  Serial.println("print gngga geoidal units                 Return GNGGA Geoidal Units.");
-  Serial.println("print gngga differential delay            Return GNGGA Differential Delay.");
-
-  Serial.println();
-  Serial.println("---------------------------------------------------------------------------------------------------");
-  Serial.println("                                                                                INFORMATION (GNRMC)");
-  Serial.println("---------------------------------------------------------------------------------------------------");
-  Serial.println("print gnrmc time                          Return GNRMC UTC Time.");
-  Serial.println("print gnrmc positioning status            Return GNRMC Positioning Status.");
-  Serial.println("print gnrmc latitude                      Return GNRMC Latitude.");
-  Serial.println("print gnrmc latitude hemisphere           Return GNRMC Latitude Hemisphere.");
-  Serial.println("print gnrmc longitude                     Return GNRMC Longitude.");
-  Serial.println("print gnrmc longitude hemisphere          Return GNRMC Longitude Hemisphere.");
-  Serial.println("print gnrmc ground speed                  Return GNRMC Ground Speed.");
-  Serial.println("print gnrmc ground heading                Return GNRMC Ground Heading.");
-  Serial.println("print gnrmc date                          Return GNRMC UTC Date.");
-  Serial.println("print gnrmc installation angle            Return GNRMC Installation Angle.");
-  Serial.println("print gnrmc installation angle direction  Return GNRMC Installation Angle Direction.");
-  Serial.println("print gnrmc mode indication               Return GNRMC Mode Indication.");
-
-  Serial.println();
-  Serial.println("---------------------------------------------------------------------------------------------------");
-  Serial.println("                                                                                 INFORMATION(GPATT)");
-  Serial.println("---------------------------------------------------------------------------------------------------");
-  Serial.println("print gpatt pitch                         Return GPATT Pitch.");
-  Serial.println("print gpatt roll                          Return GPATT Roll.");
-  Serial.println("print gpatt yaw                           Return GPATT Yaw.");
-  Serial.println("print gpatt software version              Return GPATT Software Version.");
-  Serial.println("print gpatt product id                    Return GPATT Product ID.");
-  Serial.println("print gpatt ins                           Return GPATT INS.");
-  Serial.println("print gpatt hardware version              Return GPATT Hardware Version.");
-  Serial.println("print gpatt run_state_flag                Return GPATT Run State Flag.");
-  Serial.println("print gpatt mis angle num                 Return GPATT Mis Angle Num.");
-  Serial.println("print gpatt static flag                   Return GPATT Static Flag.");
-  Serial.println("print gpatt user code                     Return GPATT User Code.");
-  Serial.println("print gpatt gst data                      Return GPATT GST Data.");
-  Serial.println("print gpatt line flag                     Return GPATT Line Flag.");
-  Serial.println("print gpatt mis att flag                  Return GPATT Mis Att Flag.");
-  Serial.println("print gpatt imu kind                      Return GPATT IMU Kind.");
-  Serial.println("print gpatt ubi car kind                  Return GPATT UBI Car Kind.");
-  Serial.println("print gpatt mileage                       Return GPATT Mileage.");
-  Serial.println("print gpatt run inetial flag              Return GPATT Run Inetial Flag.");
-  Serial.println("print gpatt speed enable                  Return GPATT Speed Enable.");
-  Serial.println("print gpatt speed num                     Return GPATT Speed Num.");
-
-  Serial.println();
-  Serial.println("---------------------------------------------------------------------------------------------------");
-  Serial.println("                                                                            INFORMATION (ADMPLEX 0)");
-  Serial.println("---------------------------------------------------------------------------------------------------");
-  Serial.println("print admplex0 n                          Return Analog/Digital Multiplexer 0 Channel n (0-15) Value.");
-  
-  Serial.println();
-  Serial.println("---------------------------------------------------------------------------------------------------");
-  Serial.println("                                                                                INFORMATION (Gyro0)");
-  Serial.println("---------------------------------------------------------------------------------------------------");
-  Serial.println("print gyro0 ang x                         Return Gyro0 Angle X.");
-  Serial.println("print gyro0 ang y                         Return Gyro0 Angle Y.");
-  Serial.println("print gyro0 ang z                         Return Gyro0 Angle Z.");
-  Serial.println("print gyro0 mag x                         Return Gyro0 Magnetic Field X.");
-  Serial.println("print gyro0 mag y                         Return Gyro0 Magnetic Field Y.");
-  Serial.println("print gyro0 mag z                         Return Gyro0 Magnetic Field Z.");
-  Serial.println("print gyro0 acc x                         Return Gyro0 Acceleration X.");
-  Serial.println("print gyro0 acc y                         Return Gyro0 Acceleration Y.");
-  Serial.println("print gyro0 acc z                         Return Gyro0 Acceleration Z.");
-  Serial.println("print gyro0 gyr x                         Return Gyro0 Gyro X.");
-  Serial.println("print gyro0 gyr y                         Return Gyro0 Gyro Y.");
-  Serial.println("print gyro0 gyr z                         Return Gyro0 Gyro Z.");
-
-  Serial.println("");
-  Serial.println("---------------------------------------------------------------------------------------------------");
-  Serial.println("                                                                                  INFORMATION (SUN)");
-  Serial.println("---------------------------------------------------------------------------------------------------");
-  Serial.println("print sun ra                              Return Sun Right Ascension.");
-  Serial.println("print sun dec                             Return Sun Declination.");
-  Serial.println("print sun az                              Return Sun Azimuth.");
-  Serial.println("print sun alt                             Return Sun Altitude.");
-  Serial.println("print sun r                               Return Sunrise.");
-  Serial.println("print sun s                               Return Sunset.");
-  Serial.println("print sun helat                           Return Sun Helioecliptic Latitude.");
-  Serial.println("print sun helon                           Return Sun Helioecliptic Longitude.");
-  Serial.println("print sun rv                              Return Sun Radius Vector.");
-  Serial.println("print sun dis                             Return Sun Distance.");
-  Serial.println("print sun elat                            Return Sun Ecliptic Latitude");
-  Serial.println("print sun elon                            Return Sun Ecliptic Longitude.");
-
-  Serial.println();
-  Serial.println("---------------------------------------------------------------------------------------------------");
-  Serial.println("                                                                              INFORMATION (MERCURY)");
-  Serial.println("---------------------------------------------------------------------------------------------------");
-  Serial.println("print mercury ra                          Return Mercury Right Ascension.");
-  Serial.println("print mercury dec                         Return Mercury Declination.");
-  Serial.println("print mercury az                          Return Mercury Azimuth");
-  Serial.println("print mercury alt                         Return Mercury Altitude.");
-  Serial.println("print mercury r                           Return Mercury Rise.");
-  Serial.println("print mercury s                           Return Mercury Set.");
-  Serial.println("print mercury hlat                        Return Mercury Helioecliptic Latitude.");
-  Serial.println("print mercury hlon                        Return Mercury Helioecliptic Longitude.");
-  Serial.println("print mercury rv                          Return Mercury Radius Vector.");
-  Serial.println("print mercury dis                         Return Mercury Distance.");
-  Serial.println("print mercury elat                        Return Mercury Ecliptic Latitude.");
-  Serial.println("print mercury elon                        Return Mercury Ecliptic Longitude.");
-
-  Serial.println();
-  Serial.println("---------------------------------------------------------------------------------------------------");
-  Serial.println("                                                                                INFORMATION (VENUS)");
-  Serial.println("---------------------------------------------------------------------------------------------------");
-  Serial.println("print venus ra                            Return Venus Right Ascension.");
-  Serial.println("print venus dec                           Return Venus Declination.");
-  Serial.println("print venus az                            Return Venus Azimuth");
-  Serial.println("print venus alt                           Return Venus Altitude.");
-  Serial.println("print venus r                             Return Venus Rise.");
-  Serial.println("print venus s                             Return Venus Set.");
-  Serial.println("print venus hlat                          Return Venus Helioecliptic Latitude.");
-  Serial.println("print venus hlon                          Return Venus Helioecliptic Longitude.");
-  Serial.println("print venus rv                            Return Venus Radius Vector.");
-  Serial.println("print venus dis                           Return Venus Distance.");
-  Serial.println("print venus elat                          Return Venus Ecliptic Latitude.");
-  Serial.println("print venus elon                          Return Venus Ecliptic Longitude.");
-
-  Serial.println("");
-  Serial.println("---------------------------------------------------------------------------------------------------");
-  Serial.println("                                                                                INFORMATION (EARTH)");
-  Serial.println("---------------------------------------------------------------------------------------------------");
-  Serial.println("print earth el                            Return Earth Ecliptic Longitude.");
-
-  Serial.println();
-  Serial.println("---------------------------------------------------------------------------------------------------");
-  Serial.println("                                                                                 INFORMATION (MOON)");
-  Serial.println("---------------------------------------------------------------------------------------------------");
-  Serial.println("print moon ra                             Return Moon Right Ascension.");
-  Serial.println("print moon dec                            Return Moon Declination.");
-  Serial.println("print moon az                             Return Moon Azimuth.");
-  Serial.println("print moon alt                            Return Moon Altitude.");
-  Serial.println("print moon r                              Return Moon Rise.");
-  Serial.println("print moon s                              Return Moon Set.");
-  Serial.println("print moon p                              Return Moon Phase.");
-  Serial.println("print moon l                              Return Moon Luminosity.");
-
-  Serial.println();
-  Serial.println("---------------------------------------------------------------------------------------------------");
-  Serial.println("                                                                                 INFORMATION (MARS)");
-  Serial.println("---------------------------------------------------------------------------------------------------");
-  Serial.println("print mars ra                             Return Mars Right Ascension.");
-  Serial.println("print mars dec                            Return Mars Declination.");
-  Serial.println("print mars az                             Return Mars Azimuth");
-  Serial.println("print mars alt                            Return Mars Altitude.");
-  Serial.println("print mars r                              Return Mars Rise.");
-  Serial.println("print mars s                              Return Mars Set.");
-  Serial.println("print mars hlat                           Return Mars Helioecliptic Latitude.");
-  Serial.println("print mars hlon                           Return Mars Helioecliptic Longitude.");
-  Serial.println("print mars rv                             Return Mars Radius Vector.");
-  Serial.println("print mars dis                            Return Mars Distance.");
-  Serial.println("print mars elat                           Return Mars Ecliptic Latitude.");
-  Serial.println("print mars elon                           Return Mars Ecliptic Longitude.");
-
-  Serial.println();
-  Serial.println("---------------------------------------------------------------------------------------------------");
-  Serial.println("                                                                              INFORMATION (JUPITER)");
-  Serial.println("---------------------------------------------------------------------------------------------------");
-  Serial.println("print jupiter ra                          Return Juptier Right Ascension.");
-  Serial.println("print jupiter dec                         Return Juptier Declination.");
-  Serial.println("print jupiter az                          Return Juptier Azimuth");
-  Serial.println("print jupiter alt                         Return Juptier Altitude.");
-  Serial.println("print jupiter r                           Return Juptier Rise.");
-  Serial.println("print jupiter s                           Return Juptier Set.");
-  Serial.println("print jupiter hlat                        Return Juptier Helioecliptic Latitude.");
-  Serial.println("print jupiter hlon                        Return Juptier Helioecliptic Longitude.");
-  Serial.println("print jupiter rv                          Return Juptier Radius Vector.");
-  Serial.println("print jupiter dis                         Return Juptier Distance.");
-  Serial.println("print jupiter elat                        Return Juptier Ecliptic Latitude.");
-  Serial.println("print jupiter elon                        Return Juptier Ecliptic Longitude.");
-
-  Serial.println();
-  Serial.println("---------------------------------------------------------------------------------------------------");
-  Serial.println("                                                                               INFORMATION (SATURN)");
-  Serial.println("---------------------------------------------------------------------------------------------------");
-  Serial.println("print saturn ra                           Return Saturn Right Ascension.");
-  Serial.println("print saturn dec                          Return Saturn Declination.");
-  Serial.println("print saturn az                           Return Saturn Azimuth");
-  Serial.println("print saturn alt                          Return Saturn Altitude.");
-  Serial.println("print saturn r                            Return Saturn Rise.");
-  Serial.println("print saturn s                            Return Saturn Set.");
-  Serial.println("print saturn hlat                         Return Saturn Helioecliptic Latitude.");
-  Serial.println("print saturn hlon                         Return Saturn Helioecliptic Longitude.");
-  Serial.println("print saturn rv                           Return Saturn Radius Vector.");
-  Serial.println("print saturn dis                          Return Saturn Distance.");
-  Serial.println("print saturn elat                         Return Saturn Ecliptic Latitude.");
-  Serial.println("print saturn elon                         Return Saturn Ecliptic Longitude.");
-
-  Serial.println();
-  Serial.println("---------------------------------------------------------------------------------------------------");
-  Serial.println("                                                                               INFORMATION (URANUS)");
-  Serial.println("---------------------------------------------------------------------------------------------------");
-  Serial.println("print uranus ra                           Return Uranus Right Ascension.");
-  Serial.println("print uranus dec                          Return Uranus Declination.");
-  Serial.println("print uranus az                           Return Uranus Azimuth");
-  Serial.println("print uranus alt                          Return Uranus Altitude.");
-  Serial.println("print uranus r                            Return Uranus Rise.");
-  Serial.println("print uranus s                            Return Uranus Set.");
-  Serial.println("print uranus hlat                         Return Uranus Helioecliptic Latitude.");
-  Serial.println("print uranus hlon                         Return Uranus Helioecliptic Longitude.");
-  Serial.println("print uranus rv                           Return Uranus Radius Vector.");
-  Serial.println("print uranus dis                          Return Uranus Distance.");
-  Serial.println("print uranus elat                         Return Uranus Ecliptic Latitude.");
-  Serial.println("print uranus elon                         Return Uranus Ecliptic Longitude.");
-
-  Serial.println();
-  Serial.println("---------------------------------------------------------------------------------------------------");
-  Serial.println("                                                                              INFORMATION (NEPTUNE)");
-  Serial.println("---------------------------------------------------------------------------------------------------");
-  Serial.println("print neptune ra                          Return Neptune Right Ascension.");
-  Serial.println("print neptune dec                         Return Neptune Declination.");
-  Serial.println("print neptune az                          Return Neptune Azimuth");
-  Serial.println("print neptune alt                         Return Neptune Altitude.");
-  Serial.println("print neptune r                           Return Neptune Rise.");
-  Serial.println("print neptune s                           Return Neptune Set.");
-  Serial.println("print neptune hlat                        Return Neptune Helioecliptic Latitude.");
-  Serial.println("print neptune hlon                        Return Neptune Helioecliptic Longitude.");
-  Serial.println("print neptune rv                          Return Neptune Radius Vector.");
-  Serial.println("print neptune dis                         Return Neptune Distance.");
-  Serial.println("print neptune elat                        Return Neptune Ecliptic Latitude.");
-  Serial.println("print neptune elon                        Return Neptune Ecliptic Longitude.");
-
-  Serial.println();
-  Serial.println("---------------------------------------------------------------------------------------------------");
-  Serial.println("                                                                              INFORMATION (OBJECTS)");
-  Serial.println("---------------------------------------------------------------------------------------------------");
-  Serial.println("indetify object n n                       Attempt to identify an object by RA n & DEC n.");
-  
-  Serial.println();
-  Serial.println("---------------------------------------------------------------------------------------------------");
-  Serial.println("                                                                                INFORMATION (Bench)");
-  Serial.println("---------------------------------------------------------------------------------------------------");
-  Serial.println("stat                                      Output system information continuously.");
-  Serial.println("                                          stat. Simple output");
-  Serial.println("                                          stat v. Increased verbosity");
-  Serial.println("                                          stat vv. Increased verbosity (may require full screen).");
-  Serial.println("stat sdcard                               Output sdcard information once.");
-  Serial.println("print looptime max                        Return slowest recorded looptime since startup in microseconds.");
-  Serial.println("print partition table                     Returns partition table.");
-  Serial.println("print ram info                            Returns RAM info.");
-
-  Serial.println();
-  Serial.println("---------------------------------------------------------------------------------------------------");
-  Serial.println("[ CONTROL ] Requires Serial Commands enabled.");
-  Serial.println("---------------------------------------------------------------------------------------------------");
-  
-  Serial.println();
-  Serial.println("---------------------------------------------------------------------------------------------------");
-  Serial.println("                                                                                   CONTROL (MATRIX)");
-  Serial.println("---------------------------------------------------------------------------------------------------");
-  Serial.println("new matrix                                Clears any current matrix value.");
-  Serial.println();
-  Serial.println("set output value n n                      Set matrix switch output value.");
-  Serial.println("                                          Automatically overrides computer.");
-  Serial.println("                                          To hand back control to the computer: set assist enabled n.");
-  Serial.println("                                          0 : matrix n.");
-  Serial.println("                                          1 : output value n.");
-  Serial.println();
-  Serial.println("set assist enabled n                      Set computer assist enabled.");
-  Serial.println("                                          0 : matrix n.");
-  Serial.println();
-  Serial.println("set assist disabled n                     Set computer assist disabled.");
-  Serial.println("                                          0 : matrix n.");
-  Serial.println();
-  Serial.println("set matrix function n n n                 Set matrix function.");
-  Serial.println("                                          0 : matrix n.");
-  Serial.println("                                          1 : function n.");
-  Serial.println("                                          2 : available function n (see available functions).");
-  Serial.println();
-  Serial.println("set matrix x n n n                        Set matrix function value X.");
-  Serial.println("                                          0 : matrix n.");
-  Serial.println("                                          1 : function n.");
-  Serial.println("                                          2 : function value n.");
-  Serial.println();
-  Serial.println("set matrix y n n n                        Set matrix function value Y.");
-  Serial.println("                                          0 : matrix n.");
-  Serial.println("                                          1 : function n.");
-  Serial.println("                                          2 : function value n.");
-  Serial.println();
-  Serial.println("set matrix z n n n                        Set matrix function value Z.");
-  Serial.println("                                          0 : matrix n.");
-  Serial.println("                                          1 : function n.");
-  Serial.println("                                          2 : function value n.");
-  Serial.println();
-  Serial.println("set matrix port n n                       Set matrix output port number.");
-  Serial.println("                                          0 : matrix n.");
-  Serial.println("                                          1 : output port n (-1=None).");
-  Serial.println();
-  Serial.println("set matrix inverted n n n                 Invert matrix function logic.");
-  Serial.println("                                          0 : matrix n.");
-  Serial.println("                                          1 : function n.");
-  Serial.println("                                          2 : standard/inverted n (0-1).");
-  Serial.println();
-  Serial.println("set matrix operator n n n                 Set matrix function operator.");
-  Serial.println("                                          0 : matrix n.");
-  Serial.println("                                          1 : function n.");
-  Serial.println("                                          2 : Set operator n. 0=None  1=Equal  2=Over  3=Under  4=Range");
-  Serial.println();
-  Serial.println("set matrix entry n n n x y z n n n        Set a matrix.");
-  Serial.println("                                          0 : matrix n.");
-  Serial.println("                                          1 : function n.");
-  Serial.println("                                          2 : function index n.");
-  Serial.println("                                          3 : function values x.");
-  Serial.println("                                          4 : function values y.");
-  Serial.println("                                          5 : function values z.");
-  Serial.println("                                          6 : standard/inverted n (0-1).");
-  Serial.println("                                          7 : operator n (0-4). 0=None  1=Equal  2=Over  3=Under  4=Range");
-  Serial.println("                                          8 : output port n (-1=None).");
-  Serial.println();
-  Serial.println("set mapping n v emin emax omin omax       Start mapping a value.");
-  Serial.println("                                          Useful for stabalizing a fluctuating value to a specified range.");
-  Serial.println("                                          Can be used in other ways.");
-  Serial.println("                                          0 : mapping slot n (0-69 slots).");
-  Serial.println("                                          1 : value index n.");
-  Serial.println("                                          2 : expected value min.");
-  Serial.println("                                          3 : expected value max.");
-  Serial.println("                                          4 : output value min.");
-  Serial.println("                                          5 : output value max.");
-  Serial.println();
-  Serial.println("set output map n n                        Set mapped value to use as output.");
-  Serial.println("                                          0 : matrix n.");
-  Serial.println("                                          1 : mapping slot n.");
-  Serial.println();
-  Serial.println("set output mode n n                       Set switch output mode.");
-  Serial.println("                                          0 : matrix n.");
-  Serial.println("                                          1 : mode n (0: default, 1: mapped value).");
-  Serial.println();
-  Serial.println("set flux n n                              Set a fluctuation threshold.");
-  Serial.println("                                          Useful for stabalizing a fluctuating value that needs to remain full ADC bit range.");
-  Serial.println("                                          Can be used in other ways.");
-  Serial.println("                                          0 : matrix n.");
-  Serial.println("                                          1 : flux n.");
-  Serial.println();
-  Serial.println("set map mode n n                          Set mapping algorithm to use.");
-  Serial.println("                                          0 : matrix n.");
-  Serial.println("                                          1 : mode n (0: min to max, 1: center map x0, 2: center map x1).");
-
-  Serial.println();
-  Serial.println("---------------------------------------------------------------------------------------------------");
-  Serial.println("                                                                                      CONTROL (GPS)");
-  Serial.println("---------------------------------------------------------------------------------------------------");
-  Serial.println("set convert coordinates GNGGA             Set Coordinate Degrees Conversions From GNGGA Data.");
-  Serial.println("set convert coordinates GNRMC             Set Coordinate Degrees Conversions From GNRMC Data.");
-
-  Serial.println("set speed units n                           Set speed units.");
-  Serial.println("                                            0 : meters per second (M/S).");
-  Serial.println("                                            1 : miles per hour (MPH).");
-  Serial.println("                                            2 : kilometers per hour (KPH).");
-  Serial.println("                                            3 : knots (KTS).");
-
-  Serial.println();
-  Serial.println("---------------------------------------------------------------------------------------------------");
-  Serial.println("                                                                                 CONTROL (DATETIME)");
-  Serial.println("---------------------------------------------------------------------------------------------------");
-  Serial.println("set utc offset                            Set UTC offset in seconds.");
-
-  Serial.println();
-  Serial.println("---------------------------------------------------------------------------------------------------");
-  Serial.println("                                                                                     CONTROL (GYRO)");
-  Serial.println("---------------------------------------------------------------------------------------------------");
-  Serial.println("set speed units n                           Set speed units.");
-  Serial.println("gyro0 cal acc                               Calibrate acceleration to current orientation.");
-  Serial.println("gyro0 cal mag start                         Start magnetic field calibration.");
-  Serial.println("gyro0 cal mag end                           End magnetic field calibration.");
-
-  Serial.println();
-  Serial.println("---------------------------------------------------------------------------------------------------");
-  Serial.println("                                                                                      CONTROL (INS)");
-  Serial.println("---------------------------------------------------------------------------------------------------");
-  Serial.println("set ins mode n                              Set INS mode n.");
-  Serial.println("                                            0 : Do not use INS");
-  Serial.println("                                            1 : Dynamic. Estimate position between primary GPS sets.");
-  Serial.println("                                            2 : Hold The Line. Do not allow GPS to set INS until further notice.");
-  Serial.println("reset ins forced flag                       Manually reset special flag set in INS mode 2.");
-  Serial.println("set ins heading gyro                        Always use gyro heading for INS heading.");
-  Serial.println("                                            Gyro must be properly calibrated.");
-  Serial.println("set ins heading gps                         Always use GPS heading for INS heading.");
-  Serial.println("                                            Only recommended if INS does not require changes in heading while estimating.");
-
-  Serial.println("set ins gps precision n                     Set required minimum GPS precision for INS.");
-  Serial.println("set ins min speed n                         Set required minimum speed for INS.");
-  Serial.println("set ins heading range diff n                Set required max range difference between gyro heading and GPS heading.");
-
-  Serial.println();
-  Serial.println("---------------------------------------------------------------------------------------------------");
-  Serial.println("                                                                                  CONTROL (STORAGE)");
-  Serial.println("---------------------------------------------------------------------------------------------------");
-  Serial.println("unmount sdcard                              Attempt to unmount sdcard.");
-  Serial.println("mount sdcard                                Attempt to mount sdcard.");
-
-  Serial.println();
-  Serial.println("---------------------------------------------------------------------------------------------------");
-  Serial.println("                                                                                               HELP");
-  Serial.println("---------------------------------------------------------------------------------------------------");
-  Serial.println("h                                         Display this help message.");
-  Serial.println("");
-  Serial.println("---------------------------------------------------------------------------------------------------");
-}
-
-void setAllSentenceOutput(bool enable) {
-  systemData.output_satio_enabled=enable;
-  systemData.output_gngga_enabled=enable;
-  systemData.output_gnrmc_enabled=enable;
-  systemData.output_gpatt_enabled=enable;
-  systemData.output_ins_enabled=enable;
-  systemData.output_matrix_enabled=enable;
-  systemData.output_admplex0_enabled=enable;
-  systemData.output_gyro_0_enabled=enable;
-  systemData.output_sun_enabled=enable;
-  systemData.output_moon_enabled=enable;
-  systemData.output_mercury_enabled=enable;
-  systemData.output_venus_enabled=enable;
-  systemData.output_mars_enabled=enable;
-  systemData.output_jupiter_enabled=enable;
-  systemData.output_saturn_enabled=enable;
-  systemData.output_uranus_enabled=enable;
-  systemData.output_neptune_enabled=enable;
-  systemData.output_meteors_enabled=enable;
-}
-
-// ------------------------------------------------------------------------------------------------------------------------------
-//                                                                                                                   GET CHECKSUM
-// ------------------------------------------------------------------------------------------------------------------------------
-
 int getCheckSumSerial0(char * string) {
   for (serial0Data.XOR=0, serial0Data.i_XOR=0; serial0Data.i_XOR < strlen(string); serial0Data.i_XOR++) {
     serial0Data.c_XOR=(unsigned char)string[serial0Data.i_XOR];
@@ -557,10 +52,6 @@ int getCheckSumSerial0(char * string) {
   }
   return serial0Data.XOR;
 }
-
-// ------------------------------------------------------------------------------------------------------------------------------
-//                                                                                                              VALIDATE CHECKSUM
-// ------------------------------------------------------------------------------------------------------------------------------
 
 bool validateChecksumSerial0(char * buffer) {
   memset(serial0Data.gotSum, 0, sizeof(serial0Data.gotSum));
@@ -572,18 +63,10 @@ bool validateChecksumSerial0(char * buffer) {
   return false;
 }
 
-// ------------------------------------------------------------------------------------------------------------------------------
-//                                                                                                                CREATE CHECKSUM
-// ------------------------------------------------------------------------------------------------------------------------------
-
 void createChecksumSerial0(char * buffer) {
   serial0Data.checksum_of_buffer=getCheckSumSerial0(buffer);
   sprintf(serial0Data.checksum,"%X",serial0Data.checksum_of_buffer);
 }
-
-// ------------------------------------------------------------------------------------------------------------------------------
-//                                                                                                                     VALIDATION
-// ------------------------------------------------------------------------------------------------------------------------------
 
 bool val_global_element_size(const char * data) {
   if (sizeof(data)>=MAX_GLOBAL_ELEMENT_SIZE) {return false;}
@@ -654,9 +137,135 @@ bool val_ins_heading_range_diff(const char * data) {
   return false;
 }
 
-// ------------------------------------------------------------------------------------------------------------------------------
-//                                                                                                            PRINT SYSTEM CONFIG
-// ------------------------------------------------------------------------------------------------------------------------------
+static void PrintHelp(void) {
+  Serial.println(
+  R"(
+  [ System ]
+
+      system --save
+      system --load
+      system --restore-defaults
+
+  [ Matrix ]
+
+      matrix --new                Clears matrix in memory.
+      matrix --save n             Specify file slot.
+      matrix --load n             Specify file slot.
+      matrix --delete n           Specify file slot.
+      matrix --startup-enable
+      matrix --startup-disable
+      matrix -s n                 Specify switch index n.
+      matrix -f n                 Specify function index n.
+      matrix -p n                 Set port for switch -s.
+      matrix -fn n                Set function -f for switch -s. See available matrix functions.
+      matrix -fx n                Set function -f value x for switch -s.
+      matrix -fy n                Set function -f value y for switch -s.
+      matrix -fz n                Set function -f value z for switch -s.
+      matrix -fi n                Set function -f logic inverted for switch -s.
+      matrix -fo n                Set function -f operator for switch -s.
+      matrix --pwm0 n             Set switch -s uS time off period (0uS = remain on)
+      matrix --pwm1 n             Set switch -s uS time on period  (0uS = remain off after on)
+      matrix --flux n             Set switch -s output fluctuation threshold.
+      matrix --oride n            Override switch -s output values.
+      matrix --computer-assist n  Enable/disable computer assist for switch -s.
+      matrix --omode n            Set switch -s output mode: (0 : matrix logic) (1 : mapped value analog/digital).
+      matrix --map-slot n         Set switch -s output as map slot n value.
+
+      example set matrix logic 0 function 0:
+      matrix -s 0 -f 0 -p 33 -fn 90 -fx 1 -fo 1 --pwm0 1000000 --pwm1 15000 --computer-assist 1
+      matrix -s 0 --omode 0
+  
+  [ Mapping ]
+
+      mapping --save
+      mapping --load
+      mapping --delete
+      mapping -s n       Specify map slot n.
+      mapping -m n       Specify slot -s mode. (0 : map min to max) (1 : center map x0) (2 : center map x1)
+      mapping -c0 n      Configuration map slot -s  value to map. See available map values.
+      mapping -c1 n      Configuration map slot -s. (mode 0 : in_min)  (mode 1 : approximate center value)
+      mapping -c2 n      Configuration map slot -s. (mode 0 : in_max)  (mode 1 : Neg_range : 0 to approximate center value)
+      mapping -c3 n      Configuration map slot -s. (mode 0 : out_min) (mode 1 : Pos_range : ADC max - neg range)
+      mapping -c4 n      Configuration map slot -s. (mode 0 : out_max) (mode 1 : out_max)
+      mapping -c5 n      Configuration map slot -s. (mode 1 only : DEADZONE : expected flutuation at center)
+
+      example map analog stick axis x0 on admplex0 channel 0 into map slot 0:
+      mapping -s 0 -m 1 -c0 16 -c1 1974 -c2 1974 -c3 1894 -c4 255 -c5 50
+      Optional: matrix -s 0 --omode 1
+
+      example map analog stick axis x1 on admplex0 channel 1 into map slot 1:
+      mapping -s 1 -m 2 -c0 17 -c1 1974 -c2 1974 -c3 1894 -c4 255 -c5 50
+      Optional: matrix -s 1 --omode 1
+
+  [ INS ]
+
+      ins -m n              Set INS mode n. (0 : Off) (1 : Dynamic, set by gps every 100ms) (2 : Fixed, remains on after conditions met).
+      ins -gyro n           INS uses gyro for attitude. (0 : gyro heading) (1 : gps heading).
+      ins -p n              Set INS mimimum required gps precision factor to initialize.
+      ins -s n              Set INS mimimum required speed to initialize.
+      ins -r n              Set INS maximum required heading range difference to initialize (difference between gps heading and gyro heading).
+      ins --reset-forced n  Reset INS remains on after conditions met.
+
+  [ Satio ]
+
+      satio --speed-units n  Set displayed units (0 : M/S) (1 : MPH) (2 : KPH) (3 : KTS estimated)
+      satio --utc-offset n   Set +-seconds offset time.
+      satio --mode-gngga     Use GNGGA data for location.
+      satio --mode-gnrmc     Use GNRMC data for location.
+
+  [ Gyro ]
+
+      gyro --calacc        Callibrate the accelerometer.
+      gyro --calmag-start  Begin calibrating the magnetometer.
+      gyro --calmag-end    End calibrating the magnetometer.
+
+  [ SDCard ]
+
+      sdcard --mount
+      sdcard --unmount
+
+  [ Stat ]
+
+      stat -e     Enable print.
+      stat -d     Disable print.
+      stat -t     Enables/disables serial print stats and counters. Takes arguments -e, -d.
+      stat --partition-table      Print partition table.
+      stat --memory-ram           Print ram information.
+      stat --sdcard               Print matrix information.
+      stat --system               Print system configuration.
+      stat --matrix               Print matrix configuration.
+      stat --matrix n             Print matrix switch n configuration.
+      stat --matrix -A            Print configuration of all matrix switches.
+      stat --mapping              Print configuration of all mapping slots.
+      stat --sentence -A          Print all sentences. Takes arguments -e, -d.
+      stat --sentence --satio     Takes arguments -e, -d.
+      stat --sentence --ins       Takes arguments -e, -d.
+      stat --sentence --gngga     Takes arguments -e, -d.
+      stat --sentence --gnrmc     Takes arguments -e, -d.
+      stat --sentence --gpatt     Takes arguments -e, -d.
+      stat --sentence --matrix    Takes arguments -e, -d.
+      stat --sentence --admplex0  Takes arguments -e, -d.
+      stat --sentence --gyro0     Takes arguments -e, -d.
+      stat --sentence --sun       Takes arguments -e, -d.
+      stat --sentence --moon      Takes arguments -e, -d.
+      stat --sentence --mercury   Takes arguments -e, -d.
+      stat --sentence --venus     Takes arguments -e, -d.
+      stat --sentence --mars      Takes arguments -e, -d.
+      stat --sentence --jupiter   Takes arguments -e, -d.
+      stat --sentence --saturn    Takes arguments -e, -d.
+      stat --sentence --uranus    Takes arguments -e, -d.
+      stat --sentence --neptune   Takes arguments -e, -d.
+      stat --sentence --meteors   Takes arguments -e, -d.
+  
+  [ Other ]
+
+      -v    Enable verbosoity.
+      -vv   Enable extra verbosoity.
+      help
+  )"
+  );
+}
+
 void PrintSystemData(void) {
     Serial.println("-----------------------------------------------------");
     Serial.println("[System] ");
@@ -683,24 +292,28 @@ void PrintSystemData(void) {
     Serial.println("-----------------------------------------------------");
 }
 
-// ------------------------------------------------------------------------------------------------------------------------------
-//                                                                                                            PRINT SYSTEM CONFIG
-// ------------------------------------------------------------------------------------------------------------------------------
 void PrintSatIOData(void) {
     Serial.println("-----------------------------------------------------");
     Serial.println("[SatIO] ");
-    Serial.println("[coordinate_conversion_mode] " + String(satioData.char_coordinate_conversion_mode[satioData.coordinate_conversion_mode]));
-    Serial.println("[speed_conversion_mode] " + String(satioData.char_speed_conversion_mode[satioData.speed_conversion_mode]));
+    Serial.println("[coordinate_conversion_mode] " +
+      String(satioData.char_coordinate_conversion_mode[satioData.coordinate_conversion_mode]));
+    Serial.println("[speed_conversion_mode] " +
+      String(satioData.char_speed_conversion_mode[satioData.speed_conversion_mode]));
     Serial.println("[utc_second_offset] " + String(satioData.utc_second_offset));
     Serial.println("[utc_auto_offset_flag] " + String(satioData.utc_auto_offset_flag));
     Serial.println("[set_time_automatically] " + String(satioData.set_time_automatically));
     Serial.println("-----------------------------------------------------");
 }
 
-// ------------------------------------------------------------------------------------------------------------------------------
-//                                                                                                             PRINT MAPPING DATA
-// ------------------------------------------------------------------------------------------------------------------------------
+void PrintMappingConfig() {
+  Serial.println("-----------------------------------------------------");
+  Serial.println("[Available Mapping Values]");
+  for (int Mi=0; Mi<MAX_MAPPABLE_VALUES; Mi++)
+    {Serial.println("  [" + String(Mi) + "] " + String(mappingData.char_map_value[Mi]));}
+}
+
 void PrintMappingData(void) {
+  PrintMappingConfig();
   for (int Mi=0; Mi<MAX_MAP_SLOTS; Mi++) {
     Serial.println("-----------------------------------------------------");
     Serial.println("[slot] " + String(Mi));
@@ -720,14 +333,16 @@ void PrintMatrixConfig() {
     Serial.println("-----------------------------------------------------");
     Serial.println("[load_matrix_on_startup] " + String(matrixData.load_matrix_on_startup));
     Serial.println("[Available Switch Functions]");
-    for (int Mi=0; Mi<MAX_MATRIX_FUNCTION_NAMES; Mi++) {Serial.println("  [" + String(Mi) + "] " + String(matrixData.matrix_function_names[Mi]));}
+    for (int Mi=0; Mi<MAX_MATRIX_FUNCTION_NAMES; Mi++)
+      {Serial.println("  [" + String(Mi) + "] " +
+        String(matrixData.matrix_function_names[Mi]));}
     Serial.println("[Available Switch Function Operators]");
-    for (int Mi=0; Mi<MAX_MATRIX_OPERATORS; Mi++) {Serial.println("  [" + String(Mi) + "] " + String(matrixData.matrix_function_operator_name[Mi]));}
+    for (int Mi=0; Mi<MAX_MATRIX_OPERATORS; Mi++)
+      {Serial.println("  [" + String(Mi) + "] " +
+        String(matrixData.matrix_function_operator_name[Mi]));}
+    Serial.println("-----------------------------------------------------");
 }
 
-// ------------------------------------------------------------------------------------------------------------------------------
-//                                                                                                                   PRINT MATRIX
-// ------------------------------------------------------------------------------------------------------------------------------
 void PrintMatrixData(void) {
     for (int Mi=0; Mi<MAX_MATRIX_SWITCHES; Mi++) {
     Serial.println("-----------------------------------------------------");
@@ -736,24 +351,29 @@ void PrintMatrixData(void) {
     Serial.println("[output mode] " + String(matrixData.output_mode[0][Mi]));
     Serial.println("[map slot] " + String(mappingData.index_mapped_value[0][Mi]));
     Serial.println("[flux] " + String(matrixData.flux_value[0][Mi]));
-    Serial.println("[pwm] 0: " + String(matrixData.output_pwm[0][Mi][0]) + " 1: " + String(matrixData.output_pwm[0][Mi][1]));
+    Serial.println("[pwm] 0: " + String(matrixData.output_pwm[0][Mi][0]) + " 1: " +
+      String(matrixData.output_pwm[0][Mi][1]));
     Serial.println("[port] " + String(matrixData.matrix_port_map[0][Mi]));
     Serial.println("[active] " + String(matrixData.switch_intention[0][Mi]));
+    Serial.println("-----------------------------------------------------");
     for (int Fi=0; Fi<MAX_MATRIX_SWITCH_FUNCTIONS; Fi++) {
-      Serial.println("[function " + String(Fi) + " name] " + String(matrixData.matrix_function_names[matrixData.matrix_function[0][Mi][Fi]]));
-      Serial.println("[function " + String(Fi) + " matrix_function_operator_name] " + String(matrixData.matrix_switch_operator_index[0][Mi][Fi]));
-      Serial.println("[function " + String(Fi) + " inverted] " + String(matrixData.matrix_switch_inverted_logic[0][Mi][Fi]));
-      Serial.println("[function " + String(Fi) + " x] " + String(matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_X]));
-      Serial.println("[function " + String(Fi) + " y] " + String(matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Y]));
-      Serial.println("[function " + String(Fi) + " z] " + String(matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z]));
+      Serial.println("[function " + String(Fi) + " name] " +
+        String(matrixData.matrix_function_names[matrixData.matrix_function[0][Mi][Fi]]));
+      Serial.println("[function " + String(Fi) + " matrix_function_operator_name] " +
+        String(matrixData.matrix_switch_operator_index[0][Mi][Fi]));
+      Serial.println("[function " + String(Fi) + " inverted] " +
+        String(matrixData.matrix_switch_inverted_logic[0][Mi][Fi]));
+      Serial.println("[function " + String(Fi) + " x] " +
+        String(matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_X]));
+      Serial.println("[function " + String(Fi) + " y] " +
+        String(matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Y]));
+      Serial.println("[function " + String(Fi) + " z] " +
+        String(matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z]));
+      Serial.println("-----------------------------------------------------");
     }
   }
-  Serial.println("-----------------------------------------------------");
 }
 
-// ------------------------------------------------------------------------------------------------------------------------------
-//                                                                                                                 PRINT MATRIX N
-// ------------------------------------------------------------------------------------------------------------------------------
 void PrintMatrixNData() {
   int Mi=atoi(plainparser.tokens[0]);
   Serial.println("-----------------------------------------------------");
@@ -761,31 +381,61 @@ void PrintMatrixNData() {
   Serial.println("[computer assist] " + String(matrixData.computer_assist[0][Mi]));
   Serial.println("[output mode] " + String(matrixData.output_mode[0][Mi]));
   Serial.println("[flux] " + String(matrixData.flux_value[0][Mi]));
-  Serial.println("[pwm] 0: " + String(matrixData.output_pwm[0][Mi][0]) + " 1: " + String(matrixData.output_pwm[0][Mi][1]));
+  Serial.println("[pwm] 0: " + String(matrixData.output_pwm[0][Mi][0]) + " 1: " +
+    String(matrixData.output_pwm[0][Mi][1]));
   Serial.println("[port] " + String(matrixData.matrix_port_map[0][Mi]));
   Serial.println("[active] " + String(matrixData.switch_intention[0][Mi]));
-  for (int Fi=0; Fi<MAX_MATRIX_SWITCH_FUNCTIONS; Fi++) {
-    Serial.println("[function " + String(Fi) + " name] " + String(matrixData.matrix_function_names[matrixData.matrix_function[0][Mi][Fi]]));
-    Serial.println("[function " + String(Fi) + " matrix_function_operator_name] " + String(matrixData.matrix_switch_operator_index[0][Mi][Fi]));
-    Serial.println("[function " + String(Fi) + " inverted] " + String(matrixData.matrix_switch_inverted_logic[0][Mi][Fi]));
-    Serial.println("[function " + String(Fi) + " x] " + String(matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_X]));
-    Serial.println("[function " + String(Fi) + " y] " + String(matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Y]));
-    Serial.println("[function " + String(Fi) + " z] " + String(matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z]));
-  }
   Serial.println("-----------------------------------------------------");
+  for (int Fi=0; Fi<MAX_MATRIX_SWITCH_FUNCTIONS; Fi++) {
+    Serial.println("[function " + String(Fi) + " name] " +
+      String(matrixData.matrix_function_names[matrixData.matrix_function[0][Mi][Fi]]));
+    Serial.println("[function " + String(Fi) + " matrix_function_operator_name] " +
+      String(matrixData.matrix_switch_operator_index[0][Mi][Fi]));
+    Serial.println("[function " + String(Fi) + " inverted] " +
+      String(matrixData.matrix_switch_inverted_logic[0][Mi][Fi]));
+    Serial.println("[function " + String(Fi) + " x] " +
+      String(matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_X]));
+    Serial.println("[function " + String(Fi) + " y] " +
+      String(matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Y]));
+    Serial.println("[function " + String(Fi) + " z] " +
+      String(matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z]));
+    Serial.println("-----------------------------------------------------");
+  }
 }
 
-// ------------------------------------------------------------------------------------------------------------------------------
-//                                                                                          PRINT AVAILABLE MATRIX FUNCTION NAMES
-// ------------------------------------------------------------------------------------------------------------------------------
-void PrintAvailableMatrixFunctionNames() {
-  Serial.println("[Available Matrix Functions] ");
-  for (int i=0; i<MAX_MATRIX_FUNCTION_NAMES; i++) {Serial.println("[" + String(i) + "] " + String(matrixData.matrix_function_names[i]));}
+void PrintSDCardInformation() {
+  Serial.println("sdcard inserted:    " + String(sdcardData.sdcard_inserted));
+  Serial.println("sdcard mounted:     " + String(sdcardData.sdcard_mounted));
+  Serial.println("sdcard mount point: " + String(sdcardData.sdcard_mountpoint));
+  Serial.println("sdcard type:        " +
+    String(sdcardData.sdcard_type_names[sdcardData.sdcard_type]) +
+    " (type: " + String(sdcardData.sdcard_type) + ").");
+  Serial.println("sdcard card size:   " + String(sdcardData.sdcard_card_size));
+  Serial.println("sdcard total bytes: " + String(sdcardData.sdcard_total_bytes));
+  Serial.println("sdcard used bytes:  " + String(sdcardData.sdcard_used_bytes));
+  Serial.println("sdcard sector size: " + String(sdcardData.sdcard_sector_size));
 }
 
-// ------------------------------------------------------------------------------------------------------------------------------
-//                                                                                                                     SET MATRIX
-// ------------------------------------------------------------------------------------------------------------------------------
+void setAllSentenceOutput(bool enable) {
+  systemData.output_satio_enabled=enable;
+  systemData.output_gngga_enabled=enable;
+  systemData.output_gnrmc_enabled=enable;
+  systemData.output_gpatt_enabled=enable;
+  systemData.output_ins_enabled=enable;
+  systemData.output_matrix_enabled=enable;
+  systemData.output_admplex0_enabled=enable;
+  systemData.output_gyro_0_enabled=enable;
+  systemData.output_sun_enabled=enable;
+  systemData.output_moon_enabled=enable;
+  systemData.output_mercury_enabled=enable;
+  systemData.output_venus_enabled=enable;
+  systemData.output_mars_enabled=enable;
+  systemData.output_jupiter_enabled=enable;
+  systemData.output_saturn_enabled=enable;
+  systemData.output_uranus_enabled=enable;
+  systemData.output_neptune_enabled=enable;
+  systemData.output_meteors_enabled=enable;
+}
 
 void setMatrixPort(int switch_idx, signed int port_n) {
   if (switch_idx>=0 && switch_idx<MAX_MATRIX_SWITCHES && port_n>=-1 && port_n<MAX_MATRIX_SWITCHES) {
@@ -795,49 +445,61 @@ void setMatrixPort(int switch_idx, signed int port_n) {
 }
 
 void setMatrixFunction(int switch_idx, int func_idx, int func_n) {
-  if (switch_idx>=0 && switch_idx<MAX_MATRIX_SWITCHES && func_idx>=0 && func_idx<MAX_MATRIX_SWITCH_FUNCTIONS && func_n>=0 && func_n<MAX_MATRIX_FUNCTION_NAMES) {
+  if (switch_idx>=0 && switch_idx<MAX_MATRIX_SWITCHES && func_idx>=0 &&
+      func_idx<MAX_MATRIX_SWITCH_FUNCTIONS &&
+      func_n>=0 &&
+      func_n<MAX_MATRIX_FUNCTION_NAMES) {
     matrixData.matrix_function[0][switch_idx][func_idx]=func_n;
     matrixData.matrix_switch_write_required[0][switch_idx]=true;
   }
 }
 
 void setMatrixX(int switch_idx, int func_idx, double func_x) {
-  if (switch_idx>=0 && switch_idx<MAX_MATRIX_SWITCHES && func_idx>=0 && func_idx<MAX_MATRIX_SWITCH_FUNCTIONS && func_x>=DBL_MIN && func_x<DBL_MAX) {
+  if (switch_idx>=0 && switch_idx<MAX_MATRIX_SWITCHES &&
+      func_idx>=0 && func_idx<MAX_MATRIX_SWITCH_FUNCTIONS &&
+      func_x>=DBL_MIN &&
+      func_x<DBL_MAX) {
     matrixData.matrix_function_xyz[0][switch_idx][func_idx][INDEX_MATRIX_FUNTION_X]=func_x;
     matrixData.matrix_switch_write_required[0][switch_idx]=true;
   }
 }
 
 void setMatrixY(int switch_idx, int func_idx, double func_y) {
-  if (switch_idx>=0 && switch_idx<MAX_MATRIX_SWITCHES && func_idx>=0 && func_idx<MAX_MATRIX_SWITCH_FUNCTIONS && func_y>=DBL_MIN && func_y<DBL_MAX) {
+  if (switch_idx>=0 && switch_idx<MAX_MATRIX_SWITCHES && func_idx>=0 &&
+      func_idx<MAX_MATRIX_SWITCH_FUNCTIONS && func_y>=DBL_MIN &&
+      func_y<DBL_MAX) {
     matrixData.matrix_function_xyz[0][switch_idx][func_idx][INDEX_MATRIX_FUNTION_Y]=func_y;
     matrixData.matrix_switch_write_required[0][switch_idx]=true;
   }
 }
 
 void setMatrixZ(int switch_idx, int func_idx, double func_z) {
-  if (switch_idx>=0 && switch_idx<MAX_MATRIX_SWITCHES && func_idx>=0 && func_idx<MAX_MATRIX_SWITCH_FUNCTIONS && func_z>=DBL_MIN && func_z<DBL_MAX) {
+  if (switch_idx>=0 && switch_idx<MAX_MATRIX_SWITCHES && func_idx>=0 &&
+      func_idx<MAX_MATRIX_SWITCH_FUNCTIONS && func_z>=DBL_MIN && func_z<DBL_MAX) {
     matrixData.matrix_function_xyz[0][switch_idx][func_idx][INDEX_MATRIX_FUNTION_Z]=func_z;
     matrixData.matrix_switch_write_required[0][switch_idx]=true;
   }
 }
 
 void setMatrixInverted(int switch_idx, int func_idx, int func_i) {
-  if (switch_idx>=0 && switch_idx<MAX_MATRIX_SWITCHES && func_idx>=0 && func_idx<MAX_MATRIX_SWITCH_FUNCTIONS && func_i>=0 && func_i<=1) {
+  if (switch_idx>=0 && switch_idx<MAX_MATRIX_SWITCHES && func_idx>=0 &&
+      func_idx<MAX_MATRIX_SWITCH_FUNCTIONS && func_i>=0 && func_i<=1) {
     matrixData.matrix_switch_inverted_logic[0][switch_idx][func_idx]=func_i;
     matrixData.matrix_switch_write_required[0][switch_idx]=true;
   }
 }
 
 void setMatrixOperator(int switch_idx, int func_idx, int func_o) {
-  if (switch_idx>=0 && switch_idx<MAX_MATRIX_SWITCHES && func_idx>=0 && func_idx<MAX_MATRIX_SWITCH_FUNCTIONS && func_o>=0 && func_o<MAX_MATRIX_OPERATORS) {
+  if (switch_idx>=0 && switch_idx<MAX_MATRIX_SWITCHES && func_idx>=0 &&
+      func_idx<MAX_MATRIX_SWITCH_FUNCTIONS && func_o>=0 && func_o<MAX_MATRIX_OPERATORS) {
     matrixData.matrix_switch_operator_index[0][switch_idx][func_idx]=func_o;
     matrixData.matrix_switch_write_required[0][switch_idx]=true;
   }
 }
 
 void setMatrixModulation(int switch_idx, uint32_t pwm0, uint32_t pwm1) {
-  if (switch_idx>=0 && switch_idx<MAX_MATRIX_SWITCHES && pwm0>=0 && pwm0<UINT32_MAX && pwm1>=0 && pwm1<UINT32_MAX) {
+  if (switch_idx>=0 && switch_idx<MAX_MATRIX_SWITCHES && pwm0>=0 &&
+      pwm0<UINT32_MAX && pwm1>=0 && pwm1<UINT32_MAX) {
     matrixData.output_pwm[0][switch_idx][0]=pwm0;
     matrixData.output_pwm[0][switch_idx][1]=pwm1;
     matrixData.matrix_switch_write_required[0][switch_idx]=true;
@@ -845,35 +507,40 @@ void setMatrixModulation(int switch_idx, uint32_t pwm0, uint32_t pwm1) {
 }
 
 void setFlux(int switch_idx, uint32_t flux) {
-  if (switch_idx>=0 && switch_idx<MAX_MATRIX_SWITCHES && flux>=0 && flux<LONG_MAX) {
+  if (switch_idx>=0 && switch_idx<MAX_MATRIX_SWITCHES &&
+      flux>=0 && flux<LONG_MAX) {
     matrixData.flux_value[0][switch_idx]=flux;
     matrixData.matrix_switch_write_required[0][switch_idx]=true;
   }
 }
 
 void setOutputMode(int switch_idx, int output_mode) {
-  if (switch_idx>=0 && switch_idx<MAX_MATRIX_SWITCHES && output_mode>=0 && output_mode<MAX_MATRIX_OUTPUT_MODES) {
+  if (switch_idx>=0 && switch_idx<MAX_MATRIX_SWITCHES &&
+      output_mode>=0 && output_mode<MAX_MATRIX_OUTPUT_MODES) {
     matrixData.output_mode[0][switch_idx]=output_mode;
     matrixData.matrix_switch_write_required[0][switch_idx]=true;
   }
 }
 
 void setOverrideOutputValue(int switch_idx, uint32_t override_value) {
-  if (switch_idx>=0 && switch_idx<MAX_MATRIX_SWITCHES && override_value>=LONG_MIN && override_value<LONG_MAX) {
+  if (switch_idx>=0 && switch_idx<MAX_MATRIX_SWITCHES &&
+      override_value>=LONG_MIN && override_value<LONG_MAX) {
     matrixData.computer_assist[0][switch_idx]=false;
     matrixData.override_output_value[0][switch_idx]=override_value;
     long i_retry;
     while (matrixData.computer_assist[0][switch_idx]!=false) {
       matrixData.computer_assist[0][switch_idx]=false;
       i_retry++;
-      if (i_retry==MAX_MATRIX_OVERRIDE_TIME) {Serial.println("WARNING! Could not override computer_assist!"); break;}
+      if (i_retry==MAX_MATRIX_OVERRIDE_TIME)
+        {Serial.println("WARNING! Could not override computer_assist!"); break;}
       delayMicroseconds(1);
     }
     i_retry=0;
     while (matrixData.override_output_value[0][switch_idx]!=override_value) {
       matrixData.override_output_value[0][switch_idx]=override_value;
       i_retry++;
-      if (i_retry==MAX_MATRIX_OVERRIDE_TIME) {Serial.println("WARNING! Could not override override_output_value!"); break;}
+      if (i_retry==MAX_MATRIX_OVERRIDE_TIME)
+        {Serial.println("WARNING! Could not override override_output_value!"); break;}
       delayMicroseconds(1);
     }
     matrixData.matrix_switch_write_required[0][switch_idx]=true;
@@ -890,34 +557,51 @@ void setComputerAssist(int switch_idx, bool computer_assist) {
 }
 
 void setINSMode(int ins_mode) {
-  if (ins_mode>=0 && ins_mode <MAX_INS_MODE) {insData.INS_MODE=ins_mode;}
+  if (ins_mode>=0 && ins_mode <MAX_INS_MODE)
+    {insData.INS_MODE=ins_mode;}
 }
 
 void setINSGPSPrecision(double ins_precision) {
-  if (ins_precision>=0 && ins_precision<DBL_MAX) {insData.INS_REQ_GPS_PRECISION=ins_precision;}
+  if (ins_precision>=0 && ins_precision<DBL_MAX)
+    {insData.INS_REQ_GPS_PRECISION=ins_precision;}
 }
 
 void setINSMinSpeed(double ins_min_speed) {
-  if (ins_min_speed>=0 && ins_min_speed<DBL_MAX) {insData.INS_REQ_MIN_SPEED=ins_min_speed;}
+  if (ins_min_speed>=0 && ins_min_speed<DBL_MAX)
+    {insData.INS_REQ_MIN_SPEED=ins_min_speed;}
 }
 
 void setINSHeadingRangeDiff(double ins_range_diff) {
-  if (ins_range_diff>=0 && ins_range_diff<DBL_MAX) {insData.INS_REQ_HEADING_RANGE_DIFF=ins_range_diff;}
+  if (ins_range_diff>=0 && ins_range_diff<DBL_MAX)
+    {insData.INS_REQ_HEADING_RANGE_DIFF=ins_range_diff;}
 }
 
 void setSpeedUnits(int speed_units) {
-  if (speed_units>=0 && speed_units <MAX_SPEED_CONVERSION_MODES) {satioData.speed_conversion_mode=speed_units;}
+  if (speed_units>=0 && speed_units <MAX_SPEED_CONVERSION_MODES)
+    {satioData.speed_conversion_mode=speed_units;}
 }
 
 void setUTCSecondOffset(int64_t seconds) {
-  if (seconds>=LONG_LONG_MIN && seconds<LONG_LONG_MAX) {satioData.utc_second_offset=seconds;}
+  if (seconds>=LONG_LONG_MIN && seconds<LONG_LONG_MAX)
+    {satioData.utc_second_offset=seconds;}
 }
 
-void setMapConfig(int map_slot, int map_mode, signed long c0, signed long c1,signed long c2,signed long c3, signed long c4,
-                signed long c5) {
-  if (map_slot>=0 && map_slot<MAX_MAP_SLOTS && map_mode>=0 && map_mode<MAX_MAP_MODES && c0>=INT32_MIN && c0<INT32_MAX
-      && c1>=INT32_MIN && c1<INT32_MAX && c2>=INT32_MIN && c2<INT32_MAX && c3>=LONG_MIN && c3<INT32_MAX
-      && c4>=INT32_MIN && c4<INT32_MAX && c5>=INT32_MIN && c5<INT32_MAX) {
+void setMapConfig(int map_slot,
+                  int map_mode,
+                  signed long c0,
+                  signed long c1,
+                  signed long c2,
+                  signed long c3,
+                  signed long c4,
+                  signed long c5) {
+  if (map_slot>=0 && map_slot<MAX_MAP_SLOTS &&
+      map_mode>=0 && map_mode<MAX_MAP_MODES &&
+      c0>=INT32_MIN && c0<INT32_MAX &&
+      c1>=INT32_MIN && c1<INT32_MAX &&
+      c2>=INT32_MIN && c2<INT32_MAX &&
+      c3>=LONG_MIN && c3<INT32_MAX &&
+      c4>=INT32_MIN && c4<INT32_MAX &&
+      c5>=INT32_MIN && c5<INT32_MAX) {
     mappingData.mapping_config[0][map_slot][0]=c0;
     mappingData.mapping_config[0][map_slot][1]=c1;
     mappingData.mapping_config[0][map_slot][2]=c2;
@@ -929,8 +613,10 @@ void setMapConfig(int map_slot, int map_mode, signed long c0, signed long c1,sig
   }
 }
 
-void setMapSlot(int matrix_switch, int map_slot) {
-  if (matrix_switch>=0 && matrix_switch<MAX_MAP_SLOTS && map_slot>=0 && map_slot<=1) {
+void setMapSlot(int matrix_switch,
+                int map_slot) {
+  if (matrix_switch>=0 && matrix_switch<MAX_MAP_SLOTS &&
+      map_slot>=0 && map_slot<=1) {
     mappingData.index_mapped_value[0][matrix_switch]=map_slot;
     matrixData.matrix_switch_write_required[0][map_slot]=true;
   }
@@ -960,11 +646,6 @@ void deleteMatrix(int matrix_file_slot) {
   }
 }
 
-// ----------------------------------------------------------------------------------------------------------------------------------
-/*
-  StarNav.
-*/
-// ----------------------------------------------------------------------------------------------------------------------------------
 void star_nav() {
   // star sirius test: starnav 6 45 8.9 -16 42 58.0
   // ngc test:         starnav 2 20 35.0 -23 7 0.0
@@ -1017,19 +698,11 @@ void star_nav() {
     Serial.println("Altitude:      " + String(siderealObjectData.object_alt));
     Serial.println("Rise:          " + String(siderealObjectData.object_r));
     Serial.println("Set:           " + String(siderealObjectData.object_s));
-    // magnitude from earth
-    // distance from earth minus altitude+location over earth
-    // magnitude from earth minus altitude+location over earth
     Serial.println("---------------------------------------------");
   }
   else {Serial.println("identify object: bad input data");}
 }
 
-// ----------------------------------------------------------------------------------------------------------------------------------
-/*
-  SDCard.
-*/
-// ----------------------------------------------------------------------------------------------------------------------------------
 void unmountSDCard() {
   sdmmcFlagData.no_delay_flag=true;
   sdmmcFlagData.unmount_sdcard_flag=true;
@@ -1040,7 +713,6 @@ void mountSDCard() {
   sdmmcFlagData.mount_sdcard_flag=true;
 }
 
-// ----------------------------------------------------------------------------------------------------------------------------------
 /*
   Debug ArgParse.
   Expected behaviour:
@@ -1055,7 +727,6 @@ void mountSDCard() {
     - long flags: 1-256 alphanumeric chars. example: --foobar, --foo-bar, --foobar123.
     - see ArgParser for more details.
 */
-// ----------------------------------------------------------------------------------------------------------------------------------
 size_t pos_count;
 const char** pos;
 bool verbose;
@@ -1070,13 +741,15 @@ void printArgParse() {
   Serial.print("[debug] Positionals (");
   Serial.print(pos_count);
   Serial.print("): ");
-  for (size_t j = 0; j < pos_count; ++j) {Serial.print(pos[j]); if (j < pos_count - 1) Serial.print(" ");}
+  for (size_t j = 0; j < pos_count; ++j)
+    {Serial.print(pos[j]); if (j < pos_count - 1) Serial.print(" ");}
   Serial.println();
   Serial.println("----");
   Serial.print("[debug] Flag count: ");
   Serial.println(parser.flag_count);
   Serial.print("[debug] Flags: ");
-  for (size_t k = 0; k < parser.flag_count; ++k) {Serial.print(parser.flags[k]); const char* val = parser.values[k];
+  for (size_t k = 0; k < parser.flag_count; ++k)
+    {Serial.print(parser.flags[k]); const char* val = parser.values[k];
       if (val[0] != '\0') {Serial.print("=\""); Serial.print(val); Serial.print("\"");}
       if (k < parser.flag_count - 1) Serial.print(" ");
   }
@@ -1084,52 +757,36 @@ void printArgParse() {
   Serial.println("-------------------------------------------");
 }
 
-// ----------------------------------------------------------------------------------------------------------------------------------
+// ---------------------------------------------------------------------------------------------------------------
 /*
-  Command Process.
-  The following commands are intended to allow SatIO to be controlled via other systems, embedded systems, scripts and humans.
-  This function is being upgraded to use arg_parser.
+  Serial RXD : Command Process.
 */
-// ----------------------------------------------------------------------------------------------------------------------------------
+// ---------------------------------------------------------------------------------------------------------------
 void CmdProcess(void) {
   memset(serial0Data.BUFFER, 0, sizeof(serial0Data.BUFFER));
-  while (Serial.available()) {Serial.readBytesUntil('\n', serial0Data.BUFFER, sizeof(serial0Data.BUFFER)-1);}
-  // --------------------------------------------------
-  // process commands conditionally (some efficiency).
-  // --------------------------------------------------
+  while (Serial.available())
+    {Serial.readBytesUntil('\n', serial0Data.BUFFER, sizeof(serial0Data.BUFFER)-1);}
   if (strlen(serial0Data.BUFFER)>=2) {
-    // ------------------------------------------------
     // Debug Serial Buffer.
-    // ------------------------------------------------
     Serial.println("[CmdProcess] " + String(serial0Data.BUFFER));
-    // --------------------------------------------------
     // Initialize argparse.
-    // --------------------------------------------------
     argparser_reset(&parser);
-    if (!argparser_init_from_buffer(&parser, serial0Data.BUFFER)) {fprintf(stderr, "[cmd] Failed to initialize parser from buffer\n"); return;}
-    pos_count=0;
-    pos={};
-    pos = argparser_get_positionals(&parser, &pos_count);
-    // --------------------------
+    if (!argparser_init_from_buffer(&parser, serial0Data.BUFFER))
+      {fprintf(stderr, "[cmd] Failed to initialize parser from buffer\n"); return;}
+    pos_count=0; pos={}; pos = argparser_get_positionals(&parser, &pos_count);
     // Verbosity.
-    // --------------------------
-    verbose=false;
-    verbose_1=false;
+    verbose=false; verbose_1=false;
     verbose = argparser_get_bool(&parser, "v") || argparser_get_bool(&parser, "verbose");
     verbose_1 = argparser_get_bool(&parser, "vv") || argparser_get_bool(&parser, "verbose1");
     if (verbose_1) {verbose=true;}
     if (verbose==false) {verbose_1=false;}
     Serial.println("[cmd] verbose: " + String(verbose));
     Serial.println("[cmd] verbose1: " + String(verbose_1));
-
-    // --------------------------
     // Debug Arg Parse.
-    // --------------------------
     printArgParse();
-    // --------------------------------------------------
     // Commands.
-    // --------------------------------------------------
-    if (strcmp(pos[0], "help")==0 || strcmp(pos[0], "h")==0) {printf("Usage: [buffer with] [--flag value] [-f value] [positional...]\n");
+    if (strcmp(pos[0], "help")==0 || strcmp(pos[0], "h")==0)
+      {printf("Usage: [buffer with] [--flag value] [-f value] [positional...]\n");
       if (verbose) {PrintHelp();}
     }
     else if (strcmp(pos[0], "stat")==0) {
@@ -1142,12 +799,13 @@ void CmdProcess(void) {
       }
       if (argparser_has_flag(&parser, "partition-table")) {print_partition_table();}
       if (argparser_has_flag(&parser, "memory-ram")) {print_ram_info();}
-      if (argparser_has_flag(&parser, "sdcard")) {statSDCard();}
+      if (argparser_has_flag(&parser, "sdcard")) {PrintSDCardInformation();}
       if (strcmp(serial0Data.BUFFER, "stat --system")==0) {PrintSystemData();}
       if (strcmp(serial0Data.BUFFER, "stat --matrix\r")==0) {PrintMatrixConfig();}
       if (strncmp(serial0Data.BUFFER, "stat --matrix ", strlen("stat --matrix "))==0) {
         if (argparser_has_flag(&parser, "A")) {PrintMatrixData();}
-        else {simple_argparser_init_from_buffer(&plainparser, serial0Data.BUFFER, 2); if (val_switch_index(plainparser.tokens[0])) {PrintMatrixNData();}}
+        else {simple_argparser_init_from_buffer(&plainparser, serial0Data.BUFFER, 2);
+          if (val_switch_index(plainparser.tokens[0])) {PrintMatrixNData();}}
       }
       else if (strncmp(serial0Data.BUFFER, "stat --mapping", strlen("stat --mapping"))==0) {PrintMappingData();}
       else if (argparser_has_flag(&parser, "sentence")) {
@@ -1188,9 +846,6 @@ void CmdProcess(void) {
 
     else if (strcmp(pos[0], "starnav")==0) {star_nav();}
     
-    // --------------------------------------------------
-    //  "Restricted Commands".
-    // --------------------------------------------------
     if (systemData.serial_command) {
       if (strcmp(pos[0], "system")==0) {
         if (argparser_has_flag(&parser, "save")) {sdmmcFlagData.save_system=true;}
@@ -1198,7 +853,7 @@ void CmdProcess(void) {
         else if (argparser_has_flag(&parser, "restore-defaults")) {restore_system_defaults();}
       }
       else if (strcmp(pos[0], "mapping")==0) {
-        if (argparser_has_flag(&parser, "new")) {zero_mapping(); return;}
+        if (argparser_has_flag(&parser, "new")) {set_all_mapping_default(); return;}
         else if (argparser_has_flag(&parser, "save")) {sdmmcFlagData.save_mapping=true;}
         else if (argparser_has_flag(&parser, "load")) {sdmmcFlagData.load_mapping=true;}
         else if (argparser_has_flag(&parser, "delete")) {sdmmcFlagData.delete_mapping=true;}
@@ -1216,7 +871,7 @@ void CmdProcess(void) {
       else if (strcmp(pos[0], "matrix")==0) {
         if (argparser_has_flag(&parser, "startup-enable")) {matrixData.load_matrix_on_startup=true;}
         else if (argparser_has_flag(&parser, "startup-disable")) {matrixData.load_matrix_on_startup=false;}
-        else if (argparser_has_flag(&parser, "new")) {zero_matrix(); return;}
+        else if (argparser_has_flag(&parser, "new")) {set_all_matrix_default(); return;}
         else if (argparser_has_flag(&parser, "save")) {saveMatrix(argparser_get_int8(&parser, "save", -1));}
         else if (argparser_has_flag(&parser, "load")) {loadMatrix(argparser_get_int8(&parser, "load", -1));}
         else if (argparser_has_flag(&parser, "delete")) {deleteMatrix(argparser_get_int8(&parser, "delete", -1));}
@@ -1289,20 +944,13 @@ void CmdProcess(void) {
   }
 }
 
-// ------------------------------------------------------------------------------------------------------------------------------
-//                                                                                                               OUTPUT SENTENCES
-// ------------------------------------------------------------------------------------------------------------------------------
-// output sentences proceedurally so that all sentence output should be clean and on a new line.
-// not recommended to be used alongside individual serial print arguments; example print satio degrees_latitude.
-// ------------------------------------------------------------------------------------------------------------------------------
-
+// ---------------------------------------------------------------------------------------------------------------
+/*
+  Serial TXD : Output.
+*/
+// ---------------------------------------------------------------------------------------------------------------
 void outputSentences(void) {
-
-  // Serial.println("outputSentences");
-
-  if (systemData.interval_breach_1_second==true) {
-    outputStat();
-  }
+  if (systemData.interval_breach_1_second==true) {outputStat();}
 
   if (systemData.interval_breach_gps) {
     systemData.interval_breach_gps=0;
@@ -1310,76 +958,35 @@ void outputSentences(void) {
     if (systemData.output_gnrmc_enabled) {Serial.println(gnrmcData.outsentence);}
     if (systemData.output_gpatt_enabled) {Serial.println(gpattData.outsentence);}
     if (systemData.output_satio_enabled) {
-      // -----------------------------
-      // start building satio sentence
-      // -----------------------------
       memset(serial0Data.BUFFER, 0, sizeof(serial0Data.BUFFER));
       strcat(serial0Data.BUFFER, "$SATIO,");
-      // -----------------------------
-      // rtc time
-      // -----------------------------
       strcat(serial0Data.BUFFER, String(satioData.padded_rtc_time_HHMMSS).c_str());
       strcat(serial0Data.BUFFER, ",");
-      // -----------------------------
-      // rtc date
-      // -----------------------------
       strcat(serial0Data.BUFFER, String(satioData.padded_rtc_date_DDMMYYYY).c_str());
       strcat(serial0Data.BUFFER, ",");
-      // -------------------
-      // rtc sync time
-      // -------------------
       strcat(serial0Data.BUFFER, String(satioData.padded_rtc_sync_time_HHMMSS).c_str());
       strcat(serial0Data.BUFFER, ",");
-      // -------------------
-      // rtc sync date
-      // -------------------
       strcat(serial0Data.BUFFER, String(satioData.padded_rtc_sync_date_DDMMYYYY).c_str());
       strcat(serial0Data.BUFFER, ",");
-      // -------------------
-      // local time
-      // -------------------
       strcat(serial0Data.BUFFER, String(satioData.padded_local_time_HHMMSS).c_str());
       strcat(serial0Data.BUFFER, ",");
-      // -------------------
-      // local date
-      // -------------------
       strcat(serial0Data.BUFFER, String(satioData.padded_local_date_DDMMYYYY).c_str());
       strcat(serial0Data.BUFFER, ",");
-      // -----------------------------
-      // system uptime in seconds
-      // -----------------------------
       strcat(serial0Data.BUFFER, String(systemData.uptime_seconds).c_str());
       strcat(serial0Data.BUFFER, ",");
-      // -----------------------------
-      // latitude degrees
-      // -----------------------------
       strcat(serial0Data.BUFFER, String(satioData.degrees_latitude, 7).c_str());
       strcat(serial0Data.BUFFER, ",");
-      // -----------------------------
-      // longitude degrees
-      // -----------------------------
       strcat(serial0Data.BUFFER, String(satioData.degrees_longitude, 7).c_str());
       strcat(serial0Data.BUFFER, ",");
-      // -----------------------------
-      // append checksum
-      // -----------------------------
       createChecksumSerial0(serial0Data.BUFFER);
       strcat(serial0Data.BUFFER, "*");
       strcat(serial0Data.BUFFER, serial0Data.checksum);
-      // -----------------------------
-      // output
-      // -----------------------------
       Serial.println(serial0Data.BUFFER);
-      // Serial.println(String(i_count_read_gps) + " : " + String(serial0Data.BUFFER));
     }
   }
-
   if (systemData.interval_breach_ins) {
     systemData.interval_breach_ins = 0;
     if (systemData.output_ins_enabled) {
-      // -----------------------------
-      // start building satio sentence
-      // -----------------------------
       memset(serial0Data.BUFFER, 0, sizeof(serial0Data.BUFFER));
       strcat(serial0Data.BUFFER, "$INS,");
       strcat(serial0Data.BUFFER, String(satioData.rtc_unixtime).c_str());
@@ -1396,19 +1003,12 @@ void outputSentences(void) {
       strcat(serial0Data.BUFFER, ",");
       strcat(serial0Data.BUFFER, String(insData.ins_speed).c_str());
       strcat(serial0Data.BUFFER, ",");
-      // -----------------------------
-      // append checksum
-      // -----------------------------
       createChecksumSerial0(serial0Data.BUFFER);
       strcat(serial0Data.BUFFER, "*");
       strcat(serial0Data.BUFFER, serial0Data.checksum);
-      // -----------------------------
-      // output
-      // -----------------------------
       Serial.println(serial0Data.BUFFER);
     }
   }
-
   if (systemData.interval_breach_gyro_0) {
     systemData.interval_breach_gyro_0 = 0;
     if (systemData.output_gyro_0_enabled) {
@@ -1438,16 +1038,12 @@ void outputSentences(void) {
       strcat(serial0Data.BUFFER, ",");
       strcat(serial0Data.BUFFER, String(gyroData.gyro_0_mag_z).c_str());
       strcat(serial0Data.BUFFER, ",");
-      // append checksum
       createChecksumSerial0(serial0Data.BUFFER);
       strcat(serial0Data.BUFFER, "*");
       strcat(serial0Data.BUFFER, serial0Data.checksum);
-      // output
       Serial.println(serial0Data.BUFFER);
-      // Serial.println(String(i_count_read_gyro_0) + " : " + String(serial0Data.BUFFER));
     }
   }
-
   if (systemData.interval_breach_track_planets) {
     systemData.interval_breach_track_planets = 0;
     if (systemData.output_sun_enabled) {
@@ -1459,13 +1055,11 @@ void outputSentences(void) {
       strcat(serial0Data.BUFFER, String(siderealPlanetData.sun_alt + String(",")).c_str());
       strcat(serial0Data.BUFFER, String(siderealPlanetData.sun_r + String(",")).c_str());
       strcat(serial0Data.BUFFER, String(siderealPlanetData.sun_s + String(",")).c_str());
-      // append checksum
       createChecksumSerial0(serial0Data.BUFFER);
       strcat(serial0Data.BUFFER, "*");
       strcat(serial0Data.BUFFER, serial0Data.checksum);
       Serial.println(serial0Data.BUFFER);
     }
-
     if (systemData.output_moon_enabled) {
       memset(serial0Data.BUFFER, 0, sizeof(serial0Data.BUFFER));
       strcat(serial0Data.BUFFER, "$MOON,");
@@ -1477,13 +1071,11 @@ void outputSentences(void) {
       strcat(serial0Data.BUFFER, String(siderealPlanetData.moon_s + String(",")).c_str());
       strcat(serial0Data.BUFFER, String(siderealPlanetData.moon_p + String(",")).c_str());
       strcat(serial0Data.BUFFER, String(siderealPlanetData.moon_lum + String(",")).c_str());
-      // append checksum
       createChecksumSerial0(serial0Data.BUFFER);
       strcat(serial0Data.BUFFER, "*");
       strcat(serial0Data.BUFFER, serial0Data.checksum);
       Serial.println(serial0Data.BUFFER);
     }
-
     if (systemData.output_mercury_enabled) {
       memset(serial0Data.BUFFER, 0, sizeof(serial0Data.BUFFER));
       strcat(serial0Data.BUFFER, "$MERCURY,");
@@ -1499,13 +1091,11 @@ void outputSentences(void) {
       strcat(serial0Data.BUFFER, String(siderealPlanetData.mercury_distance + String(",")).c_str());
       strcat(serial0Data.BUFFER, String(siderealPlanetData.mercury_ecliptic_lat + String(",")).c_str());
       strcat(serial0Data.BUFFER, String(siderealPlanetData.mercury_ecliptic_long + String(",")).c_str());
-      // append checksum
       createChecksumSerial0(serial0Data.BUFFER);
       strcat(serial0Data.BUFFER, "*");
       strcat(serial0Data.BUFFER, serial0Data.checksum);
       Serial.println(serial0Data.BUFFER);
     }
-
     if (systemData.output_venus_enabled) {
       memset(serial0Data.BUFFER, 0, sizeof(serial0Data.BUFFER));
       strcat(serial0Data.BUFFER, "$VENUS,");
@@ -1521,14 +1111,11 @@ void outputSentences(void) {
       strcat(serial0Data.BUFFER, String(siderealPlanetData.venus_distance + String(",")).c_str());
       strcat(serial0Data.BUFFER, String(siderealPlanetData.venus_ecliptic_lat + String(",")).c_str());
       strcat(serial0Data.BUFFER, String(siderealPlanetData.venus_ecliptic_long + String(",")).c_str());
-      // append checksum
       createChecksumSerial0(serial0Data.BUFFER);
       strcat(serial0Data.BUFFER, "*");
       strcat(serial0Data.BUFFER, serial0Data.checksum);
       Serial.println(serial0Data.BUFFER);
-      // Serial.println(String(i_count_track_planets) + " : " + String(serial0Data.BUFFER));
     }
-
     if (systemData.output_mars_enabled) {
       memset(serial0Data.BUFFER, 0, sizeof(serial0Data.BUFFER));
       strcat(serial0Data.BUFFER, "$MARS,");
@@ -1544,14 +1131,11 @@ void outputSentences(void) {
       strcat(serial0Data.BUFFER, String(siderealPlanetData.mars_distance + String(",")).c_str());
       strcat(serial0Data.BUFFER, String(siderealPlanetData.mars_ecliptic_lat + String(",")).c_str());
       strcat(serial0Data.BUFFER, String(siderealPlanetData.mars_ecliptic_long + String(",")).c_str());
-      // append checksum
       createChecksumSerial0(serial0Data.BUFFER);
       strcat(serial0Data.BUFFER, "*");
       strcat(serial0Data.BUFFER, serial0Data.checksum);
       Serial.println(serial0Data.BUFFER);
     }
-
-
     if (systemData.output_jupiter_enabled) {
       memset(serial0Data.BUFFER, 0, sizeof(serial0Data.BUFFER));
       strcat(serial0Data.BUFFER, "$JUPITER,");
@@ -1567,13 +1151,11 @@ void outputSentences(void) {
       strcat(serial0Data.BUFFER, String(siderealPlanetData.jupiter_distance + String(",")).c_str());
       strcat(serial0Data.BUFFER, String(siderealPlanetData.jupiter_ecliptic_lat + String(",")).c_str());
       strcat(serial0Data.BUFFER, String(siderealPlanetData.jupiter_ecliptic_long + String(",")).c_str());
-      // append checksum
       createChecksumSerial0(serial0Data.BUFFER);
       strcat(serial0Data.BUFFER, "*");
       strcat(serial0Data.BUFFER, serial0Data.checksum);
       Serial.println(serial0Data.BUFFER);
     }
-
     if (systemData.output_saturn_enabled) {
       memset(serial0Data.BUFFER, 0, sizeof(serial0Data.BUFFER));
       strcat(serial0Data.BUFFER, "$SATURN,");
@@ -1589,13 +1171,11 @@ void outputSentences(void) {
       strcat(serial0Data.BUFFER, String(siderealPlanetData.saturn_distance + String(",")).c_str());
       strcat(serial0Data.BUFFER, String(siderealPlanetData.saturn_ecliptic_lat + String(",")).c_str());
       strcat(serial0Data.BUFFER, String(siderealPlanetData.saturn_ecliptic_long + String(",")).c_str());
-      // append checksum
       createChecksumSerial0(serial0Data.BUFFER);
       strcat(serial0Data.BUFFER, "*");
       strcat(serial0Data.BUFFER, serial0Data.checksum);
       Serial.println(serial0Data.BUFFER);
     }
-
     if (systemData.output_uranus_enabled) {
       memset(serial0Data.BUFFER, 0, sizeof(serial0Data.BUFFER));
       strcat(serial0Data.BUFFER, "$URANUS,");
@@ -1611,13 +1191,11 @@ void outputSentences(void) {
       strcat(serial0Data.BUFFER, String(siderealPlanetData.uranus_distance + String(",")).c_str());
       strcat(serial0Data.BUFFER, String(siderealPlanetData.uranus_ecliptic_lat + String(",")).c_str());
       strcat(serial0Data.BUFFER, String(siderealPlanetData.uranus_ecliptic_long + String(",")).c_str());
-      // append checksum
       createChecksumSerial0(serial0Data.BUFFER);
       strcat(serial0Data.BUFFER, "*");
       strcat(serial0Data.BUFFER, serial0Data.checksum);
       Serial.println(serial0Data.BUFFER);
     }
-
     if (systemData.output_neptune_enabled) {
       memset(serial0Data.BUFFER, 0, sizeof(serial0Data.BUFFER));
       strcat(serial0Data.BUFFER, "$NEPTUNE,");
@@ -1633,48 +1211,38 @@ void outputSentences(void) {
       strcat(serial0Data.BUFFER, String(siderealPlanetData.neptune_distance + String(",")).c_str());
       strcat(serial0Data.BUFFER, String(siderealPlanetData.neptune_ecliptic_lat + String(",")).c_str());
       strcat(serial0Data.BUFFER, String(siderealPlanetData.neptune_ecliptic_long + String(",")).c_str());
-      // append checksum
       createChecksumSerial0(serial0Data.BUFFER);
       strcat(serial0Data.BUFFER, "*");
       strcat(serial0Data.BUFFER, serial0Data.checksum);
       Serial.println(serial0Data.BUFFER);
     }
-
     if (systemData.output_meteors_enabled) {
       memset(serial0Data.BUFFER, 0, sizeof(serial0Data.BUFFER));
       strcat(serial0Data.BUFFER, "$METEOR,");
       for (int i=0; i<MAX_METEOR_SHOWERS; i++) {
-        // in datetime range
         strcat(serial0Data.BUFFER, String(String(meteor_shower_warning_system[i][0]) + String(",")).c_str());
-        // in peak datetiem range
         strcat(serial0Data.BUFFER, String(String(meteor_shower_warning_system[i][1]) + String(",")).c_str());
       }
-      // append checksum
       createChecksumSerial0(serial0Data.BUFFER);
       strcat(serial0Data.BUFFER, "*");
       strcat(serial0Data.BUFFER, serial0Data.checksum);
       Serial.println(serial0Data.BUFFER);
     }
   }
-
   // if (systemData.interval_breach_matrix) {
     // systemData.interval_breach_matrix = 0;
     if (systemData.output_matrix_enabled) {
       memset(serial0Data.BUFFER, 0, sizeof(serial0Data.BUFFER));
       strcpy(serial0Data.BUFFER, "$MATRIX,");
-      // append port mapping data (optional at a significant performance cost)
-      // for (int i=0; i < MAX_MATRIX_SWITCHES; i++) {strcat(serial0Data.BUFFER, String(String(matrixData.matrix_port_map[0][i])+",").c_str());}
       // append matrix switch state data
-      for (int i=0; i < MAX_MATRIX_SWITCHES; i++) {strcat(serial0Data.BUFFER, String(String(matrixData.switch_intention[0][i])+",").c_str());}
-      // append checksum
+      for (int i=0; i < MAX_MATRIX_SWITCHES; i++)
+        {strcat(serial0Data.BUFFER, String(String(matrixData.switch_intention[0][i])+",").c_str());}
       createChecksumSerial0(serial0Data.BUFFER);
       strcat(serial0Data.BUFFER, "*");
       strcat(serial0Data.BUFFER, serial0Data.checksum);
       Serial.println(serial0Data.BUFFER);
-      // Serial.println(String(i_count_matrix) + " : " + String(serial0Data.BUFFER));
     }
   // }
-
   if (systemData.interval_breach_mplex) {
     systemData.interval_breach_mplex = 0;
     if (systemData.output_admplex0_enabled) {
@@ -1712,13 +1280,10 @@ void outputSentences(void) {
       strcat(serial0Data.BUFFER, ",");
       strcat(serial0Data.BUFFER, String(multiplexerData.ADMPLEX_0_DATA[15]).c_str());
       strcat(serial0Data.BUFFER, ",");
-      // append checksum
       createChecksumSerial0(serial0Data.BUFFER);
       strcat(serial0Data.BUFFER, "*");
       strcat(serial0Data.BUFFER, serial0Data.checksum);
-      // output
       Serial.println(serial0Data.BUFFER);
-      // Serial.println(String(i_count_read_mplex) + " : " + String(serial0Data.BUFFER));
     }
   }
 }
@@ -1726,20 +1291,48 @@ void outputSentences(void) {
 void printArray(signed long arr[], int start, int end) {
     for (int i = start; i < end; i++) {
         printf("%-7d", arr[i]); // Left-align with 5-character width
-        // if ((i + 1) % 5 == 0)  // New line after every 5 elements
-        //     printf("\n");
     }
     printf("\n");
 }
 
 // uncomment to use
-signed long print_index_0[35]={0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34};
-signed long print_index_1[35]={35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69};
-char counter_chars_0[15][56]={"Loops p/s", "GPS p/s", "INS p/s", "Gyro0 p/s", "ADMplex0 p/s", "CMD p/s", "Universe p/s", "Matrix p/s", "I/O p/s", "LT uS", "LT Max uS", "Satellites", "GPS Precision", };
+signed long print_index_0[35]={0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
+                              11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+                              21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31,
+                              32, 33, 34};
+signed long print_index_1[35]={35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45,
+                               46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56,
+                               57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67,
+                               68, 69};
+char counter_chars_0[15][56]={"Loops p/s",
+                              "GPS p/s",
+                              "INS p/s",
+                              "Gyro0 p/s",
+                              "ADMplex0 p/s",
+                              "CMD p/s",
+                              "Universe p/s",
+                              "Matrix p/s",
+                              "I/O p/s",
+                              "LT uS",
+                              "LT Max uS",
+                              "Satellites",
+                              "GPS Precision"};
 double counter_digits_0[15]={};
 
-char counter_chars_1_row_0[9][56]={"Time", "Date", "UNIX Time", "Latitude", "Longitude", "Altitude", "Heading", "Speed", "Mileage"};
-char counter_chars_1_col_0[5][56]={"GPS", "RTC", "RTC Sync", "System", "System INS"};
+char counter_chars_1_row_0[9][56]={"Time",
+                                   "Date",
+                                   "UNIX Time",
+                                   "Latitude",
+                                   "Longitude",
+                                   "Altitude",
+                                   "Heading",
+                                   "Speed",
+                                   "Mileage"};
+char counter_chars_1_col_0[5][56]={"GPS",
+                                   "RTC",
+                                   "RTC Sync",
+                                   "System",
+                                   "System INS"};
 char counter_digits_1_row_N[9][56]={};
 
 void outputStat(void) {

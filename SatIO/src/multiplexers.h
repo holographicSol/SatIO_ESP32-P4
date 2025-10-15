@@ -1,6 +1,5 @@
 /*
   Multiplexers Library. Written by Benjamin Jack Cullen.
-
 */
 
 #ifndef MULTIPLEXERS_H
@@ -13,44 +12,75 @@ extern "C" {
 #include <stdint.h>
 #include "config.h"
 
-// ----------------------------------------------------------------------------------------
-// I2C Multiplexer (TCA9548A) Configuration Struct.
-// ----------------------------------------------------------------------------------------
+/**
+ * @struct I2CMultiplexer
+ */
 struct I2CMultiplexer {
+  // addresses for IIC multiplexers
     uint8_t address;
 };
 
-// ----------------------------------------------------------------------------------------
-// Analog/Digital Multiplexer (74HC4067) Configuration Struct.
-// ----------------------------------------------------------------------------------------
+/**
+ * @struct ADMultiplexer
+ */
 struct ADMultiplexer {
-    int control_pins[MAX_AD_MUX_CONTROL_PINS];
-    int signal_pin;
+  // control pins of analog/digital multiplexers
+  int control_pins[MAX_AD_MUX_CONTROL_PINS];
+
+  // signal pin of analog/digital multiplexers
+  int signal_pin;
 };
 
-// ------------------------------------------------------------------------------------------------------------------------------
-//                                                                                                             DATA: MULTIPLEXERS
-// ------------------------------------------------------------------------------------------------------------------------------
+/**
+ * @struct MultiplexerDataStruct
+ */
 struct MultiplexerDataStruct {
-  // ----------------------------------------------------
-  // ADMPLEX 0 x16 Analog/Digital Multiplexer.
-  // ----------------------------------------------------
+  // Results from analog/digital multiplexer 0.
   float ADMPLEX_0_DATA[16]={};
-  // ----------------------------------------------------
-  // IICMPLEX 0 x8 i2C Multiplexer.
-  // ----------------------------------------------------
+
+  // Results from IIC multiplexer 0.
   float IICMPLEX_0_DATA_0[8]={};
 };
 extern struct MultiplexerDataStruct multiplexerData;
 
-// ----------------------------------------------------------------------------------------
-// Function Prototypes.
-// ----------------------------------------------------------------------------------------
+/**
+ * Initialize IIC multiplexer
+ * @param mux_id Specify IIC multiplexer
+ * @return None
+ */
 void initMultiplexI2C(uint8_t mux_id);
+
+/**
+ * Set IIC multiplexer channel
+ * @param mux_id Specify IIC multiplexer
+ * @param channel Specify IIC multiplexer channel
+ * @return None
+ */
 void setMultiplexChannel_I2C(uint8_t mux_id, uint8_t channel);
+
+/**
+ * Initialize analog/digital multiplexer
+ * @param mux_id Specify analog/digital multiplexer
+ * @return None
+ */
 void initMultiplexAD(uint8_t mux_id);
+
+/**
+ * Set analog/digital multiplexer channel
+ * @param mux_id Specify analog/digital multiplexer
+ * @param channel Specify analog/digital multiplexer channel
+ * @return None
+ */
 void setMultiplexChannel_AD(uint8_t mux_id, int channel);
+
+/**
+ * NAN analog/digital multiplexer channel results
+ */
 void setADMPLEX_0_NAN(void);
+
+/**
+ * NAN IIC multiplexer channel results
+ */
 void setIICMPLEX_0_NAN(void);
 
 #ifdef __cplusplus

@@ -13,12 +13,30 @@ extern "C" {
 
 #include "config.h"
 
-// ----------------------------------------------------------------------------------------
-// Function Prototypes.
-// ----------------------------------------------------------------------------------------
-const char* getPartitionTypeName(int type);
-const char* getPartitionSubTypeName(int type, int subtype);
+/**
+ * Get name of partition type.
+ * @param type
+ * @return Returns name
+ */
+const char* get_partition_type_name(int type);
+
+/**
+ * Get name of partition sub type.
+ * @param type
+ * @return Returns name
+ */
+const char* get_partition_sub_type_name(int type, int subtype);
+
+/**
+ * Print partition table information.
+ * @return Returns None
+ */
 void print_partition_table(void);
+
+/**
+ * Print RAM information.
+ * @return Returns None
+ */
 void print_ram_info(void);
 
 #ifdef __cplusplus
