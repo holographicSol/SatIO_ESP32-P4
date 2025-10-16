@@ -13,7 +13,7 @@
 
 #define MAX_MATRIX_TAGS  12
 #define MAX_MAPPING_TAGS 8
-#define MAX_SYSTEM_TAGS  32
+#define MAX_SYSTEM_TAGS  33
 #define MAX_MATRIX_SLOTS 10
 
 struct satioFileStruct {

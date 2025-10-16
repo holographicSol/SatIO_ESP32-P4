@@ -84,16 +84,17 @@ struct satioFileStruct satioFileData = {
         "OUTPUT_METEORS",             // 19
         "COORDINATE_CONVERSION_MODE", // 20
         "SPEED_CONVERSION_MODE",      // 21
-        "UTC_SECOND_OFFSET",          // 22
-        "UTC_AUTO_OFFSET_FLAG",       // 23
-        "SET_DATETIME_AUTOMATICALLY", // 24
-        "INS_REQ_GPS_PRECISION",      // 25
-        "INS_REQ_MIN_SPEED",          // 26
-        "INS_REQ_HEADING_RANGE_DIFF", // 27
-        "INS_MODE",                   // 28
-        "INS_USE_GYRO_HEADING",       // 29
-        "MATRIX_FILE",                // 30
-        "LOAD_MATRIX_ON_STARTUP",      // 31
+        "ALTITUDE_CONVERSION_MODE",   // 22
+        "UTC_SECOND_OFFSET",          // 23
+        "UTC_AUTO_OFFSET_FLAG",       // 24
+        "SET_DATETIME_AUTOMATICALLY", // 25
+        "INS_REQ_GPS_PRECISION",      // 26
+        "INS_REQ_MIN_SPEED",          // 27
+        "INS_REQ_HEADING_RANGE_DIFF", // 28
+        "INS_MODE",                   // 29
+        "INS_USE_GYRO_HEADING",       // 30
+        "MATRIX_FILE",                // 31
+        "LOAD_MATRIX_ON_STARTUP",     // 32
     },
     .system_filepath="/SYSTEM/system_conf.csv",
 
@@ -143,7 +144,7 @@ bool loadMappingFile(FS &fs, const char *filepath) {
             if (len <= 0) break;
             lineBuffer[len] = '\0'; // null-terminate
             if (strlen(lineBuffer) == 0) continue;
-            // Serial.println("Processing Tag Token Number: " + String(currentTag) + " (data: " + String(lineBuffer) + ")");
+            Serial.println("Processing Tag Token Number: " + String(currentTag) + " (data: " + String(lineBuffer) + ")"); // uncomment to debug
             char *commaToken = strtok(lineBuffer, ",");
             int tokenCount = 0;
             int tag_index;
@@ -234,7 +235,7 @@ bool loadMatrixFile(FS &fs, const char *filepath) {
             if (len <= 0) break;
             lineBuffer[len] = '\0'; // null-terminate
             if (strlen(lineBuffer) == 0) continue;
-            // Serial.println("Processing Tag Token Number: " + String(currentTag) + " (data: " + String(lineBuffer) + ")");
+            Serial.println("Processing Tag Token Number: " + String(currentTag) + " (data: " + String(lineBuffer) + ")"); // uncomment to debug
             char *commaToken = strtok(lineBuffer, ",");
             int tokenCount = 0;
             int tag_index;
@@ -299,16 +300,17 @@ bool saveSystemFile(FS &fs, const char *filepath) {
             else if  (i_tag==19) {line = String(satioFileData.system_tags[i_tag]) + String("," + String(systemData.output_meteors_enabled)); printLine(f, line);}
             else if  (i_tag==20) {line = String(satioFileData.system_tags[i_tag]) + String("," + String(satioData.coordinate_conversion_mode)); printLine(f, line);}
             else if  (i_tag==21) {line = String(satioFileData.system_tags[i_tag]) + String("," + String(satioData.speed_conversion_mode)); printLine(f, line);}
-            else if  (i_tag==22) {line = String(satioFileData.system_tags[i_tag]) + String("," + String(satioData.utc_second_offset)); printLine(f, line);}
-            else if  (i_tag==23) {line = String(satioFileData.system_tags[i_tag]) + String("," + String(satioData.utc_auto_offset_flag)); printLine(f, line);}
-            else if  (i_tag==24) {line = String(satioFileData.system_tags[i_tag]) + String("," + String(satioData.set_time_automatically)); printLine(f, line);}
-            else if  (i_tag==25) {line = String(satioFileData.system_tags[i_tag]) + String("," + String(insData.INS_REQ_GPS_PRECISION)); printLine(f, line);}
-            else if  (i_tag==26) {line = String(satioFileData.system_tags[i_tag]) + String("," + String(insData.INS_REQ_MIN_SPEED)); printLine(f, line);}
-            else if  (i_tag==27) {line = String(satioFileData.system_tags[i_tag]) + String("," + String(insData.INS_REQ_HEADING_RANGE_DIFF)); printLine(f, line);}
-            else if  (i_tag==28) {line = String(satioFileData.system_tags[i_tag]) + String("," + String(insData.INS_MODE)); printLine(f, line);}
-            else if  (i_tag==29) {line = String(satioFileData.system_tags[i_tag]) + String("," + String(insData.INS_USE_GYRO_HEADING)); printLine(f, line);}
-            else if  (i_tag==30) {line = String(satioFileData.system_tags[i_tag]) + String("," + String(satioFileData.current_matrix_filepath)); printLine(f, line);}
-            else if  (i_tag==31) {line = String(satioFileData.system_tags[i_tag]) + String("," + String(matrixData.load_matrix_on_startup)); printLine(f, line);}
+            else if  (i_tag==22) {line = String(satioFileData.system_tags[i_tag]) + String("," + String(satioData.altitude_conversion_mode)); printLine(f, line);}
+            else if  (i_tag==23) {line = String(satioFileData.system_tags[i_tag]) + String("," + String(satioData.utc_second_offset)); printLine(f, line);}
+            else if  (i_tag==24) {line = String(satioFileData.system_tags[i_tag]) + String("," + String(satioData.utc_auto_offset_flag)); printLine(f, line);}
+            else if  (i_tag==25) {line = String(satioFileData.system_tags[i_tag]) + String("," + String(satioData.set_time_automatically)); printLine(f, line);}
+            else if  (i_tag==26) {line = String(satioFileData.system_tags[i_tag]) + String("," + String(insData.INS_REQ_GPS_PRECISION)); printLine(f, line);}
+            else if  (i_tag==27) {line = String(satioFileData.system_tags[i_tag]) + String("," + String(insData.INS_REQ_MIN_SPEED)); printLine(f, line);}
+            else if  (i_tag==28) {line = String(satioFileData.system_tags[i_tag]) + String("," + String(insData.INS_REQ_HEADING_RANGE_DIFF)); printLine(f, line);}
+            else if  (i_tag==29) {line = String(satioFileData.system_tags[i_tag]) + String("," + String(insData.INS_MODE)); printLine(f, line);}
+            else if  (i_tag==30) {line = String(satioFileData.system_tags[i_tag]) + String("," + String(insData.INS_USE_GYRO_HEADING)); printLine(f, line);}
+            else if  (i_tag==31) {line = String(satioFileData.system_tags[i_tag]) + String("," + String(satioFileData.current_matrix_filepath)); printLine(f, line);}
+            else if  (i_tag==32) {line = String(satioFileData.system_tags[i_tag]) + String("," + String(matrixData.load_matrix_on_startup)); printLine(f, line);}
         }
     }
     else {return false;}
@@ -330,7 +332,7 @@ bool loadSystemFile(FS &fs, const char *filepath) {
             if (len <= 0) break;
             lineBuffer[len] = '\0'; // null-terminate
             if (strlen(lineBuffer) == 0) continue;
-            // Serial.println("Processing Tag Token Number: " + String(currentTag) + " (data: " + String(lineBuffer) + ")");
+            Serial.println("Processing Tag Token Number: " + String(currentTag) + " (data: " + String(lineBuffer) + ")"); // uncomment to debug
             char *commaToken = strtok(lineBuffer, ",");
             int tokenCount = 0;
             int tag_index;
@@ -359,18 +361,19 @@ bool loadSystemFile(FS &fs, const char *filepath) {
             else if (tag_index==17) {if (str_is_bool(data_0.c_str())) {systemData.output_uranus_enabled=atoi(data_0.c_str());}}
             else if (tag_index==18) {if (str_is_bool(data_0.c_str())) {systemData.output_neptune_enabled=atoi(data_0.c_str());}}
             else if (tag_index==19) {if (str_is_bool(data_0.c_str())) {systemData.output_meteors_enabled=atoi(data_0.c_str());}}
-            else if (tag_index==20) {if (str_is_bool(data_0.c_str())) {satioData.coordinate_conversion_mode=atoi(data_0.c_str());}}
-            else if (tag_index==21) {if (str_is_bool(data_0.c_str())) {satioData.speed_conversion_mode=atoi(data_0.c_str());}}
-            else if (tag_index==22) {if (str_is_long(data_0.c_str())) {satioData.utc_second_offset=strtol(data_0.c_str(), &endptr, 10);}}
-            else if (tag_index==23) {if (str_is_bool(data_0.c_str())) {satioData.utc_auto_offset_flag=atoi(data_0.c_str());}}
-            else if (tag_index==24) {if (str_is_bool(data_0.c_str())) {satioData.set_time_automatically=atoi(data_0.c_str());}}
-            else if (tag_index==25) {if (str_is_double(data_0.c_str())) {insData.INS_REQ_GPS_PRECISION=strtod(data_0.c_str(), &endptr);}}
-            else if (tag_index==26) {if (str_is_double(data_0.c_str())) {insData.INS_REQ_MIN_SPEED=strtod(data_0.c_str(), &endptr);}}
-            else if (tag_index==27) {if (str_is_double(data_0.c_str())) {insData.INS_REQ_HEADING_RANGE_DIFF=strtod(data_0.c_str(), &endptr);}}
-            else if (tag_index==28) {if (str_is_double(data_0.c_str())) {insData.INS_MODE=strtod(data_0.c_str(), &endptr);}}
-            else if (tag_index==29) {if (str_is_double(data_0.c_str())) {insData.INS_USE_GYRO_HEADING=strtod(data_0.c_str(), &endptr);}}
-            else if (tag_index==30) {memset(satioFileData.current_matrix_filepath, 0, sizeof(satioFileData.current_matrix_filepath)); strcpy(satioFileData.current_matrix_filepath, data_0.c_str());}
-            else if (tag_index==31) {if (str_is_bool(data_0.c_str())) {matrixData.load_matrix_on_startup=atoi(data_0.c_str());}}
+            else if (tag_index==20) {if (str_is_uint8(data_0.c_str())) {if (atoi(data_0.c_str())<MAX_COORDINATE_CONVERSION_CONVERSION_MODES) {satioData.coordinate_conversion_mode=atoi(data_0.c_str());}}}
+            else if (tag_index==21) {if (str_is_uint8(data_0.c_str())) {if (atoi(data_0.c_str())<MAX_SPEED_CONVERSIO_MODES) {satioData.speed_conversion_mode=atoi(data_0.c_str());}}}
+            else if (tag_index==22) {if (str_is_uint8(data_0.c_str())) {if (atoi(data_0.c_str())<MAX_ALTITUDE_CONVERSION_MODES) {satioData.altitude_conversion_mode=atoi(data_0.c_str());}}}
+            else if (tag_index==23) {if (str_is_long(data_0.c_str())) {satioData.utc_second_offset=strtol(data_0.c_str(), &endptr, 10);}}
+            else if (tag_index==24) {if (str_is_bool(data_0.c_str())) {satioData.utc_auto_offset_flag=atoi(data_0.c_str());}}
+            else if (tag_index==25) {if (str_is_bool(data_0.c_str())) {satioData.set_time_automatically=atoi(data_0.c_str());}}
+            else if (tag_index==26) {if (str_is_double(data_0.c_str())) {insData.INS_REQ_GPS_PRECISION=strtod(data_0.c_str(), &endptr);}}
+            else if (tag_index==27) {if (str_is_double(data_0.c_str())) {insData.INS_REQ_MIN_SPEED=strtod(data_0.c_str(), &endptr);}}
+            else if (tag_index==28) {if (str_is_double(data_0.c_str())) {insData.INS_REQ_HEADING_RANGE_DIFF=strtod(data_0.c_str(), &endptr);}}
+            else if (tag_index==29) {if (str_is_double(data_0.c_str())) {insData.INS_MODE=strtod(data_0.c_str(), &endptr);}}
+            else if (tag_index==30) {if (str_is_double(data_0.c_str())) {insData.INS_USE_GYRO_HEADING=strtod(data_0.c_str(), &endptr);}}
+            else if (tag_index==31) {memset(satioFileData.current_matrix_filepath, 0, sizeof(satioFileData.current_matrix_filepath)); strcpy(satioFileData.current_matrix_filepath, data_0.c_str());}
+            else if (tag_index==32) {if (str_is_bool(data_0.c_str())) {matrixData.load_matrix_on_startup=atoi(data_0.c_str());}}
             currentTag++;
         }
         f.close();
