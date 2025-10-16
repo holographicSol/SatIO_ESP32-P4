@@ -15,8 +15,6 @@ RTC_DS3231 rtc;
 
 struct SATIOStruct satioData = {
     .satio_sentence = {0},
-    .coordinate_conversion_mode = COORDINATE_CONVERSION_MODE_GNGGA,
-    .char_coordinate_conversion_mode = {"GNGGA", "GNRMC"},
     .latitude_meter = 0.0000100,
     .longitude_meter = 0.0000100,
     .latitude_mile = 0.0000100 * 1609.34,
@@ -39,13 +37,6 @@ struct SATIOStruct satioData = {
     .degrees_longitude = 0.0,
     .degreesLat = 0.0,
     .degreesLong = 0.0,
-    .speed_gps = 0.0,
-    .speed = 0.0,
-    .speed_conversion_mode = 0,
-    .char_speed_conversion_mode = {"M/S", "MPH", "KPH", "KTS"},
-    .ground_heading = {0},
-    .altitude = "pending",
-    .mileage = "pending",
     .tmp_year_int = 0,
     .tmp_month_int = 0,
     .tmp_day_int = 0,
@@ -104,11 +95,32 @@ struct SATIOStruct satioData = {
     .padded_rtc_time_HHMMSS = "000000",
     .padded_rtc_date_DDMMYYYY = "00000000",
     .rtc_unixtime = 0,
+
     .utc_second_offset = 0,
     .utc_auto_offset_flag = false,
     .set_time_automatically = true,
     .set_rtc_datetime_flag = false,
     .sync_rtc_immediately_flag = true, // default true to attempt sync immediately on starttup
+
+    .coordinate_conversion_mode = COORDINATE_CONVERSION_MODE_GPS,
+    .char_coordinate_conversion_mode = {"STATIC", "GPS"},
+
+    .altitude = 0,
+    .altitude_converted = 0,
+    .altitude_unit_mode = ALTITUDE_UNIT_MODE_METERS,
+    .char_altitude_unit_mode = {"m", "M", "KM"},
+    .altitude_conversion_mode = ALTITUDE_CONVERSION_MODE_GPS,
+    .char_altitude_conversion_mode = {"STATIC", "GPS"},
+
+    .speed = 0.0,
+    .speed_converted = 0,
+    .speed_unit_mode = SPEED_UNIT_MODE_METERS_A_SECOND,
+    .char_speed_unit_mode = {"m/S", "M/PH", "K/PH", "KTS"},
+    .speed_conversion_mode = SPEED_CONVERSION_MODE_GPS,
+    .char_speed_conversion_mode = {"STATIC", "GPS"},
+
+    .ground_heading = {0},
+    .mileage = "pending",
 };
 
 LocPoint loc_point1_gps = {0.0, 0.0, 0.0, 0};
@@ -195,30 +207,58 @@ struct SpeedStruct speedData = {
     return speed;
 }
 
+void setSatIOAltitude() {
+  double altitude=satioData.altitude;
+  char *endptr;
+  // ---------------------------------------------------------------------
+  // Select which value to use from the system.
+  // ---------------------------------------------------------------------
+  if      (ALTITUDE_CONVERSION_MODE_STATIC) {} // is set elsewhere or remains static
+  else if (satioData.altitude_conversion_mode==ALTITUDE_CONVERSION_MODE_GPS) {altitude=strtod(gnggaData.altitude, &endptr);}
+  satioData.altitude=altitude;
+  // ---------------------------------------------------------------------
+  // Convert selected value.
+  // ---------------------------------------------------------------------
+  if      (satioData.altitude_unit_mode==ALTITUDE_UNIT_MODE_METERS) {}
+  else if (satioData.altitude_unit_mode==ALTITUDE_UNIT_MODE_MILES) {altitude=altitude*METERS_TO_MILES_RATIO;}
+  else if (satioData.altitude_unit_mode==ALTITUDE_UNIT_MODE_KILOMETERS) {altitude=altitude*METERS_TO_KILOMETERS_RATIO;}
+  satioData.altitude_converted=altitude;
+}
+
 // -----------------------------------------------------------------------
 // convertSpeedUnits.
 // -----------------------------------------------------------------------
-double convertSpeedUnits(double speed) {
-  double new_speed=speed;
-  if      (satioData.speed_conversion_mode==SPEED_CONVERSION_MODE_METERS_A_SECOND) {new_speed=speed;}
-  else if (satioData.speed_conversion_mode==SPEED_CONVERSION_MODE_MPH) {new_speed=speed*METERS_TO_MPH_RATIO;}
-  else if (satioData.speed_conversion_mode==SPEED_CONVERSION_MODE_KPH) {new_speed=speed*METERS_TO_KPH_RATIO;}
-  else if (satioData.speed_conversion_mode==SPEED_CONVERSION_MODE_KTS) {new_speed=speed*METERS_TO_KTS_RATIO;}
-  return new_speed;
+void setSatIOSspeed() {
+  double speed=satioData.speed;
+  char *endptr;
+  // ---------------------------------------------------------------------
+  // Select which value to use from the system.
+  // ---------------------------------------------------------------------
+  if      (satioData.speed_conversion_mode==SPEED_CONVERSION_MODE_STATIC) {} // is set elsewhere or remains static
+  else if (satioData.speed_conversion_mode==SPEED_CONVERSION_MODE_GPS) {speed=strtod(gnrmcData.ground_speed, &endptr);}
+  satioData.speed=speed;
+  // ---------------------------------------------------------------------
+  // Convert selected value.
+  // ---------------------------------------------------------------------
+  if      (satioData.speed_unit_mode==SPEED_UNIT_MODE_METERS_A_SECOND) {}
+  else if (satioData.speed_unit_mode==SPEED_UNIT_MODE_MPH) {speed=speed*METERS_TO_MPH_RATIO;}
+  else if (satioData.speed_unit_mode==SPEED_UNIT_MODE_KPH) {speed=speed*METERS_TO_KPH_RATIO;}
+  else if (satioData.speed_unit_mode==SPEED_UNIT_MODE_KTS) {speed=speed*METERS_TO_KTS_RATIO;}
+  satioData.speed_converted=speed;
 }
 
 // ------------------------------------------------------------------------------------------------------------------------------
 //                                                                                                         CONVERT COORDINTE DATA
 // ------------------------------------------------------------------------------------------------------------------------------
-void calculateLocation(){
-  if (satioData.coordinate_conversion_mode==COORDINATE_CONVERSION_MODE_STATIC) {}
+void setSatioCoordinates(){
+  if (satioData.coordinate_conversion_mode==COORDINATE_CONVERSION_MODE_STATIC) {} // is set elsewhere or remains static
   // ----------------------------------------------------------------------------------------------------------------------------
   //                                                                                                  GNGGA COORDINATE CONVERSION
   // ----------------------------------------------------------------------------------------------------------------------------
   // ----------------------------------------------------------------------------------------------------------------------------
   // Convert GNGGA latitude & longitude strings to decimal degrees and format into hours, minutes, seconds, milliseconds.
   // ----------------------------------------------------------------------------------------------------------------------------
-  else if (satioData.coordinate_conversion_mode==COORDINATE_CONVERSION_MODE_GNGGA) {
+  else if (satioData.coordinate_conversion_mode==COORDINATE_CONVERSION_MODE_GPS) {
     // -----------------------------------------------------------------------------------------
     // Extract absolute latitude value from GNGGA data as decimal degrees.
     // -----------------------------------------------------------------------------------------
@@ -301,102 +341,6 @@ void calculateLocation(){
     // Negate latitude value if it's in the Southern hemisphere (make negative value).
     // -----------------------------------------------------------------------------------------
     if (strcmp(gnggaData.longitude_hemisphere, "W")==0) {
-      satioData.degrees_longitude=0 - satioData.degrees_longitude;
-    }
-    // -----------------------------------------------------------------------------------------
-    // Save formatted latitude value as a string for later use.
-    // -----------------------------------------------------------------------------------------
-    scanf("%f17", &satioData.degrees_longitude);
-  }
-  // ------------------------------------------------------------------------------------------------------------------------
-  //                                                                                              GNRMC COORDINATE CONVERSION
-  // ------------------------------------------------------------------------------------------------------------------------
-  // ------------------------------------------------------------------------------------------------------------------------
-  // Convert GNRMC latitude & longitude strings to decimal degrees and format into hours, minutes, seconds, milliseconds.
-  // ------------------------------------------------------------------------------------------------------------------------
-  else if (satioData.coordinate_conversion_mode==COORDINATE_CONVERSION_MODE_GNRMC) {
-    // -----------------------------------------------------------------------------------------
-    // Extract absolute latitude value from GNGGA data as decimal degrees.
-    // -----------------------------------------------------------------------------------------
-    satioData.abs_latitude_gnrmc_0=atof(String(gnrmcData.latitude).c_str());
-    // -----------------------------------------------------------------------------------------
-    // Store absolute latitude in temporary variable for further processing.
-    // -----------------------------------------------------------------------------------------
-    satioData.temp_latitude_gnrmc=satioData.abs_latitude_gnrmc_0;
-    // -----------------------------------------------------------------------------------------
-    // Separate the integer degrees value from the fractional part.
-    // -----------------------------------------------------------------------------------------
-    satioData.degreesLat=trunc(satioData.temp_latitude_gnrmc / 100);
-    // -----------------------------------------------------------------------------------------
-    // Calculate minutes and seconds values based on remaining fractional part.
-    // -----------------------------------------------------------------------------------------
-    satioData.minutesLat=satioData.temp_latitude_gnrmc - (satioData.degreesLat * 100);
-    // -----------------------------------------------------------------------------------------
-    // Convert excess fractional part to seconds.
-    // -----------------------------------------------------------------------------------------
-    satioData.secondsLat=(satioData.minutesLat - (satioData.minutesLat)) * 60;
-    // -----------------------------------------------------------------------------------------
-    // Convert excess seconds to milliseconds.
-    // -----------------------------------------------------------------------------------------
-    satioData.millisecondsLat=(satioData.secondsLat - trunc(satioData.secondsLat)) * 1000;
-    // -----------------------------------------------------------------------------------------
-    // Round off minutes and seconds values to nearest integer.
-    // -----------------------------------------------------------------------------------------
-    satioData.minutesLat=trunc(satioData.minutesLat);
-    satioData.secondsLat=trunc(satioData.secondsLat);
-    // -----------------------------------------------------------------------------------------
-    // Combine degrees, minutes, seconds, and milliseconds into a single decimal latitude value.
-    // -----------------------------------------------------------------------------------------
-    satioData.degrees_latitude =
-    satioData.degreesLat + satioData.minutesLat / 60 + satioData.secondsLat / 3600 + satioData.millisecondsLat / 3600000;
-    // -----------------------------------------------------------------------------------------
-    // Negate latitude value if it's in the Southern hemisphere (make negative value).
-    // -----------------------------------------------------------------------------------------
-    if (strcmp(gnrmcData.latitude_hemisphere, "S")==0) {
-      satioData.degrees_latitude=0 - satioData.degrees_latitude;
-    }
-    // -----------------------------------------------------------------------------------------
-    // Save formatted latitude value as a string for later use.
-    // -----------------------------------------------------------------------------------------
-    scanf("%f17", &satioData.degrees_latitude);
-    // -----------------------------------------------------------------------------------------
-    // Extract absolute latitude value from GNGGA data as decimal degrees.
-    // -----------------------------------------------------------------------------------------
-    satioData.abs_longitude_gnrmc_0=atof(String(gnrmcData.longitude).c_str());
-    // -----------------------------------------------------------------------------------------
-    // Store absolute latitude in temporary variable for further processing.
-    // -----------------------------------------------------------------------------------------
-    satioData.temp_longitude_gnrmc=satioData.abs_longitude_gnrmc_0;
-    // -----------------------------------------------------------------------------------------
-    // Separate the integer degrees value from the fractional part.
-    // -----------------------------------------------------------------------------------------
-    satioData.degreesLong=trunc(satioData.temp_longitude_gnrmc / 100);
-    // -----------------------------------------------------------------------------------------
-    // Calculate minutes and seconds values based on remaining fractional part.
-    // -----------------------------------------------------------------------------------------
-    satioData.minutesLong=satioData.temp_longitude_gnrmc - (satioData.degreesLong * 100);
-    // -----------------------------------------------------------------------------------------
-    // Convert excess fractional part to seconds.
-    // -----------------------------------------------------------------------------------------
-    satioData.secondsLong=(satioData.minutesLong - trunc(satioData.minutesLong)) * 60;
-    // -----------------------------------------------------------------------------------------
-    // Convert excess seconds to milliseconds.
-    // -----------------------------------------------------------------------------------------
-    satioData.millisecondsLong=(satioData.secondsLong - trunc(satioData.secondsLong)) * 1000;
-    // -----------------------------------------------------------------------------------------
-    // Round off minutes and seconds values to nearest integer.
-    // -----------------------------------------------------------------------------------------
-    satioData.minutesLong=trunc(satioData.minutesLong);
-    satioData.secondsLong=trunc(satioData.secondsLong);
-    // -----------------------------------------------------------------------------------------
-    // Combine degrees, minutes, seconds, and milliseconds into a single decimal latitude value.
-    // -----------------------------------------------------------------------------------------
-    satioData.degrees_longitude =
-    satioData.degreesLong + satioData.minutesLong / 60 + satioData.secondsLong / 3600 + satioData.millisecondsLong / 3600000;
-    // -----------------------------------------------------------------------------------------
-    // Negate latitude value if it's in the Southern hemisphere (make negative value).
-    // -----------------------------------------------------------------------------------------
-    if (strcmp(gnrmcData.longitude_hemisphere, "W")==0) {
       satioData.degrees_longitude=0 - satioData.degrees_longitude;
     }
     // -----------------------------------------------------------------------------------------
@@ -793,7 +737,9 @@ void syncRTC() {
 // ----------------------------------------------------------------------------------------
 void setSatIOData(void) {
       syncRTC();
-      calculateLocation();
+      setSatioCoordinates();
+      setSatIOAltitude();
+      setSatIOSspeed();
       setGroundHeadingName(atof(gnrmcData.ground_heading));
 }
 

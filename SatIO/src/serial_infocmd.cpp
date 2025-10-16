@@ -87,7 +87,7 @@ bool val_function_index(const char * data) {
 }
 
 bool val_speed_units(const char * data) {
-  if (str_is_int8(data)) {if (atol(data)<MAX_SPEED_CONVERSION_MODES) {return true;}}
+  if (str_is_int8(data)) {if (atol(data)<MAX_SPEED_UNIT_MODES) {return true;}}
   return false;
 }
 
@@ -350,15 +350,28 @@ static void PrintHelp(void) {
 
   [ Satio ]
 
-      satio --speed-units n            Set displayed units (0 : M/S) (1 : MPH) (2 : KPH) (3 : KTS estimated)
-      satio --mode-gngga               Use GNGGA data for location.
-      satio --mode-gnrmc               Use GNRMC data for location.
-      satio --mode-static              Retain any cureently set degrees latiude, longitude. 
-      satio --set-coord -lat 0 -lon n  Set degrees latitude and longitude. (ensure --mode-static before --set-coord).
+      satio --coord-mode-gps           Use GPS latitude, longitude values.
+      satio --coord-mode-static        Do not update latiude, longitude unless --set-coord or otherwise.
+      satio --set-coord -lat n -lon n  Set degrees latitude and longitude (ensure --coord-mode-static before --set-coord).
       satio --utc-offset n             Set +-seconds offset time.
       satio --auto-datetime-on         Enable set datetime automatically  (--auto-datetime-on overrides any datetime -set).
       satio --auto-datetime-off        Disable set datetime automatically (ensure --auto-datetime-off before using -set time).
       satio --set-datetime --year n --month n --mday n --hour n --minute n --second n  (must be UTC except if utc offset 0).
+
+      satio --speed-mode-gps     Use GPS speed values.
+      satio --speed-mode-static  Do not update speed unless --set-speed or otherwise.
+      satio --set-speed n        Set speed in meters per second (ensure --speed-mode-static before --set-speed).
+      satio --speed-unit-meters  Use default meters per second.
+      satio --speed-unit-kph     Convert meters per second to K/PH.
+      satio --speed-unit-mph     Convert meters per second to M/PH.
+      satio --speed-unit-kts     Convert meters per second to knots.
+
+      satio --altitude-mode-gps         Use GPS altitude values.
+      satio --altitude-mode-static      Do not update speed unless --set-altitude or otherwise.
+      satio --set-altitude n            Set altitude in meters (ensure --altitude-mode-static before --set-altitude).
+      satio --altitude-unit-meters      Use default meters altitude.
+      satio --altitude-unit-kilometers  Convert meters to kilometers.
+      satio --altitude-unit-miles       Convert meters to miles.
 
   [ Gyro ]
 
@@ -450,8 +463,8 @@ void PrintSatIOData(void) {
     Serial.println("[SatIO] ");
     Serial.println("[coordinate_conversion_mode] " +
       String(satioData.char_coordinate_conversion_mode[satioData.coordinate_conversion_mode]));
-    Serial.println("[speed_conversion_mode] " +
-      String(satioData.char_speed_conversion_mode[satioData.speed_conversion_mode]));
+    Serial.println("[char_speed_unit_mode] " +
+      String(satioData.char_speed_unit_mode[satioData.speed_unit_mode]));
     Serial.println("[utc_second_offset] " + String(satioData.utc_second_offset));
     Serial.println("[utc_auto_offset_flag] " + String(satioData.utc_auto_offset_flag));
     Serial.println("[set_time_automatically] " + String(satioData.set_time_automatically));
@@ -694,9 +707,9 @@ void setINSHeadingRangeDiff(double ins_range_diff) {
     {insData.INS_REQ_HEADING_RANGE_DIFF=ins_range_diff;}
 }
 
-void setSpeedUnits(int speed_units) {
-  if (speed_units>=0 && speed_units <MAX_SPEED_CONVERSION_MODES)
-    {satioData.speed_conversion_mode=speed_units;}
+void setSpeedUnits(int speed_unit_mode) {
+  if (speed_unit_mode>=0 && speed_unit_mode <MAX_SPEED_UNIT_MODES)
+    {satioData.speed_unit_mode=speed_unit_mode;}
 }
 
 void setUTCSecondOffset(int64_t seconds) {
@@ -797,13 +810,41 @@ void datetimeSetDTAuto(bool set_dt_auto) {
 
 void setCoordinatesDegrees(double latitude, double longitude) {
   /*
-     satio --mode-gngga
-     satio --mode-static
+     satio --coord-mode-gps
+     satio --coord-mode-static
      satio --set-coord -lat 0.123 -lon 4.567
   */
   if (latitude>DBL_MIN && latitude<DBL_MAX && longitude>DBL_MIN && longitude<DBL_MAX) {
     satioData.degrees_latitude=latitude;
     satioData.degrees_longitude=longitude;
+  }
+}
+
+void setAltitude(double altitude) {
+  /*
+     satio --altitude-mode-gps
+     satio --altitude-mode-static
+     satio --set-altitude 1000
+     satio --altitude-unit-kilometers
+     satio --altitude-unit-miles
+     satio --altitude-unit-meters
+  */
+  if (altitude>DBL_MIN && altitude<DBL_MAX && altitude!=NAN) {
+    satioData.altitude=altitude;
+  }
+}
+
+void setSpeed(double speed) {
+  /*
+     satio --speed-mode-gps
+     satio --speed-mode-static
+     satio --set-speed 1000
+     satio --speed-unit-kph
+     satio --speed-unit-mph
+     satio --speed-unit-kts
+  */
+  if (speed>DBL_MIN && speed<DBL_MAX && speed!=NAN) {
+    satioData.speed=speed;
   }
 }
 
@@ -1085,7 +1126,7 @@ void CmdProcess(void) {
           }
         }
       }
-      
+
       else if (strcmp(pos[0], "ins")==0) {
         if (argparser_has_flag(&parser, "m")) {setINSMode(argparser_get_int8(&parser, "m", -1));}
         if (argparser_has_flag(&parser, "gyro")) {setINSUseGyroHeading(argparser_get_int8(&parser, "gyro", -1));}
@@ -1096,14 +1137,33 @@ void CmdProcess(void) {
       }
 
       else if (strcmp(pos[0], "satio")==0) {
-        if (argparser_has_flag(&parser, "speed-units")) {setSpeedUnits(argparser_get_int8(&parser, "speed-units", -1));}
-        if (argparser_has_flag(&parser, "mode-static")) {satioData.coordinate_conversion_mode=COORDINATE_CONVERSION_MODE_STATIC;}
+
+        if (argparser_has_flag(&parser, "altitude-mode-static")) {satioData.altitude_conversion_mode=ALTITUDE_CONVERSION_MODE_STATIC;}
+        if (argparser_has_flag(&parser, "altitude-mode-gps")) {satioData.altitude_conversion_mode=ALTITUDE_CONVERSION_MODE_GPS;}
+        if (argparser_has_flag(&parser, "altitude-unit-meters")) {satioData.altitude_unit_mode=ALTITUDE_UNIT_MODE_METERS;}
+        if (argparser_has_flag(&parser, "altitude-unit-miles")) {satioData.altitude_unit_mode=ALTITUDE_UNIT_MODE_MILES;}
+        if (argparser_has_flag(&parser, "altitude-unit-kilometers")) {satioData.altitude_unit_mode=ALTITUDE_UNIT_MODE_KILOMETERS;}
+        if (argparser_has_flag(&parser, "set-altitude")) {
+          setAltitude(argparser_get_double(&parser, "set-altitude", NAN));
+        }
+
+        if (argparser_has_flag(&parser, "speed-mode-static")) {satioData.speed_conversion_mode=SPEED_CONVERSION_MODE_STATIC;}
+        if (argparser_has_flag(&parser, "speed-mode-gps")) {satioData.speed_conversion_mode=SPEED_CONVERSION_MODE_GPS;}
+        if (argparser_has_flag(&parser, "speed-unit-meters")) {satioData.speed_unit_mode=SPEED_UNIT_MODE_METERS_A_SECOND;}
+        if (argparser_has_flag(&parser, "speed-unit-mph")) {satioData.speed_unit_mode=SPEED_UNIT_MODE_MPH;}
+        if (argparser_has_flag(&parser, "speed-unit-kph")) {satioData.speed_unit_mode=SPEED_UNIT_MODE_KPH;}
+        if (argparser_has_flag(&parser, "speed-unit-kts")) {satioData.speed_unit_mode=SPEED_UNIT_MODE_KTS;}
+        if (argparser_has_flag(&parser, "set-speed")) {
+          setSpeed(argparser_get_double(&parser, "set-speed", NAN));
+        }
+
+        if (argparser_has_flag(&parser, "coord-mode-static")) {satioData.coordinate_conversion_mode=COORDINATE_CONVERSION_MODE_STATIC;}
+        if (argparser_has_flag(&parser, "coord-mode-gps")) {satioData.coordinate_conversion_mode=COORDINATE_CONVERSION_MODE_GPS;}
         if (argparser_has_flag(&parser, "set-coord")) {
           setCoordinatesDegrees(argparser_get_double(&parser, "lat", NAN),
-                                argparser_get_double(&parser,  "lon", NAN));
+          argparser_get_double(&parser,  "lon", NAN));
         }
-        if (argparser_has_flag(&parser, "mode-gngga")) {satioData.coordinate_conversion_mode=COORDINATE_CONVERSION_MODE_GNGGA;}
-        if (argparser_has_flag(&parser, "mode-gnrmc")) {satioData.coordinate_conversion_mode=COORDINATE_CONVERSION_MODE_GNRMC;}
+
         if (argparser_has_flag(&parser, "utc-offset")) {setUTCSecondOffset(argparser_get_int64(&parser, "utc-offset", 0));}
         if (argparser_has_flag(&parser, "auto-datetime-on")) {datetimeSetDTAuto(true);}
         if (argparser_has_flag(&parser, "auto-datetime-off")) {datetimeSetDTAuto(false);}
@@ -1616,9 +1676,9 @@ void outputStat(void) {
     memset(counter_digits_1_row_N[2], 0, sizeof(counter_digits_1_row_N[2])); strcpy(counter_digits_1_row_N[2], String(satioData.local_unixtime_uS).c_str());
     memset(counter_digits_1_row_N[3], 0, sizeof(counter_digits_1_row_N[3])); strcpy(counter_digits_1_row_N[3], String(satioData.degrees_latitude, 7).c_str());
     memset(counter_digits_1_row_N[4], 0, sizeof(counter_digits_1_row_N[4])); strcpy(counter_digits_1_row_N[4], String(satioData.degrees_longitude, 7).c_str());
-    memset(counter_digits_1_row_N[5], 0, sizeof(counter_digits_1_row_N[5])); strcpy(counter_digits_1_row_N[5], String(satioData.altitude).c_str()); // altitude: use srtm for meters above terrain elevation level (make other conversions also)
+    memset(counter_digits_1_row_N[5], 0, sizeof(counter_digits_1_row_N[5])); strcpy(counter_digits_1_row_N[5], String(String(satioData.altitude_converted) + " " + String(satioData.char_altitude_unit_mode[satioData.altitude_unit_mode])).c_str());
     memset(counter_digits_1_row_N[6], 0, sizeof(counter_digits_1_row_N[6])); strcpy(counter_digits_1_row_N[6], String(satioData.ground_heading).c_str());
-    memset(counter_digits_1_row_N[7], 0, sizeof(counter_digits_1_row_N[7])); strcpy(counter_digits_1_row_N[7], String(String(satioData.speed, 2) + " " + String(satioData.char_speed_conversion_mode[satioData.speed_conversion_mode])).c_str()); // speed (3 dimensional: requires lat, long, alt, microtime)
+    memset(counter_digits_1_row_N[7], 0, sizeof(counter_digits_1_row_N[7])); strcpy(counter_digits_1_row_N[7], String(String(satioData.speed_converted, 2) + " " + String(satioData.char_speed_unit_mode[satioData.speed_unit_mode])).c_str()); // speed (3 dimensional: requires lat, long, alt, microtime)
     memset(counter_digits_1_row_N[8], 0, sizeof(counter_digits_1_row_N[8])); strcpy(counter_digits_1_row_N[8], String(satioData.mileage).c_str()); // make mileage any 3d direction, refactor 'distance'
     for (int i = 0; i < 10; i++) {if (i==0) {printf("%-19s", counter_chars_1_col_0[i+3]);} else {printf("%-19s", counter_digits_1_row_N[i-1]);}}
     printf("\n");
@@ -1631,7 +1691,7 @@ void outputStat(void) {
     memset(counter_digits_1_row_N[4], 0, sizeof(counter_digits_1_row_N[4])); strcpy(counter_digits_1_row_N[4], String(insData.ins_longitude, 7).c_str());
     memset(counter_digits_1_row_N[5], 0, sizeof(counter_digits_1_row_N[5])); strcpy(counter_digits_1_row_N[5], String(insData.ins_altitude).c_str());
     memset(counter_digits_1_row_N[6], 0, sizeof(counter_digits_1_row_N[6])); strcpy(counter_digits_1_row_N[6], String(insData.ins_heading).c_str());
-    memset(counter_digits_1_row_N[7], 0, sizeof(counter_digits_1_row_N[7])); strcpy(counter_digits_1_row_N[7], String(String(insData.ins_speed, 2) + " " + String(satioData.char_speed_conversion_mode[satioData.speed_conversion_mode])).c_str());
+    memset(counter_digits_1_row_N[7], 0, sizeof(counter_digits_1_row_N[7])); strcpy(counter_digits_1_row_N[7], String(String(insData.ins_speed, 2) + " " + String(satioData.char_speed_unit_mode[satioData.speed_unit_mode])).c_str());
     memset(counter_digits_1_row_N[8], 0, sizeof(counter_digits_1_row_N[8])); strcpy(counter_digits_1_row_N[8], String("pending").c_str());
     for (int i = 0; i < 10; i++) {if (i==0) {printf("%-19s", counter_chars_1_col_0[i+4]);} else {printf("%-19s", counter_digits_1_row_N[i-1]);}}
     printf("\n");

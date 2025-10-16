@@ -28,8 +28,6 @@ extern bool sync_rtc_bool;
 // ----------------------------------------------------------------------------------------
 struct SATIOStruct {
     char satio_sentence[MAX_GLOBAL_SERIAL_BUFFER_SIZE]; // Buffer for processed data
-    int coordinate_conversion_mode;                     // 0: GNGGA, 1: GNRMC
-    char char_coordinate_conversion_mode[2][10];        // Names
     double latitude_meter;                              // One meter (tunable)
     double longitude_meter;                             // One meter (tunable)
     double latitude_mile;                               // One mile (tunable)
@@ -52,13 +50,6 @@ struct SATIOStruct {
     double degrees_longitude;                           // Converted longitude in degrees
     double degreesLat;                                  // Degrees for latitude conversion
     double degreesLong;                                 // Degrees for longitude conversion
-    double speed_gps;                                   // GPS speed in meters/second
-    double speed;                                       // Converted speed
-    int speed_conversion_mode;                          // 0: M/S, 1: MPH, 2: KPH, 3: KTS
-    char char_speed_conversion_mode[MAX_SPEED_CONVERSION_MODES][10]; // Speed mode names
-    char ground_heading[MAX_GLOBAL_ELEMENT_SIZE];        // Ground heading (e.g., N, NNE)
-    char altitude[MAX_GLOBAL_ELEMENT_SIZE];              // Altitude (pending processing)
-    char mileage[MAX_GLOBAL_ELEMENT_SIZE];               // Mileage (pending processing)
     uint16_t tmp_year_int;                              // Temp year
     uint8_t tmp_month_int;                              // Temp month
     uint8_t tmp_day_int;                                // Temp day
@@ -115,11 +106,32 @@ struct SATIOStruct {
     char padded_rtc_time_HHMMSS[MAX_GLOBAL_ELEMENT_SIZE]; // Padded RTC time (HHMMSS)
     char padded_rtc_date_DDMMYYYY[MAX_GLOBAL_ELEMENT_SIZE]; // Padded RTC date
     uint32_t rtc_unixtime;                              // RTC Unix time
+
     int64_t utc_second_offset;                 // UTC offset in seconds
     bool utc_auto_offset_flag;                          // Auto offset flag
     bool set_time_automatically;                        // Auto time setting flag
     bool set_rtc_datetime_flag;
     bool sync_rtc_immediately_flag;
+
+    int  coordinate_conversion_mode; // 0: STATIC, 1: GNGGA, 2: GNRMC
+    char char_coordinate_conversion_mode[MAX_COORDINATE_CONVERSION_CONVERSION_MODES][10];
+
+    double altitude; // should always be meters altitude.
+    double altitude_converted;
+    int    altitude_unit_mode; // 0: Meters, 1: Miles, 2: Km, add more
+    char   char_altitude_unit_mode[MAX_ALTITUDE_UNIT_MODES][10];
+    int  altitude_conversion_mode; // 0: STATIC, 1: GNGGA
+    char char_altitude_conversion_mode[MAX_ALTITUDE_CONVERSION_MODES][10];
+
+    double speed; // should always be meters a second.
+    double speed_converted;
+    int    speed_unit_mode; // 0: M/S, 1: MPH, 2: KPH, 3: KTS add more
+    char   char_speed_unit_mode[MAX_SPEED_UNIT_MODES][10]; // Speed mode names
+    int  speed_conversion_mode; // 0: STATIC, 1: GNRMC
+    char char_speed_conversion_mode[MAX_COORDINATE_CONVERSION_CONVERSION_MODES][10];
+
+    char ground_heading[MAX_GLOBAL_ELEMENT_SIZE]; // Ground heading (e.g., N, NNE)
+    char mileage[MAX_GLOBAL_ELEMENT_SIZE];        // Mileage (pending processing)
 };
 
 extern struct SATIOStruct satioData;

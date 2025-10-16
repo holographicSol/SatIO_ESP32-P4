@@ -43,18 +43,6 @@ extern "C" {
 #define MAX_CHECKSUM_SIZE 10
 #define MAX_CHEKSUM_SUM_SIZE 4
 // ----------------------------------------------------------------------------------------
-// Conversions.
-// ----------------------------------------------------------------------------------------
-#define MAX_SPEED_CONVERSION_MODES 4 // Number of speed conversion modes
-#define SPEED_CONVERSION_MODE_METERS_A_SECOND 0
-#define SPEED_CONVERSION_MODE_MPH 1
-#define SPEED_CONVERSION_MODE_KPH 2
-#define SPEED_CONVERSION_MODE_KTS 3
-#define METERS_TO_MPH_RATIO 2.23694
-#define METERS_TO_KPH_RATIO 3.6
-#define METERS_TO_KTS_RATIO 1.94384
-#define LAST_EPOCH 1900
-// ----------------------------------------------------------------------------------------
 // Mapping.
 // ----------------------------------------------------------------------------------------
 #define MAX_MAPPABLE_VALUES 32   // Maximum number of mappable values
@@ -298,6 +286,39 @@ extern "C" {
 // SatIO.
 // ----------------------------------------------------------------------------------------
 #define MAX_DAYS_OF_THE_WEEK 7
+
+#define MAX_COORDINATE_CONVERSION_CONVERSION_MODES 2
+#define COORDINATE_CONVERSION_MODE_STATIC          0
+#define COORDINATE_CONVERSION_MODE_GPS             1
+
+
+#define MAX_ALTITUDE_UNIT_MODES       3
+#define ALTITUDE_UNIT_MODE_METERS     0
+#define ALTITUDE_UNIT_MODE_MILES      1
+#define ALTITUDE_UNIT_MODE_KILOMETERS 2
+
+#define MAX_ALTITUDE_CONVERSION_MODES   2
+#define ALTITUDE_CONVERSION_MODE_STATIC 0
+#define ALTITUDE_CONVERSION_MODE_GPS    1
+
+
+#define MAX_SPEED_UNIT_MODES            4 // Number of speed conversion modes
+#define SPEED_UNIT_MODE_METERS_A_SECOND 0
+#define SPEED_UNIT_MODE_MPH             1
+#define SPEED_UNIT_MODE_KPH             2
+#define SPEED_UNIT_MODE_KTS             3
+
+#define MAX_SPEED_CONVERSIO_MODES    2
+#define SPEED_CONVERSION_MODE_STATIC 0
+#define SPEED_CONVERSION_MODE_GPS    1
+
+#define METERS_TO_MILES_RATIO      0.000621371
+#define METERS_TO_KILOMETERS_RATIO 0.001
+
+#define METERS_TO_MPH_RATIO 2.23694
+#define METERS_TO_KPH_RATIO 3.6
+#define METERS_TO_KTS_RATIO 1.94384
+#define LAST_EPOCH 1900
 // ----------------------------------------------------------------------------------------
 // SIDEREAL HELPER.
 // ----------------------------------------------------------------------------------------
