@@ -740,7 +740,7 @@ void syncRTC() {
    * (2) Set satioData.set_rtc_datetime_flag true.
    */
   if (satioData.set_time_automatically==false && satioData.set_rtc_datetime_flag==true)
-    {setRTCDateTime(); satioData.set_rtc_datetime_flag=false; Serial.println("[rtc] sync 2: " + String(rtc.now().timestamp()));}
+    {satioData.set_rtc_datetime_flag=false; setRTCDateTime(); Serial.println("[rtc] sync 2: " + String(rtc.now().timestamp()));}
 
   /**
    * Automatically set RTC datetime with GPS data.
