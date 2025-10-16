@@ -318,6 +318,11 @@ extern "C" {
 #define METERS_TO_MPH_RATIO 2.23694
 #define METERS_TO_KPH_RATIO 3.6
 #define METERS_TO_KTS_RATIO 1.94384
+
+#define KNOTS_TO_METERS_PER_SECOND 0.514444
+#define KNOTS_TO_MPH 1.15078
+#define KNOTS_TO_KPH 1.852
+
 #define LAST_EPOCH 1900
 // ----------------------------------------------------------------------------------------
 // SIDEREAL HELPER.

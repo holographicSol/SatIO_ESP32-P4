@@ -114,7 +114,7 @@ struct SATIOStruct satioData = {
 
     .speed = 0.0,
     .speed_converted = 0,
-    .speed_unit_mode = SPEED_UNIT_MODE_METERS_A_SECOND,
+    .speed_unit_mode = SPEED_UNIT_MODE_KTS,
     .char_speed_unit_mode = {"m/S", "M/PH", "K/PH", "KTS"},
     .speed_conversion_mode = SPEED_CONVERSION_MODE_GPS,
     .char_speed_conversion_mode = {"STATIC", "GPS"},
@@ -153,10 +153,10 @@ void setSatIOSspeed() {
   // ---------------------------------------------------------------------
   // Convert selected value.
   // ---------------------------------------------------------------------
-  if      (satioData.speed_unit_mode==SPEED_UNIT_MODE_METERS_A_SECOND) {}
-  else if (satioData.speed_unit_mode==SPEED_UNIT_MODE_MPH) {speed=speed*METERS_TO_MPH_RATIO;}
-  else if (satioData.speed_unit_mode==SPEED_UNIT_MODE_KPH) {speed=speed*METERS_TO_KPH_RATIO;}
-  else if (satioData.speed_unit_mode==SPEED_UNIT_MODE_KTS) {speed=speed*METERS_TO_KTS_RATIO;}
+  if      (satioData.speed_unit_mode==SPEED_UNIT_MODE_KTS) {}
+  else if (satioData.speed_unit_mode==SPEED_UNIT_MODE_MPH) {speed=speed*KNOTS_TO_MPH;}
+  else if (satioData.speed_unit_mode==SPEED_UNIT_MODE_KPH) {speed=speed*KNOTS_TO_MPH;}
+  else if (satioData.speed_unit_mode==SPEED_UNIT_MODE_METERS_A_SECOND) {speed=speed*KNOTS_TO_METERS_PER_SECOND;}
   satioData.speed_converted=speed;
 }
 

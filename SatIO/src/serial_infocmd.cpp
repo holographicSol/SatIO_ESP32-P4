@@ -361,10 +361,10 @@ static void PrintHelp(void) {
       satio --speed-mode-gps     Use GPS speed values.
       satio --speed-mode-static  Do not update speed unless --set-speed or otherwise.
       satio --set-speed n        Set speed in meters per second (ensure --speed-mode-static before --set-speed).
-      satio --speed-unit-meters  Use default meters per second.
-      satio --speed-unit-kph     Convert meters per second to K/PH.
-      satio --speed-unit-mph     Convert meters per second to M/PH.
-      satio --speed-unit-kts     Convert meters per second to knots.
+      satio --speed-unit-KTS     Use default knots.
+      satio --speed-unit-KPH     Convert knots per second to K/PH.
+      satio --speed-unit-MPH     Convert knots per second to M/PH.
+      satio --speed-unit-mPS     Convert knots per second to meters per second.
 
       satio --altitude-mode-gps         Use GPS altitude values.
       satio --altitude-mode-static      Do not update speed unless --set-altitude or otherwise.
@@ -839,9 +839,10 @@ void setSpeed(double speed) {
      satio --speed-mode-gps
      satio --speed-mode-static
      satio --set-speed 1000
-     satio --speed-unit-kph
-     satio --speed-unit-mph
-     satio --speed-unit-kts
+     satio --speed-unit-KTS
+     satio --speed-unit-KPH
+     satio --speed-unit-MPH
+     satio --speed-unit-mPS
   */
   if (speed>DBL_MIN && speed<DBL_MAX && speed!=NAN) {
     satioData.speed=speed;
@@ -1149,10 +1150,10 @@ void CmdProcess(void) {
 
         if (argparser_has_flag(&parser, "speed-mode-static")) {satioData.speed_conversion_mode=SPEED_CONVERSION_MODE_STATIC;}
         if (argparser_has_flag(&parser, "speed-mode-gps")) {satioData.speed_conversion_mode=SPEED_CONVERSION_MODE_GPS;}
-        if (argparser_has_flag(&parser, "speed-unit-meters")) {satioData.speed_unit_mode=SPEED_UNIT_MODE_METERS_A_SECOND;}
-        if (argparser_has_flag(&parser, "speed-unit-mph")) {satioData.speed_unit_mode=SPEED_UNIT_MODE_MPH;}
-        if (argparser_has_flag(&parser, "speed-unit-kph")) {satioData.speed_unit_mode=SPEED_UNIT_MODE_KPH;}
-        if (argparser_has_flag(&parser, "speed-unit-kts")) {satioData.speed_unit_mode=SPEED_UNIT_MODE_KTS;}
+        if (argparser_has_flag(&parser, "speed-unit-KTS")) {satioData.speed_unit_mode=SPEED_UNIT_MODE_KTS;}
+        if (argparser_has_flag(&parser, "speed-unit-MPH")) {satioData.speed_unit_mode=SPEED_UNIT_MODE_MPH;}
+        if (argparser_has_flag(&parser, "speed-unit-KPH")) {satioData.speed_unit_mode=SPEED_UNIT_MODE_KPH;}
+        if (argparser_has_flag(&parser, "speed-unit-mPS")) {satioData.speed_unit_mode=SPEED_UNIT_MODE_METERS_A_SECOND;}
         if (argparser_has_flag(&parser, "set-speed")) {
           setSpeed(argparser_get_double(&parser, "set-speed", NAN));
         }
