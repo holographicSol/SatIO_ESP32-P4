@@ -6,6 +6,7 @@
 
 #include <ins.h>
 #include <Arduino.h>
+#include "satio.h"
 
 /**
  * @struct InsData
@@ -24,29 +25,7 @@ struct InsData insData = {
   .ins_longitude = 0.0,
   .ins_altitude = 0.0,
   .ins_heading = 0.0,
-  .ins_speed = 0.0,
   .ins_dt_prev = 0,
-};
-
-LocPoint loc_point1_gps = {0.0, 0.0, 0.0, 0};
-LocPoint loc_point2_gps = {0.0, 0.0, 0.0, 0};
-LocPoint loc_point1_ins = {0.0, 0.0, 0.0, 0};
-LocPoint loc_point2_ins = {0.0, 0.0, 0.0, 0};
-
-struct SpeedStruct speedData = {
-    .lat1_rad = 0.0,
-    .lon1_rad = 0.0,
-    .lat2_rad = 0.0,
-    .lon2_rad = 0.0,
-    .delta_lat = 0.0,
-    .delta_lon = 0.0,
-    .delta_alt = 0.0,
-    .a = 0.0,
-    .c = 0.0,
-    .distance_2d = 0.0,
-    .distance_3d = 0.0,
-    .delta_time = 0.0,
-    .speed = 0.0
 };
 
 bool angles_are_close(double angle1,
@@ -85,12 +64,16 @@ void ins_init(double gps_precision_factor,
   // 1 : Check GPS precsion.
   // -------------------------------------------------------------------------------
   if (gps_precision_factor<=insData.INS_REQ_GPS_PRECISION)
-    {insData.tmp_ins_initialization_flag++;}
+    {insData.tmp_ins_initialization_flag++;
+    //  Serial.println("INS precision flag: true");
+    }
   // -----------------------------------------------------------------------------
   // 2 : Check Speed.
   // -----------------------------------------------------------------------------
   if (gps_ground_speed>=insData.INS_REQ_MIN_SPEED)
-  {insData.tmp_ins_initialization_flag++;}
+  {insData.tmp_ins_initialization_flag++;
+  //  Serial.println("INS speed flag: true");
+  }
   // ---------------------------------------------------------------------------
   // 3 : Check Heading.
   // ---------------------------------------------------------------------------
@@ -98,12 +81,16 @@ void ins_init(double gps_precision_factor,
       gyro_heading,
       insData.INS_REQ_HEADING_RANGE_DIFF)==true) ||
       (insData.INS_USE_GYRO_HEADING==false))
-    {insData.tmp_ins_initialization_flag++;}
+    {insData.tmp_ins_initialization_flag++;
+    //  Serial.println("INS gyro flag: true");
+    }
   // -------------------------------------------------------------------------
   // 4 : Check enabled.
   // -------------------------------------------------------------------------
   if (insData.INS_ENABLED==true)
-    {insData.tmp_ins_initialization_flag++;}
+    {insData.tmp_ins_initialization_flag++;
+    //  Serial.println("INS enabled: true");
+    }
   // -------------------------------------------------------------------------
   // Set INS initialization
   // -------------------------------------------------------------------------
@@ -183,13 +170,6 @@ bool ins_estimate_position(double pitch,
     // -------------------------------------------------------------------------------
     double dt_interval = (double)(dt - insData.ins_dt_prev) / 1000000.0;
     // Serial.println(dt_interval);
-
-    // EXPERIMENTAL: INS SPEED.
-    // loc_point2_ins={ins_latitude,
-    //                 ins_longitude,
-    //                 ins_altitude,
-    //                 satioData.local_unixtime_uS-((uint64_t)dt_interval*1000000)};
-
     // -------------------------------------------------------------------------------
     // Ensure positive time interval; fallback to 0.001s if invalid.
     // -------------------------------------------------------------------------------
@@ -259,19 +239,6 @@ bool ins_estimate_position(double pitch,
     insData.ins_altitude = insData.ins_altitude + delta_alt;
     if (insData.INS_USE_GYRO_HEADING==true) {insData.ins_heading=yaw;}
     else {insData.ins_heading=gps_ground_heading;}
-
-    // EXPERIMENTAL: Update INS SPEED
-    // Should approximately reflect actual speed assuming speed
-    // does not change during estimation period.
-    // Currently only useful for checking INS position estimation
-    // until/unless changes in speed are factored into the INS.
-    // satioData.ins_speed=matrixcalculate_speed_from_location_data(loc_point1_ins, loc_point2_ins);
-    // satioData.ins_speed=convertSpeedUnits(satioData.ins_speed);
-    // loc_point1_ins={satioData.ins_latitude,
-    //                 satioData.ins_longitude,
-    //                 satioData.ins_altitude,
-    //                 satioData.local_unixtime_uS-((uint64_t)dt_interval*1000000)};
-    
     // -------------------------------------------------------------------------------
     // Ensure presvious datetime is set to current datetime.
     // -------------------------------------------------------------------------------
@@ -279,51 +246,4 @@ bool ins_estimate_position(double pitch,
     return true;
   }
   return false;
-}
-
- double calculateSpeedFromLocationData(LocPoint p1, LocPoint p2) {
-    // -------------------------------------------------------------------------------
-    // Convert latitude and longitude from degrees to radians for calculations.
-    // -------------------------------------------------------------------------------
-    double lat1_rad = p1.latitude * M_PI / 180.0;
-    double lon1_rad = p1.longitude * M_PI / 180.0;
-    double lat2_rad = p2.latitude * M_PI / 180.0;
-    double lon2_rad = p2.longitude * M_PI / 180.0;
-    // -------------------------------------------------------------------------------
-    // Calculate the change in coordinates.
-    // -------------------------------------------------------------------------------
-    double delta_lat = lat2_rad - lat1_rad;
-    double delta_lon = lon2_rad - lon1_rad;
-    // -------------------------------------------------------------------------------
-    // Calculate the change in altitude.
-    // -------------------------------------------------------------------------------
-    double delta_alt = p2.altitude - p1.altitude;
-    // -------------------------------------------------------------------------------
-    // Haversine formula to calculate the 2D distance.
-    // -------------------------------------------------------------------------------
-    double a = sin(delta_lat / 2.0) * sin(delta_lat / 2.0) +
-               cos(lat1_rad) * cos(lat2_rad) * sin(delta_lon / 2.0) * sin(delta_lon / 2.0);
-    double c = 2.0 * atan2(sqrt(a), sqrt(1.0 - a));
-    // -------------------------------------------------------------------------------
-    // Calculate the 2D distance (great-circle distance).
-    // -------------------------------------------------------------------------------
-    double distance_2d = EARTH_MEAN_RADIUS * c;
-    // -------------------------------------------------------------------------------
-    // Calculate the total 3D distance using the altitude change.
-    // -------------------------------------------------------------------------------
-    double distance_3d = sqrt(distance_2d * distance_2d + delta_alt * delta_alt);
-    // -------------------------------------------------------------------------------
-    // Calculate the change in time in seconds.
-    // -------------------------------------------------------------------------------
-    double delta_time = (p2.time - p1.time) / 1000000.0;
-    // -------------------------------------------------------------------------------
-    // Handle the case of zero time difference to avoid division by zero.
-    // -------------------------------------------------------------------------------
-    double speed=0;
-    if (delta_time == 0.0) {speed=0.0;}
-    // -------------------------------------------------------------------------------
-    // The result is in meters per second, as distance is in meters and time is in seconds.
-    // -------------------------------------------------------------------------------
-    else {speed = distance_3d / delta_time;}
-    return speed;
 }

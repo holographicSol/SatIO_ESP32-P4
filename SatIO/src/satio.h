@@ -133,8 +133,42 @@ struct SATIOStruct {
     char ground_heading[MAX_GLOBAL_ELEMENT_SIZE]; // Ground heading (e.g., N, NNE)
     char mileage[MAX_GLOBAL_ELEMENT_SIZE];        // Mileage (pending processing)
 };
-
 extern struct SATIOStruct satioData;
+
+/**
+ * @struct LocPoint
+ */
+typedef struct {
+    double latitude;   // Latitude in degrees
+    double longitude;  // Longitude in degrees
+    double altitude;   // Altitude in meters
+    uint64_t time;     // Time in microseconds
+} LocPoint;
+extern LocPoint loc_point1_gps;
+extern LocPoint loc_point2_gps;
+extern LocPoint loc_point1_ins;
+extern LocPoint loc_point2_ins;
+
+/**
+ * @struct SpeedStruct
+ */
+struct SpeedStruct {
+    double lat1_rad;    // Latitude 1 in radians
+    double lon1_rad;    // Longitude 1 in radians
+    double lat2_rad;    // Latitude 2 in radians
+    double lon2_rad;    // Longitude 2 in radians
+    double delta_lat;   // Change in latitude
+    double delta_lon;   // Change in longitude
+    double delta_alt;   // Change in altitude
+    double a;           // Haversine intermediate
+    double c;           // Haversine intermediate
+    double distance_2d; // 2D distance
+    double distance_3d; // 3D distance
+    double delta_time;  // Time difference
+    double speed;       // Calculated speed
+};
+
+extern struct SpeedStruct speedData;
 
 // ----------------------------------------------------------------------------------------
 // Function Prototypes.
@@ -154,6 +188,22 @@ void syncRTC(void);
 void setSatIOData(void);
 void initRTC(void);
 void initSystemTime(void);
+
+/**
+   * @brief Calculates the speed between two GPS points in any direction.
+   *
+   * This function first calculates the great-circle distance on the Earth's
+   * surface using the Haversine formula, then accounts for altitude change
+   * to find the total 3D distance. Finally, it divides this distance by the
+   * elapsed time to determine the average speed.
+   *
+   * @param p1 The first GPS point (latitude, longitude, altitude, time).
+   * @param p2 The second GPS point.
+   * @return The calculated speed in meters per second (m/s).
+   * 
+   * This function has no Kalman filter.
+ */
+ double calculateSpeedFromLocationData(LocPoint p1, LocPoint p2);
 
 #ifdef __cplusplus
 }

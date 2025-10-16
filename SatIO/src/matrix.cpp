@@ -667,7 +667,7 @@ struct MatrixStruct matrixData = {
     "Weekday",  // 4
     "DateDayX",  // 5
     "DateMonthX",  // 6
-    "DateYearX",  // 7s
+    "DateYearX",  // 7
     "DegLat",  // 8
     "DegLon",  // 9
     "DegLatLon",  // 10
@@ -675,83 +675,82 @@ struct MatrixStruct matrixData = {
     "INSLon",  // 12
     "INSLatLon",  // 13
     "INSHeading",  // 14
-    "INSSpeed",  // 15
-    "INSAltitude",  // 16
-    "UTCTimeGNGGA",  // 17
-    "PosStatusGNGGA",  // 18
-    "SatCount",  // 19
-    "HemiGNGGANorth",  // 20
-    "HemiGNGGASouth",  // 21
-    "HemiGNGGAEast",  // 22
-    "HemiGNGGAWest",  // 23
-    "GPSPrecision",  // 24
-    "AltGNGGA",  // 25
-    "UTCTimeGNRMC",  // 26
-    "PosStatusGNRMCA",  // 27
-    "PosStatusGNRMCV",  // 28
-    "ModeGNRMCA",  // 29
-    "ModeGNRMCD",  // 30
-    "ModeGNRMCE",  // 31
-    "ModeGNRMCN",  // 32
-    "HemiGNRMCNorth",  // 33
-    "HemiGNRMCSouth",  // 34
-    "HemiGNRMCEast",  // 35
-    "HemiGNRMCWest",  // 36
-    "GSpeedGNRMC",  // 37
-    "HeadingGNRMC",  // 38
-    "UTCDateGNRMC",  // 39
-    "LFlagGPATT",  // 40
-    "SFlagGPATT",  // 41
-    "RSFlagGPATT",  // 42
-    "INSGPATT",  // 43
-    "SpeedNumGPATT",  // 44
-    "MileageGPATT",  // 45
-    "GSTDataGPATT",  // 46
-    "YawGPATT",  // 47
-    "RollGPATT",  // 48
-    "PitchGPATT",  // 49
-    "GNGGAValidCS",  // 50
-    "GNRMCValidCS",  // 51
-    "GPATTValidCS",  // 52
-    "GNGGAValidCD",  // 53
-    "GNRMCValidCD",  // 54
-    "GPATTValidCD",  // 55
-    "Gyro0AccX",  // 56
-    "Gyro0AccY",  // 57
-    "Gyro0AccZ",  // 58
-    "Gyro0AngX",  // 59
-    "Gyro0AngY",  // 60
-    "Gyro0AngZ",  // 61
-    "Gyro0MagX",  // 62
-    "Gyro0MagY",  // 63
-    "Gyro0MagZ",  // 64
-    "Gyro0GyroX",  // 65
-    "Gyro0GyroY",  // 66
-    "Gyro0GyroZ",  // 67
-    "Meteors",  // 68
-    "SunAz",  // 69
-    "SunAlt",  // 70
-    "MoonAz",  // 71
-    "MoonAlt",  // 72
-    "MoonPhase",  // 73
-    "MercuryAz",  // 74
-    "MercuryAlt",  // 75
-    "VenusAz",  // 76
-    "VenusAlt",  // 77
-    "MarsAz",  // 78
-    "MarsAlt",  // 79
-    "JupiterAz",  // 80
-    "JupiterAlt",  // 81
-    "SaturnAz",  // 82
-    "SaturnAlt",  // 83
-    "UranusAz",  // 84
-    "UranusAlt",  // 85
-    "NeptuneAz",  // 86
-    "NeptuneAlt",  // 87
-    "ADMPlex0",  // 88
-    "MappedValue",  // 89
-    "SDCARDInserted", // 90
-    "SDCARDMounted", // 91
+    "INSAltitude",  // 15
+    "UTCTimeGNGGA",  // 16
+    "PosStatusGNGGA",  // 17
+    "SatCount",  // 18
+    "HemiGNGGANorth",  // 19
+    "HemiGNGGASouth",  // 20
+    "HemiGNGGAEast",  // 21
+    "HemiGNGGAWest",  // 22
+    "GPSPrecision",  // 23
+    "AltGNGGA",  // 24
+    "UTCTimeGNRMC",  // 25
+    "PosStatusGNRMCA",  // 26
+    "PosStatusGNRMCV",  // 27
+    "ModeGNRMCA",  // 28
+    "ModeGNRMCD",  // 29
+    "ModeGNRMCE",  // 30
+    "ModeGNRMCN",  // 31
+    "HemiGNRMCNorth",  // 32
+    "HemiGNRMCSouth",  // 33
+    "HemiGNRMCEast",  // 34
+    "HemiGNRMCWest",  // 35
+    "GSpeedGNRMC",  // 36
+    "HeadingGNRMC",  // 37
+    "UTCDateGNRMC",  // 38
+    "LFlagGPATT",  // 39
+    "SFlagGPATT",  // 40
+    "RSFlagGPATT",  // 41
+    "INSGPATT",  // 42
+    "SpeedNumGPATT",  // 43
+    "MileageGPATT",  // 44
+    "GSTDataGPATT",  // 45
+    "YawGPATT",  // 46
+    "RollGPATT",  // 47
+    "PitchGPATT",  // 48
+    "GNGGAValidCS",  // 49
+    "GNRMCValidCS",  // 50
+    "GPATTValidCS",  // 51
+    "GNGGAValidCD",  // 52
+    "GNRMCValidCD",  // 53
+    "GPATTValidCD",  // 54
+    "Gyro0AccX",  // 55
+    "Gyro0AccY",  // 56
+    "Gyro0AccZ",  // 57
+    "Gyro0AngX",  // 58
+    "Gyro0AngY",  // 59
+    "Gyro0AngZ",  // 60
+    "Gyro0MagX",  // 61
+    "Gyro0MagY",  // 62
+    "Gyro0MagZ",  // 63
+    "Gyro0GyroX",  // 64
+    "Gyro0GyroY",  // 65
+    "Gyro0GyroZ",  // 66
+    "Meteors",  // 67
+    "SunAz",  // 68
+    "SunAlt",  // 69
+    "MoonAz",  // 70
+    "MoonAlt",  // 71
+    "MoonPhase",  // 72
+    "MercuryAz",  // 73
+    "MercuryAlt",  // 74
+    "VenusAz",  // 75
+    "VenusAlt",  // 76
+    "MarsAz",  // 77
+    "MarsAlt",  // 78
+    "JupiterAz",  // 79
+    "JupiterAlt",  // 80
+    "SaturnAz",  // 81
+    "SaturnAlt",  // 82
+    "UranusAz",  // 83
+    "UranusAlt",  // 84
+    "NeptuneAz",  // 85
+    "NeptuneAlt",  // 86
+    "ADMPlex0",  // 87
+    "MappedValue",  // 88
+    "SDCARDInserted",  // 89
+    "SDCARDMounted",  // 90
   },
 };
 
@@ -1012,12 +1011,6 @@ bool matrixSwitch(void) {
       }
       else if ((matrixData.matrix_function[0][Mi][Fi]==INDEX_MATRIX_SWITCH_FUNCTION_INSHEADING)) {
         tmp_x = insData.ins_heading;
-        tmp_y = 0;
-        tmp_z = 0;
-        handle_digit=true;
-      }
-      else if ((matrixData.matrix_function[0][Mi][Fi]==INDEX_MATRIX_SWITCH_FUNCTION_INSSPEED)) {
-        tmp_x = insData.ins_speed;
         tmp_y = 0;
         tmp_z = 0;
         handle_digit=true;
@@ -1368,13 +1361,13 @@ bool matrixSwitch(void) {
         tmp_z = 0;
         handle_digit=true;
       }
-      else if ((matrixData.matrix_function[0][Mi][Fi]==INDEX_MATRIX_SWITCH_FUNCTION_SDCARD_INSERTED)) {
+      else if ((matrixData.matrix_function[0][Mi][Fi]==INDEX_MATRIX_SWITCH_FUNCTION_SDCARDINSERTED)) {
         tmp_x = sdcardData.sdcard_inserted;
         tmp_y = 0;
         tmp_z = 0;
         handle_digit=true;
       }
-      else if ((matrixData.matrix_function[0][Mi][Fi]==INDEX_MATRIX_SWITCH_FUNCTION_SDCARD_MOUNTED)) {
+      else if ((matrixData.matrix_function[0][Mi][Fi]==INDEX_MATRIX_SWITCH_FUNCTION_SDCARDMOUNTED)) {
         tmp_x = sdcardData.sdcard_mounted;
         tmp_y = 0;
         tmp_z = 0;

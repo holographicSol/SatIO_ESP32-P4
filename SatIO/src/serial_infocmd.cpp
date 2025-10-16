@@ -343,9 +343,9 @@ static void PrintHelp(void) {
 
       ins -m n              Set INS mode n. (0 : Off) (1 : Dynamic, set by gps every 100ms) (2 : Fixed, remains on after conditions met).
       ins -gyro n           INS uses gyro for attitude. (0 : gyro heading) (1 : gps heading).
-      ins -p n              Set INS mimimum required gps precision factor to initialize.
-      ins -s n              Set INS mimimum required speed to initialize.
-      ins -r n              Set INS maximum required heading range difference to initialize (difference between gps heading and gyro heading).
+      ins -p n              Set INS minmum required gps precision factor to initialize (higher requires less gps precision).
+      ins -s n              Set INS minmum required speed to initialize (lower requires less speed).
+      ins -r n              Set INS minmum required range difference difference between gps heading and gyro heading (higher allows more difference).
       ins --reset-forced    Reset INS remains on after conditions met.
 
   [ Satio ]
@@ -360,7 +360,7 @@ static void PrintHelp(void) {
 
       satio --speed-mode-gps     Use GPS speed values.
       satio --speed-mode-static  Do not update speed unless --set-speed or otherwise.
-      satio --set-speed n        Set speed in meters per second (ensure --speed-mode-static before --set-speed).
+      satio --set-speed n        Set speed in meters per second (ensure --speed-mode-static before --set-speed).satio --set-speed 0.1
       satio --speed-unit-KTS     Use default knots.
       satio --speed-unit-KPH     Convert knots per second to K/PH.
       satio --speed-unit-MPH     Convert knots per second to M/PH.
@@ -579,7 +579,7 @@ void setMatrixFunction(int switch_idx, int func_idx, int func_n) {
 void setMatrixX(int switch_idx, int func_idx, double func_x) {
   if (switch_idx>=0 && switch_idx<MAX_MATRIX_SWITCHES &&
       func_idx>=0 && func_idx<MAX_MATRIX_SWITCH_FUNCTIONS &&
-      func_x>=DBL_MIN &&
+      func_x>=-DBL_MAX &&
       func_x<DBL_MAX) {
     matrixData.matrix_function_xyz[0][switch_idx][func_idx][INDEX_MATRIX_FUNTION_X]=func_x;
     matrixData.matrix_switch_write_required[0][switch_idx]=true;
@@ -588,7 +588,7 @@ void setMatrixX(int switch_idx, int func_idx, double func_x) {
 
 void setMatrixY(int switch_idx, int func_idx, double func_y) {
   if (switch_idx>=0 && switch_idx<MAX_MATRIX_SWITCHES && func_idx>=0 &&
-      func_idx<MAX_MATRIX_SWITCH_FUNCTIONS && func_y>=DBL_MIN &&
+      func_idx<MAX_MATRIX_SWITCH_FUNCTIONS && func_y>=-DBL_MAX &&
       func_y<DBL_MAX) {
     matrixData.matrix_function_xyz[0][switch_idx][func_idx][INDEX_MATRIX_FUNTION_Y]=func_y;
     matrixData.matrix_switch_write_required[0][switch_idx]=true;
@@ -597,7 +597,7 @@ void setMatrixY(int switch_idx, int func_idx, double func_y) {
 
 void setMatrixZ(int switch_idx, int func_idx, double func_z) {
   if (switch_idx>=0 && switch_idx<MAX_MATRIX_SWITCHES && func_idx>=0 &&
-      func_idx<MAX_MATRIX_SWITCH_FUNCTIONS && func_z>=DBL_MIN && func_z<DBL_MAX) {
+      func_idx<MAX_MATRIX_SWITCH_FUNCTIONS && func_z>=-DBL_MAX && func_z<DBL_MAX) {
     matrixData.matrix_function_xyz[0][switch_idx][func_idx][INDEX_MATRIX_FUNTION_Z]=func_z;
     matrixData.matrix_switch_write_required[0][switch_idx]=true;
   }
@@ -814,7 +814,7 @@ void setCoordinatesDegrees(double latitude, double longitude) {
      satio --coord-mode-static
      satio --set-coord -lat 0.123 -lon 4.567
   */
-  if (latitude>DBL_MIN && latitude<DBL_MAX && longitude>DBL_MIN && longitude<DBL_MAX) {
+  if (latitude>=-90 && latitude<=90 && longitude>=-180 && longitude<=180) {
     satioData.degrees_latitude=latitude;
     satioData.degrees_longitude=longitude;
   }
@@ -829,7 +829,7 @@ void setAltitude(double altitude) {
      satio --altitude-unit-miles
      satio --altitude-unit-meters
   */
-  if (altitude>DBL_MIN && altitude<DBL_MAX && altitude!=NAN) {
+  if (altitude>=0 && altitude<DBL_MAX && altitude!=NAN) {
     satioData.altitude=altitude;
   }
 }
@@ -844,7 +844,7 @@ void setSpeed(double speed) {
      satio --speed-unit-MPH
      satio --speed-unit-mPS
   */
-  if (speed>DBL_MIN && speed<DBL_MAX && speed!=NAN) {
+  if (speed>=0 && speed<DBL_MAX && speed!=NAN) {
     satioData.speed=speed;
   }
 }
@@ -1247,8 +1247,6 @@ void outputSentences(void) {
       strcat(serial0Data.BUFFER, String(insData.ins_altitude).c_str());
       strcat(serial0Data.BUFFER, ",");
       strcat(serial0Data.BUFFER, String(insData.ins_heading).c_str());
-      strcat(serial0Data.BUFFER, ",");
-      strcat(serial0Data.BUFFER, String(insData.ins_speed).c_str());
       strcat(serial0Data.BUFFER, ",");
       createChecksumSerial0(serial0Data.BUFFER);
       strcat(serial0Data.BUFFER, "*");
@@ -1679,7 +1677,7 @@ void outputStat(void) {
     memset(counter_digits_1_row_N[4], 0, sizeof(counter_digits_1_row_N[4])); strcpy(counter_digits_1_row_N[4], String(satioData.degrees_longitude, 7).c_str());
     memset(counter_digits_1_row_N[5], 0, sizeof(counter_digits_1_row_N[5])); strcpy(counter_digits_1_row_N[5], String(String(satioData.altitude_converted) + " " + String(satioData.char_altitude_unit_mode[satioData.altitude_unit_mode])).c_str());
     memset(counter_digits_1_row_N[6], 0, sizeof(counter_digits_1_row_N[6])); strcpy(counter_digits_1_row_N[6], String(satioData.ground_heading).c_str());
-    memset(counter_digits_1_row_N[7], 0, sizeof(counter_digits_1_row_N[7])); strcpy(counter_digits_1_row_N[7], String(String(satioData.speed_converted, 2) + " " + String(satioData.char_speed_unit_mode[satioData.speed_unit_mode])).c_str()); // speed (3 dimensional: requires lat, long, alt, microtime)
+    memset(counter_digits_1_row_N[7], 0, sizeof(counter_digits_1_row_N[7])); strcpy(counter_digits_1_row_N[7], String(String(satioData.speed_converted, 2) + " " + String(satioData.char_speed_unit_mode[satioData.speed_unit_mode])).c_str());
     memset(counter_digits_1_row_N[8], 0, sizeof(counter_digits_1_row_N[8])); strcpy(counter_digits_1_row_N[8], String(satioData.mileage).c_str()); // make mileage any 3d direction, refactor 'distance'
     for (int i = 0; i < 10; i++) {if (i==0) {printf("%-19s", counter_chars_1_col_0[i+3]);} else {printf("%-19s", counter_digits_1_row_N[i-1]);}}
     printf("\n");
@@ -1692,12 +1690,12 @@ void outputStat(void) {
     memset(counter_digits_1_row_N[4], 0, sizeof(counter_digits_1_row_N[4])); strcpy(counter_digits_1_row_N[4], String(insData.ins_longitude, 7).c_str());
     memset(counter_digits_1_row_N[5], 0, sizeof(counter_digits_1_row_N[5])); strcpy(counter_digits_1_row_N[5], String(insData.ins_altitude).c_str());
     memset(counter_digits_1_row_N[6], 0, sizeof(counter_digits_1_row_N[6])); strcpy(counter_digits_1_row_N[6], String(insData.ins_heading).c_str());
-    memset(counter_digits_1_row_N[7], 0, sizeof(counter_digits_1_row_N[7])); strcpy(counter_digits_1_row_N[7], String(String(insData.ins_speed, 2) + " " + String(satioData.char_speed_unit_mode[satioData.speed_unit_mode])).c_str());
+    memset(counter_digits_1_row_N[7], 0, sizeof(counter_digits_1_row_N[7])); strcpy(counter_digits_1_row_N[7], String("N/A").c_str());
     memset(counter_digits_1_row_N[8], 0, sizeof(counter_digits_1_row_N[8])); strcpy(counter_digits_1_row_N[8], String("pending").c_str());
     for (int i = 0; i < 10; i++) {if (i==0) {printf("%-19s", counter_chars_1_col_0[i+4]);} else {printf("%-19s", counter_digits_1_row_N[i-1]);}}
     printf("\n");
     Serial.println("----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
-    Serial.println("INS MODE : " + String(insData.INS_MODE) + " (" + String(insData.char_ins_mode[insData.INS_MODE]) + ") | INS FLAG : " + String(insData.INS_INITIALIZATION_FLAG) + "/" + String(MAX_INS_INITIALIZATION_FLAG) + " | INS FORCED ON FLAG : " + String(insData.INS_FORCED_ON_FLAG)
+    Serial.println("INS MODE : " + String(insData.INS_MODE) + " (" + String(insData.char_ins_mode[insData.INS_MODE]) + ") | INS INIT FLAG : " + String(insData.INS_INITIALIZATION_FLAG) + "/" + String(MAX_INS_INITIALIZATION_FLAG) + " | INS FORCED ON FLAG : " + String(insData.INS_FORCED_ON_FLAG)
     + " | INS_REQ_GPS_PRECISION : " + String(insData.INS_REQ_GPS_PRECISION) + " | INS_REQ_MIN_SPEED : " + String(insData.INS_REQ_MIN_SPEED) + " | INS_REQ_HEADING_RANGE_DIFF : " + String(insData.INS_REQ_HEADING_RANGE_DIFF));
     Serial.println("----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
     Serial.println("                   X                  Y                  Z");
