@@ -242,10 +242,10 @@ Satio
       satio --speed-mode-gps     Use GPS speed values.
       satio --speed-mode-static  Do not update speed unless --set-speed or otherwise.
       satio --set-speed n        Set speed in meters per second (ensure --speed-mode-static before --set-speed).
-      satio --speed-unit-meters  Use default meters per second.
-      satio --speed-unit-kph     Convert meters per second to K/PH.
-      satio --speed-unit-mph     Convert meters per second to M/PH.
-      satio --speed-unit-kts     Convert meters per second to knots.
+      satio --speed-unit-KTS     Use default knots.
+      satio --speed-unit-KPH     Convert knots per second to K/PH.
+      satio --speed-unit-MPH     Convert knots per second to M/PH.
+      satio --speed-unit-mPS     Convert knots per second to meters per second.
 
       satio --altitude-mode-gps         Use GPS altitude values.
       satio --altitude-mode-static      Do not update speed unless --set-altitude or otherwise.
@@ -360,6 +360,9 @@ Other
   https://drive.google.com/drive/folders/13yynSxkKL-zxb7iLSkg0v0VXkSLgmtW-?usp=sharing
 
 -----
+
+
+
 
 
 
