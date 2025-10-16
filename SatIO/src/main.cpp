@@ -144,7 +144,7 @@ long system_sync_retry_max=2000;
 void syncTasks() {
   Serial.println("[syncronizing system] please wait");
   global_task_sync=false;
-  while (!sync_rtc_bool==true) {
+  while (satioData.sync_rtc_immediately_flag==true) {
     getSystemTime();
     system_sync_retry_max--;
     if (system_sync_retry_max<=0)
@@ -199,6 +199,7 @@ void taskStorage(void * pvParameters) {
  * @brief Performas many operations including:
  *  (1) Collects, validates and stores GPS data.
  *  (2) Syncs INS data on successful validation.
+ * Consider renaming task to something like 'time and location'
  */
 void taskGPS(void * pvParameters) {
   esp_task_wdt_add(nullptr);
@@ -212,9 +213,10 @@ void taskGPS(void * pvParameters) {
     // ------------------------------------------------
     // Set SatIO data.
     // ------------------------------------------------
-    if ((gnggaData.valid_checksum=true) &&
+    if (((gnggaData.valid_checksum=true) &&
         (gnrmcData.valid_checksum=true) &&
-        (gpattData.valid_checksum=true)) {
+        (gpattData.valid_checksum=true)) ||
+        satioData.set_rtc_datetime_flag==true) {
         setSatIOData();
         // --------------------------------------------
         // Set INS data.

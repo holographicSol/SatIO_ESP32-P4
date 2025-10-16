@@ -144,7 +144,7 @@ struct satioFileStruct {
 
     (23) UTC_AUTO_OFFSET_FLAG              bool utc_auto_offset_flag
 
-    (24) SET_TIME_AUTOMATICALLY            bool set_time_automatically
+    (24) SET_DATETIME_AUTOMATICALLY        bool set_time_automatically
 
     ins;
 

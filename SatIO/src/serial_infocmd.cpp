@@ -120,6 +120,13 @@ bool val_mappable_value_index(const char * data) {
   return false;
 }
 
+bool val_map_slot_index(const char * data) {
+  Serial.println(data);
+  if (str_is_int8(data)!=true) {return false;}
+  if (atoi(data)<MAX_MAP_SLOTS) {return true;} 
+  return false;
+}
+
 bool val_ins_mode(const char * data) {
   if (str_is_int8(data)) {if (atol(data)<MAX_INS_MODE) {return true;}}
   return false;
@@ -160,7 +167,6 @@ static void PrintHelp(void) {
       matrix -s n                 Specify switch index n.
       matrix -f n                 Specify function index n.
       matrix -p n                 Set port for switch -s.
-
       matrix -fn n                Set function -f for switch -s. See available matrix functions.
                                   [0] None
                                   [1] On
@@ -254,19 +260,16 @@ static void PrintHelp(void) {
                                   [89] MappedValue
                                   [90] SDCARDInserted
                                   [91] SDCARDMounted
-
       matrix -fx n                Set function -f value x for switch -s.
       matrix -fy n                Set function -f value y for switch -s.
       matrix -fz n                Set function -f value z for switch -s.
       matrix -fi n                Set function -f logic inverted for switch -s.
-
       matrix -fo n                Set function -f operator for switch -s.
                                   [0] None
                                   [1] Equal
                                   [2] Over
                                   [3] Under
                                   [4] Range
-
       matrix --pwm0 n             Set switch -s uS time off period (0uS = remain on)
       matrix --pwm1 n             Set switch -s uS time on period  (0uS = remain off after on)
       matrix --flux n             Set switch -s output fluctuation threshold.
@@ -275,35 +278,66 @@ static void PrintHelp(void) {
       matrix --omode n            Set switch -s output mode: (0 : matrix logic) (1 : mapped value analog/digital).
       matrix --map-slot n         Set switch -s output as map slot n value.
 
-      example set matrix logic 0 function 0:
-      matrix -s 0 -f 0 -p 33 -fn 90 -fx 1 -fo 1 --pwm0 1000000 --pwm1 15000 --computer-assist 1
+      example set matrix logic 0 function 0 to detect sdcard mounted:
+      matrix -s 0 -f 0 -p 33 -fn 91 -fx 1 -fo 1 --pwm0 1000000 --pwm1 15000 --computer-assist 1
       matrix -s 0 --omode 0
-  
+
   [ Mapping ]
 
-      mapping --save
-      mapping --load
-      mapping --delete
-      mapping -s n       Specify map slot n.
-      mapping -m n       Specify slot -s mode. (0 : map min to max) (1 : center map x0) (2 : center map x1)
-      mapping -c0 n      Configuration map slot -s  value to map. See available map values.
-      mapping -c1 n      Configuration map slot -s. (mode 0 : in_min)  (mode 1 : approximate center value)
-      mapping -c2 n      Configuration map slot -s. (mode 0 : in_max)  (mode 1 : Neg_range : 0 to approximate center value)
-      mapping -c3 n      Configuration map slot -s. (mode 0 : out_min) (mode 1 : Pos_range : ADC max - neg range)
-      mapping -c4 n      Configuration map slot -s. (mode 0 : out_max) (mode 1 : out_max)
-      mapping -c5 n      Configuration map slot -s. (mode 1 only : DEADZONE : expected flutuation at center)
+      map --new      Clears all mapping in memory.
+      map --save
+      map --load
+      map --delete
+      map -s n       Specify map slot n.
+      map -m n       Specify slot -s mode. (0 : map min to max) (1 : center map x0) (2 : center map x1)
+      map -c0 n      Configuration map slot -s value to map. See available map values.
+                     [0] Digital
+                     [1] YawGPATT
+                     [2] RollGPATT
+                     [3] PitchGPATT
+                     [4] Gyro0AccX
+                     [5] Gyro0AccY
+                     [6] Gyro0AccZ
+                     [7] Gyro0AngX
+                     [8] Gyro0AngY
+                     [9] Gyro0AngZ
+                     [10] Gyro0MagX
+                     [11] Gyro0MagY
+                     [12] Gyro0MagZ
+                     [13] Gyro0GyroX
+                     [14] Gyro0GyroY
+                     [15] Gyro0GyroZ
+                     [16] ADMPlex0_0
+                     [17] ADMPlex0_1
+                     [18] ADMPlex0_2
+                     [19] ADMPlex0_3
+                     [20] ADMPlex0_4
+                     [21] ADMPlex0_5
+                     [22] ADMPlex0_6
+                     [23] ADMPlex0_7
+                     [24] ADMPlex0_8
+                     [25] ADMPlex0_9
+                     [26] ADMPlex0_10
+                     [27] ADMPlex0_11
+                     [28] ADMPlex0_12
+                     [29] ADMPlex0_13
+                     [30] ADMPlex0_14
+                     [31] ADMPlex0_15
+      map -c1 n      Configuration map slot -s. (mode 0 : in_min)  (mode 1 : approximate center value)
+      map -c2 n      Configuration map slot -s. (mode 0 : in_max)  (mode 1 : Neg_range : 0 to approximate center value)
+      map -c3 n      Configuration map slot -s. (mode 0 : out_min) (mode 1 : Pos_range : ADC max - neg range)
+      map -c4 n      Configuration map slot -s. (mode 0 : out_max) (mode 1 : out_max)
+      map -c5 n      Configuration map slot -s. (mode 1 only : DEADZONE : expected flutuation at center)
 
       example map analog stick axis x0 on admplex0 channel 0 into map slot 0:
-      mapping -s 0 -m 1 -c0 16 -c1 1974 -c2 1974 -c3 1894 -c4 255 -c5 50
+      map -s 0 -m 1 -c0 16 -c1 1974 -c2 1974 -c3 1894 -c4 255 -c5 50
       matrix -s 0 --map-slot 0
       Optional: matrix -s 0 --omode 1
-      Optional: matrix -s 0 --computer-assist 1
 
       example map analog stick axis x1 on admplex0 channel 1 into map slot 1:
-      mapping -s 1 -m 2 -c0 17 -c1 1974 -c2 1974 -c3 1894 -c4 255 -c5 50
+      map -s 1 -m 2 -c0 17 -c1 1974 -c2 1974 -c3 1894 -c4 255 -c5 50
       matrix -s 1 --map-slot 1
       Optional: matrix -s 1 --omode 1
-      Optional: matrix -s 1 --computer-assist 1
 
   [ INS ]
 
@@ -312,14 +346,17 @@ static void PrintHelp(void) {
       ins -p n              Set INS mimimum required gps precision factor to initialize.
       ins -s n              Set INS mimimum required speed to initialize.
       ins -r n              Set INS maximum required heading range difference to initialize (difference between gps heading and gyro heading).
-      ins --reset-forced n  Reset INS remains on after conditions met.
+      ins --reset-forced    Reset INS remains on after conditions met.
 
   [ Satio ]
 
-      satio --speed-units n  Set displayed units (0 : M/S) (1 : MPH) (2 : KPH) (3 : KTS estimated)
-      satio --utc-offset n   Set +-seconds offset time.
-      satio --mode-gngga     Use GNGGA data for location.
-      satio --mode-gnrmc     Use GNRMC data for location.
+      satio --speed-units n      Set displayed units (0 : M/S) (1 : MPH) (2 : KPH) (3 : KTS estimated)
+      satio --mode-gngga         Use GNGGA data for location.
+      satio --mode-gnrmc         Use GNRMC data for location.
+      satio --utc-offset n       Set +-seconds offset time.
+      satio --auto-datetime-on   Enable set datetime automatically  (--auto-datetime-on overrides any datetime -set)
+      satio --auto-datetime-off  Disable set datetime automatically (ensure --auto-datetime-off before using -set time)
+      satio -set --year n --month n --mday n --hour n --minute n --second n  (must be UTC except if utc offset 0)
 
   [ Gyro ]
 
@@ -332,6 +369,12 @@ static void PrintHelp(void) {
       sdcard --mount
       sdcard --unmount
 
+  [ StarNav ]
+
+      starnav RA_HOUR RA_MIN RA_SEC DEC_D DEC_M DEC_S
+    
+      example: starnav 6 45 8.9 -16 42 58.0
+
   [ Stat ]
 
       stat -e     Enable print.
@@ -339,12 +382,12 @@ static void PrintHelp(void) {
       stat -t     Enables/disables serial print stats and counters. Takes arguments -e, -d.
       stat --partition-table      Print partition table.
       stat --memory-ram           Print ram information.
-      stat --sdcard               Print matrix information.
+      stat --sdcard               Print SDCard information.
       stat --system               Print system configuration.
-      stat --matrix               Print matrix configuration.
       stat --matrix n             Print matrix switch n configuration.
       stat --matrix -A            Print configuration of all matrix switches.
-      stat --mapping              Print configuration of all mapping slots.
+      stat --map n                Print map slot n data.
+      stat --map -A               Print all map slot data.
       stat --sentence -A          Print all sentences. Takes arguments -e, -d.
       stat --sentence --satio     Takes arguments -e, -d.
       stat --sentence --ins       Takes arguments -e, -d.
@@ -364,7 +407,7 @@ static void PrintHelp(void) {
       stat --sentence --uranus    Takes arguments -e, -d.
       stat --sentence --neptune   Takes arguments -e, -d.
       stat --sentence --meteors   Takes arguments -e, -d.
-  
+
   [ Other ]
 
       -v    Enable verbosoity.
@@ -413,102 +456,58 @@ void PrintSatIOData(void) {
     Serial.println("-----------------------------------------------------");
 }
 
-void PrintMappingConfig() {
-  Serial.println("-----------------------------------------------------");
-  Serial.println("[Available Mapping Values]");
-  for (int Mi=0; Mi<MAX_MAPPABLE_VALUES; Mi++)
-    {Serial.println("  [" + String(Mi) + "] " + String(mappingData.char_map_value[Mi]));}
-}
-
-void PrintMappingData(void) {
-  PrintMappingConfig();
-  for (int Mi=0; Mi<MAX_MAP_SLOTS; Mi++) {
+void PrintMappingNData(int map_slot) {
+  if (map_slot>=0 && map_slot<MAX_MAP_SLOTS) {
     Serial.println("-----------------------------------------------------");
-    Serial.println("[slot] " + String(Mi));
-    Serial.println("[map_mode] " + String(mappingData.map_mode[0][Mi]));
-    Serial.println("[map slot idx] " + String(mappingData.index_mapped_value[0][Mi]));
-    Serial.println("[map config 0] " + String(mappingData.mapping_config[0][Mi][0]));
-    Serial.println("[map config 1] " + String(mappingData.mapping_config[0][Mi][1]));
-    Serial.println("[map config 2] " + String(mappingData.mapping_config[0][Mi][2]));
-    Serial.println("[map config 3] " + String(mappingData.mapping_config[0][Mi][3]));
-    Serial.println("[map config 4] " + String(mappingData.mapping_config[0][Mi][4]));
-    Serial.println("[map config 5] " + String(mappingData.mapping_config[0][Mi][5]));
+    Serial.println("[slot] " + String(map_slot));
+    Serial.println("[map_mode] " + String(mappingData.map_mode[0][map_slot]));
+    Serial.println("[map slot idx] " + String(mappingData.index_mapped_value[0][map_slot]));
+    Serial.println("[map config 0] " + String(mappingData.mapping_config[0][map_slot][0]));
+    Serial.println("[map config 1] " + String(mappingData.mapping_config[0][map_slot][1]));
+    Serial.println("[map config 2] " + String(mappingData.mapping_config[0][map_slot][2]));
+    Serial.println("[map config 3] " + String(mappingData.mapping_config[0][map_slot][3]));
+    Serial.println("[map config 4] " + String(mappingData.mapping_config[0][map_slot][4]));
+    Serial.println("[map config 5] " + String(mappingData.mapping_config[0][map_slot][5]));
     Serial.println("-----------------------------------------------------");
   }
 }
 
-void PrintMatrixConfig() {
-    Serial.println("-----------------------------------------------------");
-    Serial.println("[load_matrix_on_startup] " + String(matrixData.load_matrix_on_startup));
-    Serial.println("[Available Switch Functions]");
-    for (int Mi=0; Mi<MAX_MATRIX_FUNCTION_NAMES; Mi++)
-      {Serial.println("  [" + String(Mi) + "] " +
-        String(matrixData.matrix_function_names[Mi]));}
-    Serial.println("[Available Switch Function Operators]");
-    for (int Mi=0; Mi<MAX_MATRIX_OPERATORS; Mi++)
-      {Serial.println("  [" + String(Mi) + "] " +
-        String(matrixData.matrix_function_operator_name[Mi]));}
-    Serial.println("-----------------------------------------------------");
+void PrintMappingData(void) {
+  for (int Mi=0; Mi<MAX_MAP_SLOTS; Mi++) {PrintMappingNData(Mi);}
 }
 
-void PrintMatrixData(void) {
-    for (int Mi=0; Mi<MAX_MATRIX_SWITCHES; Mi++) {
+void PrintMatrixNData(int matrix_index) {
+  if (matrix_index>=0 && matrix_index<MAX_MATRIX_SWITCHES) {
     Serial.println("-----------------------------------------------------");
-    Serial.println("[matrix switch] " + String(Mi));
-    Serial.println("[computer assist] " + String(matrixData.computer_assist[0][Mi]));
-    Serial.println("[output mode] " + String(matrixData.output_mode[0][Mi]));
-    Serial.println("[map slot] " + String(mappingData.index_mapped_value[0][Mi]));
-    Serial.println("[flux] " + String(matrixData.flux_value[0][Mi]));
-    Serial.println("[pwm] 0: " + String(matrixData.output_pwm[0][Mi][0]) + " 1: " +
-      String(matrixData.output_pwm[0][Mi][1]));
-    Serial.println("[port] " + String(matrixData.matrix_port_map[0][Mi]));
-    Serial.println("[active] " + String(matrixData.switch_intention[0][Mi]));
+    Serial.println("[matrix switch] " + String(matrix_index));
+    Serial.println("[computer assist] " + String(matrixData.computer_assist[0][matrix_index]));
+    Serial.println("[output mode] " + String(matrixData.output_mode[0][matrix_index]));
+    Serial.println("[flux] " + String(matrixData.flux_value[0][matrix_index]));
+    Serial.println("[pwm] 0: " + String(matrixData.output_pwm[0][matrix_index][0]) + " 1: " +
+      String(matrixData.output_pwm[0][matrix_index][1]));
+    Serial.println("[port] " + String(matrixData.matrix_port_map[0][matrix_index]));
+    Serial.println("[active] " + String(matrixData.switch_intention[0][matrix_index]));
     Serial.println("-----------------------------------------------------");
     for (int Fi=0; Fi<MAX_MATRIX_SWITCH_FUNCTIONS; Fi++) {
       Serial.println("[function " + String(Fi) + " name] " +
-        String(matrixData.matrix_function_names[matrixData.matrix_function[0][Mi][Fi]]));
+        String(matrixData.matrix_function_names[matrixData.matrix_function[0][matrix_index][Fi]]));
       Serial.println("[function " + String(Fi) + " matrix_function_operator_name] " +
-        String(matrixData.matrix_switch_operator_index[0][Mi][Fi]));
+        String(matrixData.matrix_switch_operator_index[0][matrix_index][Fi]));
       Serial.println("[function " + String(Fi) + " inverted] " +
-        String(matrixData.matrix_switch_inverted_logic[0][Mi][Fi]));
+        String(matrixData.matrix_switch_inverted_logic[0][matrix_index][Fi]));
       Serial.println("[function " + String(Fi) + " x] " +
-        String(matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_X]));
+        String(matrixData.matrix_function_xyz[0][matrix_index][Fi][INDEX_MATRIX_FUNTION_X]));
       Serial.println("[function " + String(Fi) + " y] " +
-        String(matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Y]));
+        String(matrixData.matrix_function_xyz[0][matrix_index][Fi][INDEX_MATRIX_FUNTION_Y]));
       Serial.println("[function " + String(Fi) + " z] " +
-        String(matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z]));
+        String(matrixData.matrix_function_xyz[0][matrix_index][Fi][INDEX_MATRIX_FUNTION_Z]));
       Serial.println("-----------------------------------------------------");
     }
   }
 }
 
-void PrintMatrixNData() {
-  int Mi=atoi(plainparser.tokens[0]);
-  Serial.println("-----------------------------------------------------");
-  Serial.println("[matrix switch] " + String(Mi));
-  Serial.println("[computer assist] " + String(matrixData.computer_assist[0][Mi]));
-  Serial.println("[output mode] " + String(matrixData.output_mode[0][Mi]));
-  Serial.println("[flux] " + String(matrixData.flux_value[0][Mi]));
-  Serial.println("[pwm] 0: " + String(matrixData.output_pwm[0][Mi][0]) + " 1: " +
-    String(matrixData.output_pwm[0][Mi][1]));
-  Serial.println("[port] " + String(matrixData.matrix_port_map[0][Mi]));
-  Serial.println("[active] " + String(matrixData.switch_intention[0][Mi]));
-  Serial.println("-----------------------------------------------------");
-  for (int Fi=0; Fi<MAX_MATRIX_SWITCH_FUNCTIONS; Fi++) {
-    Serial.println("[function " + String(Fi) + " name] " +
-      String(matrixData.matrix_function_names[matrixData.matrix_function[0][Mi][Fi]]));
-    Serial.println("[function " + String(Fi) + " matrix_function_operator_name] " +
-      String(matrixData.matrix_switch_operator_index[0][Mi][Fi]));
-    Serial.println("[function " + String(Fi) + " inverted] " +
-      String(matrixData.matrix_switch_inverted_logic[0][Mi][Fi]));
-    Serial.println("[function " + String(Fi) + " x] " +
-      String(matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_X]));
-    Serial.println("[function " + String(Fi) + " y] " +
-      String(matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Y]));
-    Serial.println("[function " + String(Fi) + " z] " +
-      String(matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z]));
-    Serial.println("-----------------------------------------------------");
-  }
+void PrintMatrixData(void) {
+    for (int Mi=0; Mi<MAX_MATRIX_SWITCHES; Mi++) {PrintMatrixNData(Mi);}
 }
 
 void PrintSDCardInformation() {
@@ -673,6 +672,11 @@ void setINSMode(int ins_mode) {
     {insData.INS_MODE=ins_mode;}
 }
 
+void setINSUseGyroHeading(int use_gyro_heading) {
+  if (use_gyro_heading>=0 && use_gyro_heading<=1)
+    {insData.INS_USE_GYRO_HEADING=use_gyro_heading;}
+}
+
 void setINSGPSPrecision(double ins_precision) {
   if (ins_precision>=0 && ins_precision<DBL_MAX)
     {insData.INS_REQ_GPS_PRECISION=ins_precision;}
@@ -759,6 +763,36 @@ void deleteMatrix(int matrix_file_slot) {
   }
 }
 
+void datetimeSetRTC(uint16_t year, uint8_t month, uint8_t mday,
+                            uint8_t hour, uint8_t min, uint8_t sec) {
+  /*
+  satio --utc-offset n       Set +-seconds offset time.
+  satio --auto-datetime-on   Enable set datetime automatically
+  satio --auto-datetime-off  Disable set datetime automatically (-set requires auto off prior to calling set)
+  satio -set --year n --month n --mday n --hour n --minute n --second n  (must be UTC except if utc offset 0)
+  satio -set --year 25 --month 10 --mday 16 --hour 5 --minute 0 --second 0
+  */
+  if (year>=0  && year <UINT16_MAX &&
+      month>=0 && month<UINT8_MAX  &&
+      mday>=0  && mday <UINT8_MAX  &&
+      hour>=0  && hour <UINT8_MAX  &&
+      min>=0   && min  <UINT8_MAX  &&
+      sec>=0   && sec  <UINT8_MAX) {
+    satioData.tmp_year_int=year;
+    satioData.tmp_month_int=month;
+    satioData.tmp_day_int=mday;
+    satioData.tmp_hour_int=hour;
+    satioData.tmp_minute_int=min;
+    satioData.tmp_second_int=sec;
+    satioData.set_rtc_datetime_flag=true;
+  }
+}
+
+void datetimeSetDTAuto(bool set_dt_auto) {
+  if (set_dt_auto==true) {satioData.sync_rtc_immediately_flag=true; satioData.set_time_automatically=true;}
+  else {satioData.set_time_automatically=false;}
+}
+
 void star_nav() {
   // star sirius test: starnav 6 45 8.9 -16 42 58.0
   // ngc test:         starnav 2 20 35.0 -23 7 0.0
@@ -772,11 +806,11 @@ void star_nav() {
   // non-h400          starnav 7 38 3 -14 52 3
   //                   starnav 1 33 9 30 39 0
   simple_argparser_init_from_buffer(&plainparser, serial0Data.BUFFER, 1);
-  if ((str_is_int32(plainparser.tokens[0])==true) &&
-      (str_is_int32(plainparser.tokens[1])==true) &&
+  if ((str_is_int8(plainparser.tokens[0])==true) &&
+      (str_is_int8(plainparser.tokens[1])==true) &&
       (str_is_float(plainparser.tokens[2])==true) &&
-      (str_is_int32(plainparser.tokens[3])==true) &&
-      (str_is_int32(plainparser.tokens[4])==true) &&
+      (str_is_int8(plainparser.tokens[3])==true) &&
+      (str_is_int8(plainparser.tokens[4])==true) &&
       (str_is_float(plainparser.tokens[5])==true)
     )
   {
@@ -906,21 +940,29 @@ void CmdProcess(void) {
       enable=false;
       if (argparser_has_flag(&parser, "disable") || argparser_has_flag(&parser, "d")) {enable=false;}
       else if (argparser_has_flag(&parser, "enable") || argparser_has_flag(&parser, "e")) {enable=true;}
+
       if (argparser_has_flag(&parser, "t")) {
         if (enable) {systemData.output_stat=enable; systemData.output_stat_v=verbose; systemData.output_stat_vv=verbose_1;}
         else {systemData.output_stat=false; systemData.output_stat_v=false; systemData.output_stat_vv=false;}
       }
       if (argparser_has_flag(&parser, "partition-table")) {print_partition_table();}
+
       if (argparser_has_flag(&parser, "memory-ram")) {print_ram_info();}
+
       if (argparser_has_flag(&parser, "sdcard")) {PrintSDCardInformation();}
+
       if (strcmp(serial0Data.BUFFER, "stat --system")==0) {PrintSystemData();}
-      if (strcmp(serial0Data.BUFFER, "stat --matrix\r")==0) {PrintMatrixConfig();}
+
       if (strncmp(serial0Data.BUFFER, "stat --matrix ", strlen("stat --matrix "))==0) {
         if (argparser_has_flag(&parser, "A")) {PrintMatrixData();}
-        else {simple_argparser_init_from_buffer(&plainparser, serial0Data.BUFFER, 2);
-          if (val_switch_index(plainparser.tokens[0])) {PrintMatrixNData();}}
+        else {PrintMatrixNData(argparser_get_int8(&parser, "matrix", -1));}
       }
-      else if (strncmp(serial0Data.BUFFER, "stat --mapping", strlen("stat --mapping"))==0) {PrintMappingData();}
+
+      else if (strncmp(serial0Data.BUFFER, "stat -map ", strlen("stat -map "))==0) {
+        if (argparser_has_flag(&parser, "A")) {PrintMappingData();}
+        else {PrintMappingNData(argparser_get_int8(&parser, "map", -1));}
+      }
+
       else if (argparser_has_flag(&parser, "sentence")) {
         if (argparser_has_flag(&parser, "A")) {systemData.output_satio_all=enable; setAllSentenceOutput(enable);}
         if (argparser_has_flag(&parser, "satio")) {systemData.output_satio_enabled=enable;}
@@ -960,12 +1002,13 @@ void CmdProcess(void) {
     else if (strcmp(pos[0], "starnav")==0) {star_nav();}
     
     if (systemData.serial_command) {
+
       if (strcmp(pos[0], "system")==0) {
         if (argparser_has_flag(&parser, "save")) {sdmmcFlagData.save_system=true;}
         else if (argparser_has_flag(&parser, "load")) {sdmmcFlagData.load_system=true;}
         else if (argparser_has_flag(&parser, "restore-defaults")) {restore_system_defaults();}
       }
-      else if (strcmp(pos[0], "mapping")==0) {
+      else if (strcmp(pos[0], "map")==0) {
         if (argparser_has_flag(&parser, "new")) {set_all_mapping_default(); {return;}}
         else if (argparser_has_flag(&parser, "save")) {sdmmcFlagData.save_mapping=true;}
         else if (argparser_has_flag(&parser, "load")) {sdmmcFlagData.load_mapping=true;}
@@ -1031,24 +1074,36 @@ void CmdProcess(void) {
         }
       }
       else if (strcmp(pos[0], "ins")==0) {
-        if (argparser_has_flag(&parser, "m")) {setINSMode(argparser_get_int8(&parser, "m", INS_MODE_DYNAMIC));}
-        if (argparser_has_flag(&parser, "gyro")) {insData.INS_USE_GYRO_HEADING=argparser_get_int8(&parser, "gyro", 1);}
-        if (argparser_has_flag(&parser, "p")) {setINSGPSPrecision(argparser_get_double(&parser, "p", 0.5));}
-        if (argparser_has_flag(&parser, "s")) {setINSMinSpeed(argparser_get_double(&parser, "s", 0.3));}
-        if (argparser_has_flag(&parser, "r")) {setINSHeadingRangeDiff(argparser_get_double(&parser, "r", 0));}
+        if (argparser_has_flag(&parser, "m")) {setINSMode(argparser_get_int8(&parser, "m", -1));}
+        if (argparser_has_flag(&parser, "gyro")) {setINSUseGyroHeading(argparser_get_int8(&parser, "gyro", -1));}
+        if (argparser_has_flag(&parser, "p")) {setINSGPSPrecision(argparser_get_double(&parser, "p", -1));}
+        if (argparser_has_flag(&parser, "s")) {setINSMinSpeed(argparser_get_double(&parser, "s", -1));}
+        if (argparser_has_flag(&parser, "r")) {setINSHeadingRangeDiff(argparser_get_double(&parser, "r", -1));}
         if (argparser_has_flag(&parser, "reset-forced")) {insData.INS_FORCED_ON_FLAG=false;}
       }
+
       else if (strcmp(pos[0], "satio")==0) {
-        if (argparser_has_flag(&parser, "speed-units")) {setSpeedUnits(argparser_get_int8(&parser, "speed-units", 0));}
-        if (argparser_has_flag(&parser, "utc-offset")) {setUTCSecondOffset(argparser_get_int64(&parser, "utc-offset", 0));}
+        if (argparser_has_flag(&parser, "speed-units")) {setSpeedUnits(argparser_get_int8(&parser, "speed-units", -1));}
         if (argparser_has_flag(&parser, "mode-gngga")) {satioData.coordinate_conversion_mode=0;}
-        else if (argparser_has_flag(&parser, "mode-gnrmc")) {satioData.coordinate_conversion_mode=1;}
+        if (argparser_has_flag(&parser, "mode-gnrmc")) {satioData.coordinate_conversion_mode=1;}
+        if (argparser_has_flag(&parser, "utc-offset")) {setUTCSecondOffset(argparser_get_int64(&parser, "utc-offset", 0));}
+        if (argparser_has_flag(&parser, "auto-datetime-on")) {datetimeSetDTAuto(true);}
+        if (argparser_has_flag(&parser, "auto-datetime-off")) {datetimeSetDTAuto(false);}
+        if (argparser_has_flag(&parser, "set")) {
+          datetimeSetRTC(argparser_get_uint16(&parser, "year", -1),
+                                 argparser_get_uint8(&parser,  "month", -1),
+                                 argparser_get_uint8(&parser,  "mday", -1),
+                                 argparser_get_uint8(&parser,  "hour", -1),
+                                 argparser_get_uint8(&parser,  "minute", -1),
+                                 argparser_get_uint8(&parser,  "second", -1));}
       }
+
       else if (strcmp(pos[0], "gyro")==0) {
         if (argparser_has_flag(&parser, "calacc")) {WT901CalAcc();}
         if (argparser_has_flag(&parser, "calmag-start")) {WT901CalMagStart();}
         else if (argparser_has_flag(&parser, "calmag-stop")) {WT901CalMagEnd();}
       }
+
       else if (strcmp(pos[0], "sdcard")==0) {
         if (argparser_has_flag(&parser, "mount")) {mountSDCard();}
         else if (argparser_has_flag(&parser, "unmount")) {unmountSDCard();}

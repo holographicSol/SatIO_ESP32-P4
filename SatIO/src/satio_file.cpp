@@ -86,7 +86,7 @@ struct satioFileStruct satioFileData = {
         "SPEED_CONVERSION_MODE",      // 21
         "UTC_SECOND_OFFSET",          // 22
         "UTC_AUTO_OFFSET_FLAG",       // 23
-        "SET_TIME_AUTOMATICALLY",     // 24
+        "SET_DATETIME_AUTOMATICALLY", // 24
         "INS_REQ_GPS_PRECISION",      // 25
         "INS_REQ_MIN_SPEED",          // 26
         "INS_REQ_HEADING_RANGE_DIFF", // 27

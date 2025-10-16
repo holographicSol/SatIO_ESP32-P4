@@ -118,6 +118,8 @@ struct SATIOStruct {
     int64_t utc_second_offset;                 // UTC offset in seconds
     bool utc_auto_offset_flag;                          // Auto offset flag
     bool set_time_automatically;                        // Auto time setting flag
+    bool set_rtc_datetime_flag;
+    bool sync_rtc_immediately_flag;
 };
 
 extern struct SATIOStruct satioData;

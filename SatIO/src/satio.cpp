@@ -107,6 +107,8 @@ struct SATIOStruct satioData = {
     .utc_second_offset = 0,
     .utc_auto_offset_flag = false,
     .set_time_automatically = true,
+    .set_rtc_datetime_flag = false,
+    .sync_rtc_immediately_flag = true, // default true to attempt sync immediately on starttup
 };
 
 LocPoint loc_point1_gps = {0.0, 0.0, 0.0, 0};
@@ -721,52 +723,65 @@ void extractDateTimeFromGPSData(void) {
   satioData.tmp_millisecond_int=atoi(satioData.tmp_millisecond);
 }
 
-bool sync_rtc_bool=false;
+void setRTCDateTime() {
+  rtc.adjust(DateTime((uint16_t)satioData.tmp_year_int, (uint8_t)satioData.tmp_month_int, (uint8_t)satioData.tmp_day_int,
+  (uint8_t)satioData.tmp_hour_int, (uint8_t)satioData.tmp_minute_int, (uint8_t)satioData.tmp_second_int));
+  setSystemTime(0);
+  storeRTCSYNCTime();
+  satioData.sync_rtc_immediately_flag=false;
+}
 
-void syncRTC(void) {
-  // ----------------------------------------------------------------------------------------------
-  /*                                 SYNC RTC TIME & DATE FROM GPS                               */
-  // ----------------------------------------------------------------------------------------------
-  // Serial.println("[satellite_count]      " + String(gnggaData.satellite_count));
-  // Serial.println("[gps_precision_factor] " + String(gnggaData.gps_precision_factor));
-  if ((atoi(gnggaData.satellite_count)>3) && (atoi(gnggaData.gps_precision_factor)<=3)) {
-    // ----------------------------------------------------------------------------
-    // Extract just what we need to perform a timing check.
-    // ----------------------------------------------------------------------------
-    extractDateTimeFromGPSData();
+void syncRTC() {
+  /**
+   * Manually set RTC datetime.
+   * 
+   * (1) Set set_time_automatically false.
+   * (1) Set temporary datetime values.
+   * (2) Set satioData.set_rtc_datetime_flag true.
+   */
+  if (satioData.set_time_automatically==false && satioData.set_rtc_datetime_flag==true)
+    {setRTCDateTime(); satioData.set_rtc_datetime_flag=false; Serial.println("[rtc] sync 2: " + String(rtc.now().timestamp()));}
 
-    if (sync_rtc_bool==false) {
+  /**
+   * Automatically set RTC datetime with GPS data.
+   */
+  else if (satioData.set_time_automatically==true) {
+    // ----------------------------------------------------------------------------------------------
+    /*                                 SYNC RTC TIME & DATE FROM GPS                               */
+    // ----------------------------------------------------------------------------------------------
+    // Serial.println("[satellite_count]      " + String(gnggaData.satellite_count));
+    // Serial.println("[gps_precision_factor] " + String(gnggaData.gps_precision_factor));
+    if ((atoi(gnggaData.satellite_count)>3) && (atoi(gnggaData.gps_precision_factor)<=3)) {
       // ----------------------------------------------------------------------------
-      // Sync within the first 100 milliseconds of any second.
+      // Extract just what we need to perform a timing check.
       // ----------------------------------------------------------------------------
-      if (satioData.tmp_millisecond_int==0) {
-        // --------------------------------------------------------------------------
-        // Sync RTC to UTC.
-        // --------------------------------------------------------------------------
-        // Serial.println("[rtc] sync 0: " + String(rtc.now().timestamp()));
-        rtc.adjust(DateTime((uint16_t)satioData.tmp_year_int, (uint8_t)satioData.tmp_month_int, (uint8_t)satioData.tmp_day_int,
-        (uint8_t)satioData.tmp_hour_int, (uint8_t)satioData.tmp_minute_int, 0));
-        setSystemTime(0);  // automatic. there should also be a manual method (manually set rtc to utc, then call set system time)
-        storeRTCSYNCTime();
-        sync_rtc_bool=true;
-        Serial.println("[rtc] sync 0: " + String(rtc.now().timestamp()));
+      extractDateTimeFromGPSData();
+
+      if (satioData.sync_rtc_immediately_flag==true) {
+        // ----------------------------------------------------------------------------
+        // Sync within the first 100 milliseconds of any second.
+        // ----------------------------------------------------------------------------
+        if (satioData.tmp_millisecond_int==0) {
+          // --------------------------------------------------------------------------
+          // Sync RTC to UTC.
+          // --------------------------------------------------------------------------
+          // Serial.println("[rtc] sync 0: " + String(rtc.now().timestamp()));
+          setRTCDateTime();
+          Serial.println("[rtc] sync 0: " + String(rtc.now().timestamp()));
+        }
       }
-    }
-    else {
-      // ----------------------------------------------------------------------------
-      // Sync within the first 100 milliseconds of any minute.
-      // ----------------------------------------------------------------------------
-      if ((satioData.tmp_second_int==0) && (satioData.tmp_millisecond_int==0)) {
-        // --------------------------------------------------------------------------
-        // Sync RTC to UTC.
-        // --------------------------------------------------------------------------
-        // Serial.println("[rtc] sync 0: " + String(rtc.now().timestamp()));
-        rtc.adjust(DateTime((uint16_t)satioData.tmp_year_int, (uint8_t)satioData.tmp_month_int, (uint8_t)satioData.tmp_day_int,
-        (uint8_t)satioData.tmp_hour_int, (uint8_t)satioData.tmp_minute_int, 0));
-        setSystemTime(0);  // automatic. there should also be a manual method (manually set rtc to utc, then call set system time)
-        storeRTCSYNCTime();
-        sync_rtc_bool=true;
-        Serial.println("[rtc] sync 1: " + String(rtc.now().timestamp()));
+      else {
+        // ----------------------------------------------------------------------------
+        // Sync within the first 100 milliseconds of any minute.
+        // ----------------------------------------------------------------------------
+        if ((satioData.tmp_second_int==0) && (satioData.tmp_millisecond_int==0)) {
+          // --------------------------------------------------------------------------
+          // Sync RTC to UTC.
+          // --------------------------------------------------------------------------
+          // Serial.println("[rtc] sync 0: " + String(rtc.now().timestamp()));
+          setRTCDateTime();
+          Serial.println("[rtc] sync 1: " + String(rtc.now().timestamp()));
+        }
       }
     }
   }
@@ -776,7 +791,7 @@ void syncRTC(void) {
 // setSatIOData.
 // ----------------------------------------------------------------------------------------
 void setSatIOData(void) {
-      if (satioData.set_time_automatically==true) {syncRTC();}
+      syncRTC();
       calculateLocation();
       setGroundHeadingName(atof(gnrmcData.ground_heading));
 }
