@@ -356,7 +356,7 @@ static void PrintHelp(void) {
       satio --utc-offset n       Set +-seconds offset time.
       satio --auto-datetime-on   Enable set datetime automatically  (--auto-datetime-on overrides any datetime -set).
       satio --auto-datetime-off  Disable set datetime automatically (ensure --auto-datetime-off before using -set time).
-      satio -set-datetime --year n --month n --mday n --hour n --minute n --second n  (must be UTC except if utc offset 0).
+      satio --set-datetime --year n --month n --mday n --hour n --minute n --second n  (must be UTC except if utc offset 0).
 
   [ Gyro ]
 
@@ -769,8 +769,8 @@ void datetimeSetRTC(uint16_t year, uint8_t month, uint8_t mday,
   satio --utc-offset n       Set +-seconds offset time.
   satio --auto-datetime-on   Enable set datetime automatically
   satio --auto-datetime-off  Disable set datetime automatically (-set requires auto off prior to calling set)
-  satio -set-datetime --year n --month n --mday n --hour n --minute n --second n  (must be UTC except if utc offset 0)
-  satio -set-datetime --year 25 --month 10 --mday 16 --hour 5 --minute 0 --second 0
+  satio --set-datetime --year n --month n --mday n --hour n --minute n --second n  (must be UTC except if utc offset 0)
+  satio --set-datetime --year 25 --month 10 --mday 16 --hour 5 --minute 0 --second 0
   */
   if (year>=0  && year <UINT16_MAX &&
       month>=0 && month<UINT8_MAX  &&
