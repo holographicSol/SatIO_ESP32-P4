@@ -235,6 +235,9 @@ Satio
     satio --utc-offset n   Set +-seconds offset time.
     satio --mode-gngga     Use GNGGA data for location.
     satio --mode-gnrmc     Use GNRMC data for location.
+    satio --auto-datetime-on   Enable set datetime automatically  (--auto-datetime-on overrides any datetime -set).
+    satio --auto-datetime-off  Disable set datetime automatically (ensure --auto-datetime-off before using -set time).
+    satio -set --year n --month n --mday n --hour n --minute n --second n  (must be UTC except if utc offset 0).
 
 -----
 
@@ -342,6 +345,7 @@ Other
   https://drive.google.com/drive/folders/13yynSxkKL-zxb7iLSkg0v0VXkSLgmtW-?usp=sharing
 
 -----
+
 
 
 
