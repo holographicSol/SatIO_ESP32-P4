@@ -350,12 +350,14 @@ static void PrintHelp(void) {
 
   [ Satio ]
 
-      satio --speed-units n      Set displayed units (0 : M/S) (1 : MPH) (2 : KPH) (3 : KTS estimated)
-      satio --mode-gngga         Use GNGGA data for location.
-      satio --mode-gnrmc         Use GNRMC data for location.
-      satio --utc-offset n       Set +-seconds offset time.
-      satio --auto-datetime-on   Enable set datetime automatically  (--auto-datetime-on overrides any datetime -set).
-      satio --auto-datetime-off  Disable set datetime automatically (ensure --auto-datetime-off before using -set time).
+      satio --speed-units n            Set displayed units (0 : M/S) (1 : MPH) (2 : KPH) (3 : KTS estimated)
+      satio --mode-gngga               Use GNGGA data for location.
+      satio --mode-gnrmc               Use GNRMC data for location.
+      satio --mode-static              Retain any cureently set degrees latiude, longitude. 
+      satio --set-coord -lat 0 -lon n  Set degrees latitude and longitude. (ensure --mode-static before --set-coord).
+      satio --utc-offset n             Set +-seconds offset time.
+      satio --auto-datetime-on         Enable set datetime automatically  (--auto-datetime-on overrides any datetime -set).
+      satio --auto-datetime-off        Disable set datetime automatically (ensure --auto-datetime-off before using -set time).
       satio --set-datetime --year n --month n --mday n --hour n --minute n --second n  (must be UTC except if utc offset 0).
 
   [ Gyro ]
@@ -793,6 +795,18 @@ void datetimeSetDTAuto(bool set_dt_auto) {
   else {satioData.set_time_automatically=false;}
 }
 
+void setCoordinatesDegrees(double latitude, double longitude) {
+  /*
+     satio --mode-gngga
+     satio --mode-static
+     satio --set-coord -lat 0.123 -lon 4.567
+  */
+  if (latitude>DBL_MIN && latitude<DBL_MAX && longitude>DBL_MIN && longitude<DBL_MAX) {
+    satioData.degrees_latitude=latitude;
+    satioData.degrees_longitude=longitude;
+  }
+}
+
 void star_nav() {
   // star sirius test: starnav 6 45 8.9 -16 42 58.0
   // ngc test:         starnav 2 20 35.0 -23 7 0.0
@@ -803,8 +817,6 @@ void star_nav() {
   // Herschel test:    starnav 0 29 56.0 60 14 0.0
   // new stars test    starnav 0 02 07.2 -14 40 34
   // caldwel test:     starnav 00 13 0 72 32 0
-  // non-h400          starnav 7 38 3 -14 52 3
-  //                   starnav 1 33 9 30 39 0
   simple_argparser_init_from_buffer(&plainparser, serial0Data.BUFFER, 1);
   if ((str_is_int8(plainparser.tokens[0])==true) &&
       (str_is_int8(plainparser.tokens[1])==true) &&
@@ -1073,6 +1085,7 @@ void CmdProcess(void) {
           }
         }
       }
+      
       else if (strcmp(pos[0], "ins")==0) {
         if (argparser_has_flag(&parser, "m")) {setINSMode(argparser_get_int8(&parser, "m", -1));}
         if (argparser_has_flag(&parser, "gyro")) {setINSUseGyroHeading(argparser_get_int8(&parser, "gyro", -1));}
@@ -1084,8 +1097,13 @@ void CmdProcess(void) {
 
       else if (strcmp(pos[0], "satio")==0) {
         if (argparser_has_flag(&parser, "speed-units")) {setSpeedUnits(argparser_get_int8(&parser, "speed-units", -1));}
-        if (argparser_has_flag(&parser, "mode-gngga")) {satioData.coordinate_conversion_mode=0;}
-        if (argparser_has_flag(&parser, "mode-gnrmc")) {satioData.coordinate_conversion_mode=1;}
+        if (argparser_has_flag(&parser, "mode-static")) {satioData.coordinate_conversion_mode=COORDINATE_CONVERSION_MODE_STATIC;}
+        if (argparser_has_flag(&parser, "set-coord")) {
+          setCoordinatesDegrees(argparser_get_double(&parser, "lat", NAN),
+                                argparser_get_double(&parser,  "lon", NAN));
+        }
+        if (argparser_has_flag(&parser, "mode-gngga")) {satioData.coordinate_conversion_mode=COORDINATE_CONVERSION_MODE_GNGGA;}
+        if (argparser_has_flag(&parser, "mode-gnrmc")) {satioData.coordinate_conversion_mode=COORDINATE_CONVERSION_MODE_GNRMC;}
         if (argparser_has_flag(&parser, "utc-offset")) {setUTCSecondOffset(argparser_get_int64(&parser, "utc-offset", 0));}
         if (argparser_has_flag(&parser, "auto-datetime-on")) {datetimeSetDTAuto(true);}
         if (argparser_has_flag(&parser, "auto-datetime-off")) {datetimeSetDTAuto(false);}

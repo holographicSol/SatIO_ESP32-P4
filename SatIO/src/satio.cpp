@@ -15,7 +15,7 @@ RTC_DS3231 rtc;
 
 struct SATIOStruct satioData = {
     .satio_sentence = {0},
-    .coordinate_conversion_mode = 0,
+    .coordinate_conversion_mode = COORDINATE_CONVERSION_MODE_GNGGA,
     .char_coordinate_conversion_mode = {"GNGGA", "GNRMC"},
     .latitude_meter = 0.0000100,
     .longitude_meter = 0.0000100,
@@ -211,13 +211,14 @@ double convertSpeedUnits(double speed) {
 //                                                                                                         CONVERT COORDINTE DATA
 // ------------------------------------------------------------------------------------------------------------------------------
 void calculateLocation(){
+  if (satioData.coordinate_conversion_mode==COORDINATE_CONVERSION_MODE_STATIC) {}
   // ----------------------------------------------------------------------------------------------------------------------------
   //                                                                                                  GNGGA COORDINATE CONVERSION
   // ----------------------------------------------------------------------------------------------------------------------------
   // ----------------------------------------------------------------------------------------------------------------------------
   // Convert GNGGA latitude & longitude strings to decimal degrees and format into hours, minutes, seconds, milliseconds.
   // ----------------------------------------------------------------------------------------------------------------------------
-  if (satioData.coordinate_conversion_mode==0) {
+  else if (satioData.coordinate_conversion_mode==COORDINATE_CONVERSION_MODE_GNGGA) {
     // -----------------------------------------------------------------------------------------
     // Extract absolute latitude value from GNGGA data as decimal degrees.
     // -----------------------------------------------------------------------------------------
@@ -313,7 +314,7 @@ void calculateLocation(){
   // ------------------------------------------------------------------------------------------------------------------------
   // Convert GNRMC latitude & longitude strings to decimal degrees and format into hours, minutes, seconds, milliseconds.
   // ------------------------------------------------------------------------------------------------------------------------
-  else if (satioData.coordinate_conversion_mode==1) {
+  else if (satioData.coordinate_conversion_mode==COORDINATE_CONVERSION_MODE_GNRMC) {
     // -----------------------------------------------------------------------------------------
     // Extract absolute latitude value from GNGGA data as decimal degrees.
     // -----------------------------------------------------------------------------------------
