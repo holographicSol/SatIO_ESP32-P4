@@ -231,15 +231,28 @@ Customizable Inertial navigation system.
 
 Satio
 
-    satio --speed-units n            Set displayed units (0 : M/S) (1 : MPH) (2 : KPH) (3 : KTS estimated)
-    satio --mode-gngga               Use GNGGA data for location.
-    satio --mode-gnrmc               Use GNRMC data for location.
-    satio --mode-static              Retain any cureently set degrees latiude, longitude. 
-    satio --set-coord -lat 0 -lon n  Set degrees latitude and longitude. (ensure --mode-static before --set-coord).
-    satio --utc-offset n             Set +-seconds offset time.
-    satio --auto-datetime-on         Enable set datetime automatically  (--auto-datetime-on overrides any datetime -set).
-    satio --auto-datetime-off        Disable set datetime automatically (ensure --auto-datetime-off before using -set time).
-    satio --set-datetime --year n --month n --mday n --hour n --minute n --second n  (must be UTC except if utc offset 0).
+      satio --coord-mode-gps           Use GPS latitude, longitude values.
+      satio --coord-mode-static        Do not update latiude, longitude unless --set-coord or otherwise.
+      satio --set-coord -lat n -lon n  Set degrees latitude and longitude (ensure --coord-mode-static before --set-coord).
+      satio --utc-offset n             Set +-seconds offset time.
+      satio --auto-datetime-on         Enable set datetime automatically  (--auto-datetime-on overrides any datetime -set).
+      satio --auto-datetime-off        Disable set datetime automatically (ensure --auto-datetime-off before using -set time).
+      satio --set-datetime --year n --month n --mday n --hour n --minute n --second n  (must be UTC except if utc offset 0).
+
+      satio --speed-mode-gps     Use GPS speed values.
+      satio --speed-mode-static  Do not update speed unless --set-speed or otherwise.
+      satio --set-speed n        Set speed in meters per second (ensure --speed-mode-static before --set-speed).
+      satio --speed-unit-meters  Use default meters per second.
+      satio --speed-unit-kph     Convert meters per second to K/PH.
+      satio --speed-unit-mph     Convert meters per second to M/PH.
+      satio --speed-unit-kts     Convert meters per second to knots.
+
+      satio --altitude-mode-gps         Use GPS altitude values.
+      satio --altitude-mode-static      Do not update speed unless --set-altitude or otherwise.
+      satio --set-altitude n            Set altitude in meters (ensure --altitude-mode-static before --set-altitude).
+      satio --altitude-unit-meters      Use default meters altitude.
+      satio --altitude-unit-kilometers  Convert meters to kilometers.
+      satio --altitude-unit-miles       Convert meters to miles.
 
 -----
 
@@ -347,6 +360,7 @@ Other
   https://drive.google.com/drive/folders/13yynSxkKL-zxb7iLSkg0v0VXkSLgmtW-?usp=sharing
 
 -----
+
 
 
 
