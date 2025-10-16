@@ -231,12 +231,14 @@ Customizable Inertial navigation system.
 
 Satio
 
-    satio --speed-units n  Set displayed units (0 : M/S) (1 : MPH) (2 : KPH) (3 : KTS estimated)
-    satio --utc-offset n   Set +-seconds offset time.
-    satio --mode-gngga     Use GNGGA data for location.
-    satio --mode-gnrmc     Use GNRMC data for location.
-    satio --auto-datetime-on   Enable set datetime automatically  (--auto-datetime-on overrides any datetime -set).
-    satio --auto-datetime-off  Disable set datetime automatically (ensure --auto-datetime-off before using -set time).
+    satio --speed-units n            Set displayed units (0 : M/S) (1 : MPH) (2 : KPH) (3 : KTS estimated)
+    satio --mode-gngga               Use GNGGA data for location.
+    satio --mode-gnrmc               Use GNRMC data for location.
+    satio --mode-static              Retain any cureently set degrees latiude, longitude. 
+    satio --set-coord -lat 0 -lon n  Set degrees latitude and longitude. (ensure --mode-static before --set-coord).
+    satio --utc-offset n             Set +-seconds offset time.
+    satio --auto-datetime-on         Enable set datetime automatically  (--auto-datetime-on overrides any datetime -set).
+    satio --auto-datetime-off        Disable set datetime automatically (ensure --auto-datetime-off before using -set time).
     satio --set-datetime --year n --month n --mday n --hour n --minute n --second n  (must be UTC except if utc offset 0).
 
 -----
@@ -345,7 +347,6 @@ Other
   https://drive.google.com/drive/folders/13yynSxkKL-zxb7iLSkg0v0VXkSLgmtW-?usp=sharing
 
 -----
-
 
 
 
