@@ -95,6 +95,8 @@ struct satioFileStruct satioFileData = {
         "INS_USE_GYRO_HEADING",       // 30
         "MATRIX_FILE",                // 31
         "LOAD_MATRIX_ON_STARTUP",     // 32
+        "SPEED_UNIT_MODE",            // 33
+        "ALTITUDE_UNIT_MODE",         // 34
     },
     .system_filepath="/SYSTEM/system_conf.csv",
 
@@ -311,6 +313,8 @@ bool saveSystemFile(FS &fs, const char *filepath) {
             else if  (i_tag==30) {line = String(satioFileData.system_tags[i_tag]) + String("," + String(insData.INS_USE_GYRO_HEADING)); printLine(f, line);}
             else if  (i_tag==31) {line = String(satioFileData.system_tags[i_tag]) + String("," + String(satioFileData.current_matrix_filepath)); printLine(f, line);}
             else if  (i_tag==32) {line = String(satioFileData.system_tags[i_tag]) + String("," + String(matrixData.load_matrix_on_startup)); printLine(f, line);}
+            else if  (i_tag==33) {line = String(satioFileData.system_tags[i_tag]) + String("," + String(satioData.speed_unit_mode)); printLine(f, line);}
+            else if  (i_tag==34) {line = String(satioFileData.system_tags[i_tag]) + String("," + String(satioData.altitude_unit_mode)); printLine(f, line);}
         }
     }
     else {return false;}
@@ -374,6 +378,8 @@ bool loadSystemFile(FS &fs, const char *filepath) {
             else if (tag_index==30) {if (str_is_double(data_0.c_str())) {insData.INS_USE_GYRO_HEADING=strtod(data_0.c_str(), &endptr);}}
             else if (tag_index==31) {memset(satioFileData.current_matrix_filepath, 0, sizeof(satioFileData.current_matrix_filepath)); strcpy(satioFileData.current_matrix_filepath, data_0.c_str());}
             else if (tag_index==32) {if (str_is_bool(data_0.c_str())) {matrixData.load_matrix_on_startup=atoi(data_0.c_str());}}
+            else if (tag_index==33) {if (str_is_uint8(data_0.c_str())) {if (atoi(data_0.c_str())<MAX_SPEED_UNIT_MODES) {satioData.speed_unit_mode=atoi(data_0.c_str());}}}
+            else if (tag_index==34) {if (str_is_uint8(data_0.c_str())) {if (atoi(data_0.c_str())<MAX_ALTITUDE_UNIT_MODES) {satioData.altitude_unit_mode=atoi(data_0.c_str());}}}
             currentTag++;
         }
         f.close();
