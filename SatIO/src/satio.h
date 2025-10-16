@@ -137,45 +137,8 @@ struct SATIOStruct {
 extern struct SATIOStruct satioData;
 
 // ----------------------------------------------------------------------------------------
-// Location Point Struct.
-// ----------------------------------------------------------------------------------------
-typedef struct {
-    double latitude;   // Latitude in degrees
-    double longitude;  // Longitude in degrees
-    double altitude;   // Altitude in meters
-    uint64_t time;     // Time in microseconds
-} LocPoint;
-
-extern LocPoint loc_point1_gps;
-extern LocPoint loc_point2_gps;
-extern LocPoint loc_point1_ins;
-extern LocPoint loc_point2_ins;
-
-// ----------------------------------------------------------------------------------------
-// Speed Struct.
-// ----------------------------------------------------------------------------------------
-struct SpeedStruct {
-    double lat1_rad;    // Latitude 1 in radians
-    double lon1_rad;    // Longitude 1 in radians
-    double lat2_rad;    // Latitude 2 in radians
-    double lon2_rad;    // Longitude 2 in radians
-    double delta_lat;   // Change in latitude
-    double delta_lon;   // Change in longitude
-    double delta_alt;   // Change in altitude
-    double a;           // Haversine intermediate
-    double c;           // Haversine intermediate
-    double distance_2d; // 2D distance
-    double distance_3d; // 3D distance
-    double delta_time;  // Time difference
-    double speed;       // Calculated speed
-};
-
-extern struct SpeedStruct speedData;
-
-// ----------------------------------------------------------------------------------------
 // Function Prototypes.
 // ----------------------------------------------------------------------------------------
-double calculateSpeedFromLocationData(LocPoint p1, LocPoint p2);
 double convertSpeedUnits(double speed);
 void calculateLocation(void);
 void setGroundHeadingName(float num);

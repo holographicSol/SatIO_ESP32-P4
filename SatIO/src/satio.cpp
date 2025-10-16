@@ -123,90 +123,6 @@ struct SATIOStruct satioData = {
     .mileage = "pending",
 };
 
-LocPoint loc_point1_gps = {0.0, 0.0, 0.0, 0};
-LocPoint loc_point2_gps = {0.0, 0.0, 0.0, 0};
-LocPoint loc_point1_ins = {0.0, 0.0, 0.0, 0};
-LocPoint loc_point2_ins = {0.0, 0.0, 0.0, 0};
-
-struct SpeedStruct speedData = {
-    .lat1_rad = 0.0,
-    .lon1_rad = 0.0,
-    .lat2_rad = 0.0,
-    .lon2_rad = 0.0,
-    .delta_lat = 0.0,
-    .delta_lon = 0.0,
-    .delta_alt = 0.0,
-    .a = 0.0,
-    .c = 0.0,
-    .distance_2d = 0.0,
-    .distance_3d = 0.0,
-    .delta_time = 0.0,
-    .speed = 0.0
-};
-
-// -------------------------------------------------------------------------------
-/**
-   * @brief Calculates the speed between two GPS points in any direction.
-   *
-   * This function first calculates the great-circle distance on the Earth's
-   * surface using the Haversine formula, then accounts for altitude change
-   * to find the total 3D distance. Finally, it divides this distance by the
-   * elapsed time to determine the average speed.
-   *
-   * @param p1 The first GPS point (latitude, longitude, altitude, time).
-   * @param p2 The second GPS point.
-   * @return The calculated speed in meters per second (m/s).
-   * 
-   * This function has no Kalman filter.
- */
-// -------------------------------------------------------------------------------
- double calculateSpeedFromLocationData(LocPoint p1, LocPoint p2) {
-    // -------------------------------------------------------------------------------
-    // Convert latitude and longitude from degrees to radians for calculations.
-    // -------------------------------------------------------------------------------
-    double lat1_rad = p1.latitude * M_PI / 180.0;
-    double lon1_rad = p1.longitude * M_PI / 180.0;
-    double lat2_rad = p2.latitude * M_PI / 180.0;
-    double lon2_rad = p2.longitude * M_PI / 180.0;
-    // -------------------------------------------------------------------------------
-    // Calculate the change in coordinates.
-    // -------------------------------------------------------------------------------
-    double delta_lat = lat2_rad - lat1_rad;
-    double delta_lon = lon2_rad - lon1_rad;
-    // -------------------------------------------------------------------------------
-    // Calculate the change in altitude.
-    // -------------------------------------------------------------------------------
-    double delta_alt = p2.altitude - p1.altitude;
-    // -------------------------------------------------------------------------------
-    // Haversine formula to calculate the 2D distance.
-    // -------------------------------------------------------------------------------
-    double a = sin(delta_lat / 2.0) * sin(delta_lat / 2.0) +
-               cos(lat1_rad) * cos(lat2_rad) * sin(delta_lon / 2.0) * sin(delta_lon / 2.0);
-    double c = 2.0 * atan2(sqrt(a), sqrt(1.0 - a));
-    // -------------------------------------------------------------------------------
-    // Calculate the 2D distance (great-circle distance).
-    // -------------------------------------------------------------------------------
-    double distance_2d = EARTH_MEAN_RADIUS * c;
-    // -------------------------------------------------------------------------------
-    // Calculate the total 3D distance using the altitude change.
-    // -------------------------------------------------------------------------------
-    double distance_3d = sqrt(distance_2d * distance_2d + delta_alt * delta_alt);
-    // -------------------------------------------------------------------------------
-    // Calculate the change in time in seconds.
-    // -------------------------------------------------------------------------------
-    double delta_time = (p2.time - p1.time) / 1000000.0;
-    // -------------------------------------------------------------------------------
-    // Handle the case of zero time difference to avoid division by zero.
-    // -------------------------------------------------------------------------------
-    double speed=0;
-    if (delta_time == 0.0) {speed=0.0;}
-    // -------------------------------------------------------------------------------
-    // The result is in meters per second, as distance is in meters and time is in seconds.
-    // -------------------------------------------------------------------------------
-    else {speed = distance_3d / delta_time;}
-    return speed;
-}
-
 void setSatIOAltitude() {
   double altitude=satioData.altitude;
   char *endptr;
@@ -225,9 +141,6 @@ void setSatIOAltitude() {
   satioData.altitude_converted=altitude;
 }
 
-// -----------------------------------------------------------------------
-// convertSpeedUnits.
-// -----------------------------------------------------------------------
 void setSatIOSspeed() {
   double speed=satioData.speed;
   char *endptr;
