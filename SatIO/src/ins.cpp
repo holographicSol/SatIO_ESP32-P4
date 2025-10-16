@@ -80,33 +80,33 @@ void ins_init(double gps_precision_factor,
   // -------------------------------------------------------------------------------
   // 0 : Default.
   // -------------------------------------------------------------------------------
-  insData.tmp_ins_initialization_flag=INS_INITIALIZATION_FLAG_0;
+  insData.tmp_ins_initialization_flag=0;
   // -------------------------------------------------------------------------------
-  // 1 : GPS precsion.
+  // 1 : Check GPS precsion.
   // -------------------------------------------------------------------------------
-  if (gps_precision_factor<=insData.INS_REQ_GPS_PRECISION) {
-    // -----------------------------------------------------------------------------
-    // 2 : Speed.
-    // -----------------------------------------------------------------------------
-    if (gps_ground_speed>=insData.INS_REQ_MIN_SPEED) {
-      insData.tmp_ins_initialization_flag=INS_INITIALIZATION_FLAG_2;
-      // ---------------------------------------------------------------------------
-      // 3 : Heading.
-      // ---------------------------------------------------------------------------
-      if ((angles_are_close(gps_ground_heading,
-                            gyro_heading,
-                            insData.INS_REQ_HEADING_RANGE_DIFF)==true) ||
-          (insData.INS_USE_GYRO_HEADING==false)) {
-        insData.tmp_ins_initialization_flag=INS_INITIALIZATION_FLAG_3;
-        // -------------------------------------------------------------------------
-        // 4 : Check enabled.
-        // -------------------------------------------------------------------------
-        if (insData.INS_ENABLED==true) {
-          insData.tmp_ins_initialization_flag=INS_INITIALIZATION_FLAG_4;
-        }
-      }
-    }
-  }
+  if (gps_precision_factor<=insData.INS_REQ_GPS_PRECISION)
+    {insData.tmp_ins_initialization_flag++;}
+  // -----------------------------------------------------------------------------
+  // 2 : Check Speed.
+  // -----------------------------------------------------------------------------
+  if (gps_ground_speed>=insData.INS_REQ_MIN_SPEED)
+  {insData.tmp_ins_initialization_flag++;}
+  // ---------------------------------------------------------------------------
+  // 3 : Check Heading.
+  // ---------------------------------------------------------------------------
+  if ((angles_are_close(gps_ground_heading,
+      gyro_heading,
+      insData.INS_REQ_HEADING_RANGE_DIFF)==true) ||
+      (insData.INS_USE_GYRO_HEADING==false))
+    {insData.tmp_ins_initialization_flag++;}
+  // -------------------------------------------------------------------------
+  // 4 : Check enabled.
+  // -------------------------------------------------------------------------
+  if (insData.INS_ENABLED==true)
+    {insData.tmp_ins_initialization_flag++;}
+  // -------------------------------------------------------------------------
+  // Set INS initialization
+  // -------------------------------------------------------------------------
   insData.INS_INITIALIZATION_FLAG=insData.tmp_ins_initialization_flag;
 }
 
