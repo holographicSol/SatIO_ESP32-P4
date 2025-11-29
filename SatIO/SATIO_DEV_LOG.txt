@@ -2029,75 +2029,78 @@ increased minimum command length back to >=2 due to bug causing reset at >=1.
 10/14/2025
 Simplified commands.
 
-System:
-system --save
-system --load
-system --restore-defaults
+10/15/25
+Check each serial command for expected behavior.
 
-Mapping:
-mapping --save
-mapping --load
-mapping --delete
-mapping -s n
-mapping -m n
-mapping -c0 n
-mapping -c1 n
-mapping -c2 n
-mapping -c3 n
-mapping -c4 n
-mapping -c5 n
+10/16/25
+Set time automatically can now be enabled/disabled.
+Datetime can now be set manually.
 
-Matrix:
-matrix --new
-matrix --save n
-matrix --load n
-matrix --delete n
-matrix --startup-enable
-matrix --startup-disable
-matrix -s n
-matrix -p n
-matrix -f n
-matrix -fn n
-matrix -fx n
-matrix -fy n
-matrix -fz n
-matrix -fi n
-matrix -fo n
-matrix --pwm0 n
-matrix --pwm1 n
-matrix --flux n
-matrix --oride n
-matrix --computer-assist n
-matrix --omode n
-matrix --map-slot n
+10/16/25
+To do: option to set location manually.
+To do: separate datetime values for sidereal planets that can be:
+	(1) set to local datetime.
+	(2) and set to any other valid datetime.
+To do: Accumulate mileage.
 
-INS:
-ins -m n
-ins -gyro n
-ins -p n
-ins -s n
-ins -r n
-ins --reset-forced n
+10/16/25
+Set SatIO degrees latitude, longitude automatically can now be enabled/disabled.
+SatIO Degrees latitude, longitude can now be set manually/over serial.
 
-Satio:
-satio --speed-units n
-satio --utc-offset n
-satio --mode-gngga
-satio --mode-gnrmc
+10/16/25
+Set SatIO altitude automatically can now be enabled/disabled.
+SatIO altitude can now be set manually/over serial.
+altitude = assumes meters altitude because GPS altitude is meters altitude.
+If setting altitude value alternately then altitude value must be in meters altitude.
+altitude_converted can be used for display purposes.
 
-Gyro:
-gyro --calacc
-gyro --calmag-start
-gyro --calmag-end
+10/16/25
+Set SatIO speed automatically can now be enabled/disabled.
+SatIO speed can now be set manually/over serial.
+speed = assumes meters per second because GPS speed is meters a second.
+If setting speed value alternately then speed value must be in meters a second.
+speed_converted can be used for display purposes.
 
-SDCard:
-sdcard --mount
-sdcard --unmount
+10/17/25
+To do: Check all min max santizers in infocmd.
 
+11/18/25
+-------------------------------------------------------------------------------------------------
+Multiplexer's, Port controller, RTC
+-------------------------------------------------------------------------------------------------
+* Re-instate IIC multiplexer.
+* Consider multiple analog/digital + IIC multiplexers -> account for in software.
+* Consider replacing ATMEGA2560 port controller with individual IIC capable MCU's.
+	(1) That have custom IIC addresses.
+	(2) Each controls their own on/off timings, as instructed by SatIO master.
+	    Has potential benefit of tighter on/off timings and faster communication.
+* Consider port controller input (currently only supports output).
+* Explore the dedicated RTC headers on Waveshare's ESP32-P4 NANO board (RTC currently using IIC).
+-------------------------------------------------------------------------------------------------
+Build
+-------------------------------------------------------------------------------------------------
+* Create the BOM (bill of materials).
 
-
+* Design PCB -> Fabricate PCB.
+    Everything traced on PCB except:
+	(1) Analog/Digital multiplexer channel headers (x16).
+	(2) IIC multiplexer channel headers (x8).
+	(3) IIC extension bus headers (x+-10).
+	(4) Port controller headers (x+-70).
+	Total exposed customizable headers: +-100.
+-------------------------------------------------------------------------------------------------
+Future
+-------------------------------------------------------------------------------------------------
+Software Update -> support custom IIC module (that can be added anytime after flashing).
+Build custom modules -> comms,ai,etc.
+-------------------------------------------------------------------------------------------------
 
 
 
 
 
+
+
+
+
+-------------------------------------------------------------------------------------------------
