@@ -168,98 +168,92 @@ static void PrintHelp(void) {
       matrix -f n                 Specify function index n.
       matrix -p n                 Set port for switch -s.
       matrix -fn n                Set function -f for switch -s. See available matrix functions.
-                                  [0] None
-                                  [1] On
-                                  [2] SwitchLink
-                                  [3] LocalTime
-                                  [4] Weekday
-                                  [5] DateDayX
-                                  [6] DateMonthX
-                                  [7] DateYearX
-                                  [8] DegLat
-                                  [9] DegLon
-                                  [10] DegLatLon
-                                  [11] INSLat
-                                  [12] INSLon
-                                  [13] INSLatLon
-                                  [14] INSHeading
-                                  [15] INSSpeed
-                                  [16] INSAltitude
-                                  [17] UTCTimeGNGGA
-                                  [18] PosStatusGNGGA
-                                  [19] SatCount
-                                  [20] HemiGNGGANorth
-                                  [21] HemiGNGGASouth
-                                  [22] HemiGNGGAEast
-                                  [23] HemiGNGGAWest
-                                  [24] GPSPrecision
-                                  [25] AltGNGGA
-                                  [26] UTCTimeGNRMC
-                                  [27] PosStatusGNRMCA
-                                  [28] PosStatusGNRMCV
-                                  [29] ModeGNRMCA
-                                  [30] ModeGNRMCD
-                                  [31] ModeGNRMCE
-                                  [32] ModeGNRMCN
-                                  [33] HemiGNRMCNorth
-                                  [34] HemiGNRMCSouth
-                                  [35] HemiGNRMCEast
-                                  [36] HemiGNRMCWest
-                                  [37] GSpeedGNRMC
-                                  [38] HeadingGNRMC
-                                  [39] UTCDateGNRMC
-                                  [40] LFlagGPATT
-                                  [41] SFlagGPATT
-                                  [42] RSFlagGPATT
-                                  [43] INSGPATT
-                                  [44] SpeedNumGPATT
-                                  [45] MileageGPATT
-                                  [46] GSTDataGPATT
-                                  [47] YawGPATT
-                                  [48] RollGPATT
-                                  [49] PitchGPATT
-                                  [50] GNGGAValidCS
-                                  [51] GNRMCValidCS
-                                  [52] GPATTValidCS
-                                  [53] GNGGAValidCD
-                                  [54] GNRMCValidCD
-                                  [55] GPATTValidCD
-                                  [56] Gyro0AccX
-                                  [57] Gyro0AccY
-                                  [58] Gyro0AccZ
-                                  [59] Gyro0AngX
-                                  [60] Gyro0AngY
-                                  [61] Gyro0AngZ
-                                  [62] Gyro0MagX
-                                  [63] Gyro0MagY
-                                  [64] Gyro0MagZ
-                                  [65] Gyro0GyroX
-                                  [66] Gyro0GyroY
-                                  [67] Gyro0GyroZ
-                                  [68] Meteors
-                                  [69] SunAz
-                                  [70] SunAlt
-                                  [71] MoonAz
-                                  [72] MoonAlt
-                                  [73] MoonPhase
-                                  [74] MercuryAz
-                                  [75] MercuryAlt
-                                  [76] VenusAz
-                                  [77] VenusAlt
-                                  [78] MarsAz
-                                  [79] MarsAlt
-                                  [80] JupiterAz
-                                  [81] JupiterAlt
-                                  [82] SaturnAz
-                                  [83] SaturnAlt
-                                  [84] UranusAz
-                                  [85] UranusAlt
-                                  [86] NeptuneAz
-                                  [87] NeptuneAlt
-                                  [88] ADMPlex0
-                                  [89] MappedValue
-                                  [90] SDCARDInserted
-                                  [91] SDCARDMounted
+                                  [0] NONE
+                                  [1] ON
+                                  [2] SWITCHLINK
+                                  [3] LOCALTIME
+                                  [4] WEEKDAY
+                                  [5] DATEDAYX
+                                  [6] DATEMONTHX
+                                  [7] DATEYEARX
+                                  [8] DEGLAT
+                                  [9] DEGLON
+                                  [10] INSLAT
+                                  [11] INSLON
+                                  [12] INSHEADING
+                                  [13] INSALTITUDE
+                                  [14] POSSTATUSGNGGA
+                                  [15] SATCOUNT
+                                  [16] GPSPRECISION
+                                  [17] ALTGNGGA
+                                  [18] GSPEEDGNRMC
+                                  [19] HEADINGGNRMC
+                                  [20] LFLAGGPATT
+                                  [21] SFLAGGPATT
+                                  [22] RSFLAGGPATT
+                                  [23] INSGPATT
+                                  [24] SPEEDNUMGPATT
+                                  [25] MILEAGEGPATT
+                                  [26] GSTDATAGPATT
+                                  [27] YAWGPATT
+                                  [28] ROLLGPATT
+                                  [29] PITCHGPATT
+                                  [30] GNGGAVALIDCS
+                                  [31] GNRMCVALIDCS
+                                  [32] GPATTVALIDCS
+                                  [33] GNGGAVALIDCD
+                                  [34] GNRMCVALIDCD
+                                  [35] GPATTVALIDCD
+                                  [36] GYRO0ACCX
+                                  [37] GYRO0ACCY
+                                  [38] GYRO0ACCZ
+                                  [39] GYRO0ANGX
+                                  [40] GYRO0ANGY
+                                  [41] GYRO0ANGZ
+                                  [42] GYRO0MAGX
+                                  [43] GYRO0MAGY
+                                  [44] GYRO0MAGZ
+                                  [45] GYRO0GYROX
+                                  [46] GYRO0GYROY
+                                  [47] GYRO0GYROZ
+                                  [48] METEORS
+                                  [49] SUNAZ
+                                  [50] SUNALT
+                                  [51] MOONAZ
+                                  [52] MOONALT
+                                  [53] MOONPHASE
+                                  [54] MERCURYAZ
+                                  [55] MERCURYALT
+                                  [56] VENUSAZ
+                                  [57] VENUSALT
+                                  [58] MARSAZ
+                                  [59] MARSALT
+                                  [60] JUPITERAZ
+                                  [61] JUPITERALT
+                                  [62] SATURNAZ
+                                  [63] SATURNALT
+                                  [64] URANUSAZ
+                                  [65] URANUSALT
+                                  [66] NEPTUNEAZ
+                                  [67] NEPTUNEALT
+                                  [68] HEMIGNGGANORTH
+                                  [69] HEMIGNGGASOUTH
+                                  [70] HEMIGNGGAEAST
+                                  [71] HEMIGNGGAWEST
+                                  [72] POSSTATUSGNRMCA
+                                  [73] POSSTATUSGNRMCV
+                                  [74] MODEGNRMCA
+                                  [75] MODEGNRMCD
+                                  [76] MODEGNRMCE
+                                  [77] MODEGNRMCN
+                                  [78] HEMIGNRMCNORTH
+                                  [79] HEMIGNRMCSOUTH
+                                  [80] HEMIGNRMCEAST
+                                  [81] HEMIGNRMCWEST
+                                  [82] ADMPLEX0
+                                  [83] MAPPEDVALUE
+                                  [84] SDCARDINSERTED
+                                  [85] SDCARDMOUNTED
       matrix -fx n                Set function -f value x for switch -s.
       matrix -fy n                Set function -f value y for switch -s.
       matrix -fz n                Set function -f value z for switch -s.
@@ -279,7 +273,7 @@ static void PrintHelp(void) {
       matrix --map-slot n         Set switch -s output as map slot n value.
 
       example set matrix logic 0 function 0 to detect sdcard mounted:
-      matrix -s 0 -f 0 -p 33 -fn 91 -fx 1 -fo 1 --pwm0 1000000 --pwm1 15000 --computer-assist 1
+      matrix -s 0 -f 0 -p 33 -fn 85 -fx 1 -fo 1 --pwm0 1000000 --pwm1 15000 --computer-assist 1
       matrix -s 0 --omode 0
 
   [ Mapping ]
@@ -504,8 +498,9 @@ void PrintMatrixNData(int matrix_index) {
     Serial.println("[active] " + String(matrixData.switch_intention[0][matrix_index]));
     Serial.println("-----------------------------------------------------");
     for (int Fi=0; Fi<MAX_MATRIX_SWITCH_FUNCTIONS; Fi++) {
+      //                                         matrixData.matrix_function[0][switch_idx][func_idx]
       Serial.println("[function " + String(Fi) + " name] " +
-        String(matrixData.matrix_function_names[matrixData.matrix_function[0][matrix_index][Fi]]));
+        String(matrixData.matrix_function_names[ matrixData.matrix_function[0][matrix_index][Fi] ]));
       Serial.println("[function " + String(Fi) + " matrix_function_operator_name] " +
         String(matrixData.matrix_switch_operator_index[0][matrix_index][Fi]));
       Serial.println("[function " + String(Fi) + " inverted] " +
@@ -567,6 +562,7 @@ void setMatrixPort(int switch_idx, signed int port_n) {
 }
 
 void setMatrixFunction(int switch_idx, int func_idx, int func_n) {
+  Serial.println("func_n " + String(func_n));
   if (switch_idx>=0 && switch_idx<MAX_MATRIX_SWITCHES && func_idx>=0 &&
       func_idx<MAX_MATRIX_SWITCH_FUNCTIONS &&
       func_n>=0 &&
@@ -574,6 +570,7 @@ void setMatrixFunction(int switch_idx, int func_idx, int func_n) {
     matrixData.matrix_function[0][switch_idx][func_idx]=func_n;
     matrixData.matrix_switch_write_required[0][switch_idx]=true;
   }
+  Serial.println("matrix_function " + String(matrixData.matrix_function[0][switch_idx][func_idx]));
 }
 
 void setMatrixX(int switch_idx, int func_idx, double func_x) {
@@ -1225,21 +1222,6 @@ void outputSentences(void) {
       strcat(serial0Data.BUFFER, ",");
       strcat(serial0Data.BUFFER, String(satioData.degrees_longitude, 7).c_str());
       strcat(serial0Data.BUFFER, ",");
-      createChecksumSerial0(serial0Data.BUFFER);
-      strcat(serial0Data.BUFFER, "*");
-      strcat(serial0Data.BUFFER, serial0Data.checksum);
-      Serial.println(serial0Data.BUFFER);
-    }
-  }
-  if (systemData.interval_breach_ins) {
-    systemData.interval_breach_ins = 0;
-    if (systemData.output_ins_enabled) {
-      memset(serial0Data.BUFFER, 0, sizeof(serial0Data.BUFFER));
-      strcat(serial0Data.BUFFER, "$INS,");
-      strcat(serial0Data.BUFFER, String(satioData.rtc_unixtime).c_str());
-      strcat(serial0Data.BUFFER, ",");
-      strcat(serial0Data.BUFFER, String(insData.INS_INITIALIZATION_FLAG).c_str());
-      strcat(serial0Data.BUFFER, ",");
       strcat(serial0Data.BUFFER, String(insData.ins_latitude, 7).c_str());
       strcat(serial0Data.BUFFER, ",");
       strcat(serial0Data.BUFFER, String(insData.ins_longitude, 7).c_str());
@@ -1248,12 +1230,37 @@ void outputSentences(void) {
       strcat(serial0Data.BUFFER, ",");
       strcat(serial0Data.BUFFER, String(insData.ins_heading).c_str());
       strcat(serial0Data.BUFFER, ",");
+      strcat(serial0Data.BUFFER, String(insData.INS_INITIALIZATION_FLAG).c_str());
+      strcat(serial0Data.BUFFER, ",");
       createChecksumSerial0(serial0Data.BUFFER);
       strcat(serial0Data.BUFFER, "*");
       strcat(serial0Data.BUFFER, serial0Data.checksum);
       Serial.println(serial0Data.BUFFER);
     }
   }
+  // if (systemData.interval_breach_ins) {
+  //   systemData.interval_breach_ins = 0;
+  //   if (systemData.output_ins_enabled) {
+  //     memset(serial0Data.BUFFER, 0, sizeof(serial0Data.BUFFER));
+  //     strcat(serial0Data.BUFFER, "$INS,");
+  //     // strcat(serial0Data.BUFFER, String(satioData.rtc_unixtime).c_str());
+  //     // strcat(serial0Data.BUFFER, ",");
+  //     strcat(serial0Data.BUFFER, String(insData.INS_INITIALIZATION_FLAG).c_str());
+  //     strcat(serial0Data.BUFFER, ",");
+  //     strcat(serial0Data.BUFFER, String(insData.ins_latitude, 7).c_str());
+  //     strcat(serial0Data.BUFFER, ",");
+  //     strcat(serial0Data.BUFFER, String(insData.ins_longitude, 7).c_str());
+  //     strcat(serial0Data.BUFFER, ",");
+  //     strcat(serial0Data.BUFFER, String(insData.ins_altitude).c_str());
+  //     strcat(serial0Data.BUFFER, ",");
+  //     strcat(serial0Data.BUFFER, String(insData.ins_heading).c_str());
+  //     strcat(serial0Data.BUFFER, ",");
+  //     createChecksumSerial0(serial0Data.BUFFER);
+  //     strcat(serial0Data.BUFFER, "*");
+  //     strcat(serial0Data.BUFFER, serial0Data.checksum);
+  //     Serial.println(serial0Data.BUFFER);
+  //   }
+  // }
   if (systemData.interval_breach_gyro_0) {
     systemData.interval_breach_gyro_0 = 0;
     if (systemData.output_gyro_0_enabled) {

@@ -36,7 +36,7 @@ struct ADMultiplexer {
  */
 struct MultiplexerDataStruct {
   // Results from analog/digital multiplexer 0.
-  float ADMPLEX_0_DATA[16]={};
+  double ADMPLEX_0_DATA[16]={};
 
   // Results from IIC multiplexer 0.
   float IICMPLEX_0_DATA_0[8]={};
