@@ -273,12 +273,12 @@ Stat
     stat -t     Enables/disables serial print stats and counters. Takes arguments -e, -d.
     stat --partition-table      Print partition table.
     stat --memory-ram           Print ram information.
-    stat --sdcard               Print matrix information.
+    stat --sdcard               Print SDCard information.
     stat --system               Print system configuration.
-    stat --matrix               Print matrix configuration.
     stat --matrix n             Print matrix switch n configuration.
     stat --matrix -A            Print configuration of all matrix switches.
-    stat --mapping              Print configuration of all mapping slots.
+    stat --map n                Print map slot n data.
+    stat --map -A               Print all map slot data.
     stat --sentence -A          Print all sentences. Takes arguments -e, -d.
     stat --sentence --satio     Takes arguments -e, -d.
     stat --sentence --ins       Takes arguments -e, -d.
@@ -286,6 +286,7 @@ Stat
     stat --sentence --gnrmc     Takes arguments -e, -d.
     stat --sentence --gpatt     Takes arguments -e, -d.
     stat --sentence --matrix    Takes arguments -e, -d.
+    stat --sentence --pcinput   Takes arguments -e, -d.
     stat --sentence --admplex0  Takes arguments -e, -d.
     stat --sentence --gyro0     Takes arguments -e, -d.
     stat --sentence --sun       Takes arguments -e, -d.
@@ -355,6 +356,7 @@ Other
   https://drive.google.com/drive/folders/13yynSxkKL-zxb7iLSkg0v0VXkSLgmtW-?usp=sharing
 
 -----
+
 
 
 
