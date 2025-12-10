@@ -1681,12 +1681,6 @@ void initInputPortController() {
   iic_2.setClock(400000);
 }
 
-bool portControllerWriteRequired(int idx) {
-  if (matrixData.matrix_switch_write_required[0][idx]==true)
-    {matrixData.matrix_switch_write_required[0][idx]=false; return true;}
-  return false;
-}
-
 void writeI2COutputPortController(int I2C_Address) {
   // Serial.println("writeI2COutputPortController: " + String(IICLink1.TMP_BUFFER_0));
   // Compile bytes array.
@@ -1712,9 +1706,9 @@ void writeOutputPortControllerM0(void) {
 // readInputPortControllerM1: binary
 // ------------------------------------------------------------
 void writeOutputPortControllerM1(void) {
-  uint8_t packet[15];  // EXACTLY 12 bytes — no wasted space
+  uint8_t packet[15];
   for (int Mi = 0; Mi < MAX_MATRIX_SWITCHES; Mi++) {
-    if (!matrixData.matrix_switch_write_required[0][Mi])  // ← your real flag
+    if (!matrixData.matrix_switch_write_required[0][Mi])
       continue;
     // ------------------------------------------------------------
     // Determine which value to send (computer assist vs override)
@@ -1794,7 +1788,7 @@ bool readInputPortControllerM1(void) {
     u.bytes[2] = iic_2.read();
     u.bytes[3] = iic_2.read();
     if (pin < TOTAL_PINS) {
-      matrixData.input_value[0][pin] = (double)u.f;   // float → double (no precision loss)
+      matrixData.input_value[0][pin] = (double)u.f;
       // Serial.printf("[BIN] P%d = %.6f\n", pin, matrixData.input_value[0][pin]);
     }
   }
