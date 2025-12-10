@@ -1708,43 +1708,112 @@ void writeOutputPortControllerM0(void) {
   systemData.i_count_port_controller++;
 }
 
-void writeOutputPortControllerM1(void) {
-  for (int Mi=0; Mi<MAX_MATRIX_SWITCHES; Mi++) {
-    // Check for change.
-    if (portControllerWriteRequired(Mi)==true) {
-      // Tag.
-      memset(IICLink1.TMP_BUFFER_0, 0, sizeof(IICLink1.TMP_BUFFER_0));
-      strcpy(IICLink1.TMP_BUFFER_0, "M1,");
-      // Index.
-      memset(IICLink1.TMP_BUFFER_1, 0, sizeof(IICLink1.TMP_BUFFER_1));
-      itoa(Mi, IICLink1.TMP_BUFFER_1, 10);
-      strcat(IICLink1.TMP_BUFFER_0, IICLink1.TMP_BUFFER_1);
-      strcat(IICLink1.TMP_BUFFER_0, ",");
-      // Port.
-      memset(IICLink1.TMP_BUFFER_1, 0, sizeof(IICLink1.TMP_BUFFER_1));
-      itoa(matrixData.matrix_port_map[0][Mi], IICLink1.TMP_BUFFER_1, 10);
-      strcat(IICLink1.TMP_BUFFER_0, IICLink1.TMP_BUFFER_1);
-      strcat(IICLink1.TMP_BUFFER_0, ",");
+// ------------------------------------------------------------
+// readInputPortControllerM1: human
+// ------------------------------------------------------------
+// void writeOutputPortControllerM1(void) {
+//   for (int Mi=0; Mi<MAX_MATRIX_SWITCHES; Mi++) {
+//     // Check for change.
+//     if (portControllerWriteRequired(Mi)==true) {
+//       // Tag.
+//       memset(IICLink1.TMP_BUFFER_0, 0, sizeof(IICLink1.TMP_BUFFER_0));
+//       strcpy(IICLink1.TMP_BUFFER_0, "M1,");
+//       // Index.
+//       memset(IICLink1.TMP_BUFFER_1, 0, sizeof(IICLink1.TMP_BUFFER_1));
+//       itoa(Mi, IICLink1.TMP_BUFFER_1, 10);
+//       strcat(IICLink1.TMP_BUFFER_0, IICLink1.TMP_BUFFER_1);
+//       strcat(IICLink1.TMP_BUFFER_0, ",");
+//       // Port.
+//       memset(IICLink1.TMP_BUFFER_1, 0, sizeof(IICLink1.TMP_BUFFER_1));
+//       itoa(matrixData.matrix_port_map[0][Mi], IICLink1.TMP_BUFFER_1, 10);
+//       strcat(IICLink1.TMP_BUFFER_0, IICLink1.TMP_BUFFER_1);
+//       strcat(IICLink1.TMP_BUFFER_0, ",");
 
-      // Output value.
-      memset(IICLink1.TMP_BUFFER_1, 0, sizeof(IICLink1.TMP_BUFFER_1));
-      // Serial.println(matrixData.output_value[0][Mi]);
-      if (matrixData.computer_assist[0][Mi]==true)
-        {ltoa(matrixData.output_value[0][Mi], IICLink1.TMP_BUFFER_1, 10);}
-      else {ltoa(matrixData.override_output_value[0][Mi], IICLink1.TMP_BUFFER_1, 10);}
-      strcat(IICLink1.TMP_BUFFER_0, IICLink1.TMP_BUFFER_1);
-      strcat(IICLink1.TMP_BUFFER_0, ",");
+//       // Output value.
+//       memset(IICLink1.TMP_BUFFER_1, 0, sizeof(IICLink1.TMP_BUFFER_1));
+//       // Serial.println(matrixData.output_value[0][Mi]);
+//       if (matrixData.computer_assist[0][Mi]==true)
+//         {ltoa(matrixData.output_value[0][Mi], IICLink1.TMP_BUFFER_1, 10);}
+//       else {ltoa(matrixData.override_output_value[0][Mi], IICLink1.TMP_BUFFER_1, 10);}
+//       strcat(IICLink1.TMP_BUFFER_0, IICLink1.TMP_BUFFER_1);
+//       strcat(IICLink1.TMP_BUFFER_0, ",");
       
-      // Modulation time.
-      strcat(IICLink1.TMP_BUFFER_0, String(matrixData.output_pwm[0][Mi][INDEX_MATRIX_MOD_0]).c_str());
-      strcat(IICLink1.TMP_BUFFER_0, ",");
-      strcat(IICLink1.TMP_BUFFER_0, String(matrixData.output_pwm[0][Mi][INDEX_MATRIX_MOD_1]).c_str());
-      strcat(IICLink1.TMP_BUFFER_0, ",");
-      // Write instruction.
-      writeI2COutputPortController(I2C_ADDR_OUTPUT_PORTCONTROLLER);
-      // Debug.
-      // Serial.println("[SND] " + String(IICLink1.TMP_BUFFER_0));
+//       // Modulation time.
+//       strcat(IICLink1.TMP_BUFFER_0, String(matrixData.output_pwm[0][Mi][INDEX_MATRIX_MOD_0]).c_str());
+//       strcat(IICLink1.TMP_BUFFER_0, ",");
+//       strcat(IICLink1.TMP_BUFFER_0, String(matrixData.output_pwm[0][Mi][INDEX_MATRIX_MOD_1]).c_str());
+//       strcat(IICLink1.TMP_BUFFER_0, ",");
+//       // Write instruction.
+//       writeI2COutputPortController(I2C_ADDR_OUTPUT_PORTCONTROLLER);
+//       // Debug.
+//       // Serial.println("[SND] " + String(IICLink1.TMP_BUFFER_0));
+//     }
+//   }
+//   systemData.i_count_port_controller++;
+// }
+
+// value to send is: M1,Mi(int),port(signed int),output_value(int32_t),
+
+// ------------------------------------------------------------
+// readInputPortControllerM1: binary
+// ------------------------------------------------------------
+void writeOutputPortControllerM1(void) {
+  uint8_t packet[12];  // EXACTLY 12 bytes — no wasted space
+  for (int Mi = 0; Mi < MAX_MATRIX_SWITCHES; Mi++) {
+    if (!matrixData.matrix_switch_write_required[0][Mi])  // ← your real flag
+      continue;
+    // ------------------------------------------------------------
+    // Determine which value to send (computer assist vs override)
+    // ------------------------------------------------------------
+    int32_t value_to_send = matrixData.computer_assist[0][Mi]
+                            ? matrixData.output_value[0][Mi]
+                            : (int32_t)matrixData.override_output_value[0][Mi];
+    // ------------------------------------------------------------
+    // Build 12-byte binary packet
+    // ------------------------------------------------------------
+    packet[0] = 0xB1;                                           // Command: M1 binary
+    packet[1] = (uint8_t)Mi;                                    // Matrix index (0–69)
+    packet[2] = (uint8_t)(int8_t)matrixData.matrix_port_map[0][Mi];  // Signed pin (-1 allowed!)
+    // ------------------------------------------------------------
+    // int32_t output value (4 bytes, little-endian)
+    // ------------------------------------------------------------
+    packet[3] = (uint8_t)(value_to_send & 0xFF);
+    packet[4] = (uint8_t)((value_to_send >> 8)  & 0xFF);
+    packet[5] = (uint8_t)((value_to_send >> 16) & 0xFF);
+    packet[6] = (uint8_t)((value_to_send >> 24) & 0xFF);
+    // ------------------------------------------------------------
+    // uint32_t OFF time µs (4 bytes)
+    // ------------------------------------------------------------
+    uint32_t off_time = matrixData.output_pwm[0][Mi][0];        // INDEX_MATRIX_MOD_0
+    packet[7]  = (uint8_t)(off_time & 0xFF);
+    packet[8]  = (uint8_t)((off_time >> 8)  & 0xFF);
+    packet[9]  = (uint8_t)((off_time >> 16) & 0xFF);
+    packet[10] = (uint8_t)((off_time >> 24) & 0xFF);
+    // ------------------------------------------------------------
+    // uint16_t ON time µs (2 bytes)
+    // ------------------------------------------------------------
+    uint16_t on_time = (uint16_t)matrixData.output_pwm[0][Mi][1];  // INDEX_MATRIX_MOD_1
+    packet[11] = (uint8_t)(on_time & 0xFF);
+    // packet[12] not needed — only 12 bytes total
+    // ------------------------------------------------------------
+    // Send over I2C
+    // ------------------------------------------------------------
+    iic_1.beginTransmission(I2C_ADDR_OUTPUT_PORTCONTROLLER);
+    iic_1.write(packet, 12);                    // Exactly 12 bytes
+    uint8_t result = iic_1.endTransmission();
+    // ------------------------------------------------------------
+    // Check error code (0=success)
+    // ------------------------------------------------------------
+    if (result != 0) {
+      Serial.printf("I2C M1 error @idx %d (pin %d): err=%d\n",
+                    Mi, matrixData.matrix_port_map[0][Mi], result);
     }
+    // Optional live debug (uncomment when tuning)
+    // Serial.printf("[M1] idx:%02d pin:%3d val:%6ld off:%6lu on:%5u\n",
+    //               Mi, matrixData.matrix_port_map[0][Mi], value_to_send, off_time, on_time);
+
+    // Clear flag after successful send (or retry logic if needed)
+    matrixData.matrix_switch_write_required[0][Mi] = false;
   }
   systemData.i_count_port_controller++;
 }
