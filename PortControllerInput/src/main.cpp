@@ -35,6 +35,7 @@ PortController - IIC I/O device.
 // -----------------------------------------------------------------------------------
 constexpr uint8_t ANALOG_PINS[]  = {54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69};
 constexpr uint8_t NUM_ANALOG     = sizeof(ANALOG_PINS);
+
 // -----------------------------------------------------------------------------------
 // Digital pins on Mega2560: 0–53
 // -----------------------------------------------------------------------------------
@@ -47,6 +48,7 @@ constexpr uint8_t DIGITAL_PINS[] = {
     50,51,52,53
 };
 constexpr uint8_t NUM_DIGITAL    = sizeof(DIGITAL_PINS);
+
 // --------------------------------------------------------------------
 // Inline binary search – compiles to ~10–15 instructions
 // --------------------------------------------------------------------
@@ -97,28 +99,8 @@ volatile unsigned long matrix_modulation_time[MAX_MATRIX_SWITCHES][3]={
   {0,0,0}, {0,0,0}, {0,0,0}, {0,0,0}, {0,0,0}, {0,0,0}, {0,0,0}, {0,0,0}, {0,0,0}, {0,0,0}  // 60-69
 };
 
-volatile int output_value[MAX_MATRIX_SWITCHES]={
-  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 0-9
-  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 10-19
-  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 20-29
-  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 30-9
-  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 40-49
-  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 50-59
-  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 60-69
-};
-
-volatile int input_value[MAX_MATRIX_SWITCHES]={
-  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 0-9
-  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 10-19
-  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 20-29
-  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 30-9
-  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 40-49
-  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 50-59
-  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 60-69
-};
-
 // ------------------------------------------------------------
-// keep track of intended high/low state for modulation
+// Keep track of intended high/low state for modulation
 // ------------------------------------------------------------
 volatile bool matrix_modulation_switch_state[MAX_MATRIX_SWITCHES] = {
   false, false, false, false, false, false, false, false, false, false, // 0-9
@@ -131,15 +113,38 @@ volatile bool matrix_modulation_switch_state[MAX_MATRIX_SWITCHES] = {
 };
 
 // ------------------------------------------------------------
-// Current pin reading
+// Output Values: values to be written to a pin
 // ------------------------------------------------------------
+volatile int output_value[MAX_MATRIX_SWITCHES]={
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 0-9
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 10-19
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 20-29
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 30-9
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 40-49
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 50-59
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 60-69
+};
+
+// ------------------------------------------------------------
+// Input Values: values read from a pin
+// ------------------------------------------------------------
+volatile int input_value[MAX_MATRIX_SWITCHES]={
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 0-9
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 10-19
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 20-29
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 30-9
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 40-49
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 50-59
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 60-69
+};
+
 volatile int current_input_value=0;
 volatile signed int current_pin=-1;
 volatile bool multi_read_mode=false;
 
-// ------------------------------------------------------------------------------------------------------------------------------
-//                                                                                                                       I2C DATA
-// ------------------------------------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------
+// I2C Data
+// ------------------------------------------------------------
 struct I2CLinkStruct {
   volatile int i_token;
   char         * token;
@@ -149,9 +154,10 @@ struct I2CLinkStruct {
 };
 I2CLinkStruct I2CLink;
 
-// ------------------------------------------------------------------------------------------------------------------------------
-//                                                                                                                     I2C EVENTS
-// ------------------------------------------------------------------------------------------------------------------------------
+
+// ------------------------------------------------------------
+// Clear Data
+// ------------------------------------------------------------
 void clearMatrixSwitch() {
   for (int i=PIN_MIN;i<PIN_MAX; i++) {digitalWrite(i, LOW);}
   for (int i=0;i<MAX_MATRIX_SWITCHES; i++) {
@@ -165,25 +171,7 @@ void clearMatrixSwitch() {
 }
 
 // ------------------------------------------------------------
-// requestEvent: human
-// ------------------------------------------------------------
-// void requestEvent() {
-//   // Format exactly what we need, get the real length
-//   int len = snprintf(I2CLink.TMP_BUFFER, sizeof(I2CLink.TMP_BUFFER),
-//                      "%d,%u", current_pin, input_value[current_pin]);
-//   // Serial.println(I2CLink.TMP_BUFFER);
-//   // Send ONLY the real data (no garbage!)
-//   Wire.write((uint8_t*)I2CLink.TMP_BUFFER, sizeof(I2CLink.TMP_BUFFER));
-
-//   // Advance pin
-//   if (++current_pin >= NUM_ANALOG + NUM_DIGITAL) {
-//     current_pin = 0;
-//     multi_read_mode = false;
-//   }
-// }
-
-// ------------------------------------------------------------
-// requestEvent: binary for double value
+// I2C Event: sends binary data to master
 // ------------------------------------------------------------
 void requestEvent() {
   // if (!multi_read_mode) return;
@@ -208,100 +196,103 @@ void requestEvent() {
   }
 }
 
-void receiveEvent(int) {
-  // ------------------------------------------------------------
-  // Read incoming data
-  // ------------------------------------------------------------
-  memset(I2CLink.INPUT_BUFFER, 0, sizeof(I2CLink.INPUT_BUFFER));
-  Wire.readBytesUntil('\n', I2CLink.INPUT_BUFFER, sizeof(I2CLink.INPUT_BUFFER));
-  // Serial.println("[RCV] " + String(I2CLink.INPUT_BUFFER));
-  // ------------------------------------------------------------
-  // Tokenize data tag
-  // ------------------------------------------------------------
-  I2CLink.token = strtok(I2CLink.INPUT_BUFFER, ",");
-  // ------------------------------------------------------------
-  // Mode 0: Clear existing
-  // ------------------------------------------------------------
-  if (strcmp(I2CLink.INPUT_BUFFER, "M0")==0) {clearMatrixSwitch(); multi_read_mode=false;}
-  // ------------------------------------------------------------
-  /*
-    Mode 1: Write Output.
-    (1) Read instrunction from master.
-    (2) Store instruction.
-    (3) Write to pin.
-    Instruction from master: M1,INDEX,PIN,OUTPUT_VALUE,OFF_uS_TIME,ON_TIME_uS
-    Instruction to master:   Currently none.
-  */
-  // ------------------------------------------------------------
-  else if (strncmp(I2CLink.INPUT_BUFFER, "M1", strlen("M1"))==0) {
-    multi_read_mode=false;
-    // -----------------------
-    // index
-    // -----------------------
-    I2CLink.token = strtok(NULL, ",");
-    port_index = atoi(I2CLink.token);
-    // -----------------------
-    // pin
-    // -----------------------
-    I2CLink.token = strtok(NULL, ",");
-    matrix_port_map[port_index] = atoi(I2CLink.token);
-    // -----------------------
-    // output value
-    // -----------------------
-    I2CLink.token = strtok(NULL, ",");
-    output_value[port_index] = atoi(I2CLink.token);
-    // -----------------------
-    // off time micros
-    // -----------------------
-    I2CLink.token = strtok(NULL, ",");
-    matrix_modulation_time[port_index][0]=atol(I2CLink.token);
-    // -----------------------
-    // on time micros
-    // -----------------------
-    I2CLink.token = strtok(NULL, ",");
-    matrix_modulation_time[port_index][1]=atol(I2CLink.token);
-    // -----------------------
-    // Digital
-    // -----------------------
-    if (isDigitalPin(matrix_port_map[port_index])) {
-      // Serial.println("Digital Pin:");
-      current_input_value=digitalRead(matrix_port_map[port_index]);
-      if ( (current_input_value==1) && (output_value[port_index]==0) ) {
-        // Serial.println("Analog Pin:");
-        pinMode(matrix_port_map[port_index], OUTPUT); // new
-        digitalWrite(matrix_port_map[port_index], LOW);
-        matrix_modulation_time[port_index][2]=0;
+// ------------------------------------------------------------
+// I2C Event: expects binary data from master
+// ------------------------------------------------------------
+void receiveEvent(int howMany) {
+  if (howMany < 1) return;
+  uint8_t cmd = Wire.read();
+  // Serial.println("cmd " + String(cmd) + " (" + String(howMany) + " bytes)");
+  switch (cmd) {
+    // ------------------------------------------------------------
+    // Instruction: M0
+    // ------------------------------------------------------------
+    case 0xB0:
+    // Serial.println("[Resuest] M0");
+      for (int i = 0; i < MAX_MATRIX_SWITCHES; i++) {
+        matrix_port_map[i] = -1;
+        output_value[i] = 0;
+        matrix_modulation_time[i][0] = 0;
+        matrix_modulation_time[i][1] = 0;
+        matrix_modulation_time[i][2] = 0;
+        matrix_modulation_switch_state[i] = false;
       }
-      else if ( (current_input_value==0) && (output_value[port_index]==1) ) {
-        pinMode(matrix_port_map[port_index], OUTPUT); // new
-        digitalWrite(matrix_port_map[port_index], HIGH);
-        matrix_modulation_time[port_index][2]=0;
+      multi_read_mode = false;
+      current_pin = -1;
+      while (Wire.available()) Wire.read();  // flush
+      break;
+    // ------------------------------------------------------------
+    // Instruction: M1
+    // ------------------------------------------------------------
+    case 0xB1:
+      // Serial.println("[Resuest] M1");
+      if (howMany != 13) { while (Wire.available()) Wire.read(); Serial.println("!=12"); return; }
+      uint8_t  idx      = Wire.read();
+      int8_t   pin      = (int8_t)Wire.read();  // correctly handles -1
+      int32_t  value    = (int32_t)(uint32_t)Wire.read() |
+                          (int32_t)Wire.read() << 8 |
+                          (int32_t)Wire.read() << 16 |
+                          (int32_t)Wire.read() << 24;
+      uint32_t off_time = (uint32_t)Wire.read() |
+                          (uint32_t)Wire.read() << 8 |
+                          (uint32_t)Wire.read() << 16 |
+                          (uint32_t)Wire.read() << 24;
+      uint16_t on_time  = (uint16_t)Wire.read() |
+                          (uint16_t)Wire.read() << 8;
+      if (idx >= MAX_MATRIX_SWITCHES) return;
+      // ------------------------------------------------------------
+      // Store
+      // ------------------------------------------------------------
+      matrix_port_map[idx]           = pin;
+      output_value[idx]              = value;
+      matrix_modulation_time[idx][0] = off_time;
+      matrix_modulation_time[idx][1] = on_time;
+      matrix_modulation_time[idx][2] = 0;
+      matrix_modulation_switch_state[idx] = false;
+      // ------------------------------------------------------------
+      // Debug: I2C timeouts may occur if blocking with serial prints 
+      // ------------------------------------------------------------
+      // Serial.println("matrix_port_map[idx] "           + String(matrix_port_map[idx]));
+      // Serial.println("output_value[idx]              " + String(output_value[idx]));
+      // Serial.println("matrix_modulation_time[idx][0] " + String(matrix_modulation_time[idx][0]));
+      // Serial.println("matrix_modulation_time[idx][1] " + String(matrix_modulation_time[idx][1]));
+      // Serial.println("matrix_modulation_time[idx][2] " + String(matrix_modulation_time[idx][2]));
+      // Serial.println("matrix_modulation_switch_state[idx] " + String(matrix_modulation_switch_state[idx] ? "true" : "false"));
+      // ------------------------------------------------------------
+      // Apply
+      // ------------------------------------------------------------
+      if (pin >= 0) {
+        if (isDigitalPin(pin)) {
+          pinMode(pin, OUTPUT);
+          digitalWrite(pin, (value != 0) ? HIGH : LOW);
+        }
+        else if (isAnalogPin(pin)) {
+          pinMode(pin, OUTPUT);
+          analogWrite(pin, constrain(value, 0, 255));
+        }
       }
-      // else ignore unecessary
-    }
-    // -----------------------
-    // Analog
-    // -----------------------
-    else if (isAnalogPin(matrix_port_map[port_index])) {
-      pinMode(matrix_port_map[port_index], OUTPUT); // new
-      analogWrite(matrix_port_map[port_index], output_value[port_index]);
-    }
-  }
-  // ------------------------------------------------------------
-  /*
-    Mode 2: Read Input.
-    (1) Read instrunction from master.
-    (2) Read pin.
-    (3) Send value to master.
-    Instruction from master: M2,PIN
-    Instruction to master:   M2,PIN,VALUE
-  */
-  // ------------------------------------------------------------
-  else if (strncmp(I2CLink.INPUT_BUFFER, "M2", strlen("M2"))==0) {
-    multi_read_mode=true;
+      break;
+    // ------------------------------------------------------------
+    // Instruction: M2
+    // ------------------------------------------------------------
+    case 0xB2:  // M2 — Start multi-read mode
+    // Serial.println("[Resuest] M2"); 
+      multi_read_mode = true;
+      current_pin = 0;
+      while (Wire.available()) Wire.read();
+      break;
+    // ------------------------------------------------------------
+    // Default case: flush
+    // ------------------------------------------------------------
+    default:
+      while (Wire.available()) Wire.read();
+      break;
   }
 }
 
+// ------------------------------------------------------------
+// Output modulator
+// ------------------------------------------------------------
 void modulator() {
   // ------------------------------------------------------------
   // Logic modulator
@@ -362,6 +353,9 @@ void modulator() {
   }
 }
 
+// ------------------------------------------------------------
+// Reads all analog and digital pins
+// ------------------------------------------------------------
 void readPins() {
   int i_counter=0;
   for (int i=0; i<NUM_DIGITAL; i++) {
@@ -407,6 +401,6 @@ void setup() {
 // ------------------------------------------------------------------------------------------------------------------
 
 void loop() {
-  modulator(); // for output
+  // modulator(); // for output
   readPins();  // for input
 }
