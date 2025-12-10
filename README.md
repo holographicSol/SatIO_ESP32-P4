@@ -249,6 +249,10 @@ Satio
       satio --altitude-unit-kilometers  Convert meters to kilometers.
       satio --altitude-unit-miles       Convert meters to miles.
 
+      satio --ground-heading-mode-gps     Use GPS ground heading values.
+      satio --ground-heading-mode-static  Do not update heading unless --set-ground-heading or otherwise.
+      satio --set-ground-heading          Set ground heading in degrees (0-360. Ensure --ground-heading-mode-static before --ground-heading).
+
 -----
 
 Gyro
@@ -356,6 +360,7 @@ Other
   https://drive.google.com/drive/folders/13yynSxkKL-zxb7iLSkg0v0VXkSLgmtW-?usp=sharing
 
 -----
+
 
 
 
