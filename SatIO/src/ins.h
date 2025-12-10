@@ -37,7 +37,7 @@ struct InsData {
   // This flag is set on successfull mode 2 initialization
   bool   INS_FORCED_ON_FLAG;
 
-  /** INS Moded
+  /** INS Mode
    * 
    *  0 : Disabled :
    *        - continually set initialization flag (with INS_ENABLED false).
@@ -75,15 +75,15 @@ extern struct InsData insData;
  * Estimates current position using current gyro and gps data.
  * @param pitch Gyro pitch
  * @param yaw Gyro yaw
- * @param gps_ground_heading GPS ground heading in degrees
- * @param gps_ground_speed GPS ground speed
+ * @param ground_heading GPS ground heading in degrees
+ * @param ground_speed GPS ground speed
  * @param dt Current unix uS datetime
  * @return Returns bool
  */
 bool ins_estimate_position(double pitch,
                            double yaw,
-                           double gps_ground_heading,
-                           double gps_ground_speed,
+                           double ground_heading,
+                           double ground_speed,
                            int64_t dt);
 
 /**
@@ -100,14 +100,14 @@ bool angles_are_close(double angle1,
 /**
  * Attempts to initialize the INS according to initialization rules.
  * @param gps_precision_factor GPS precision factor
- * @param gps_ground_heading GPS ground heading in degrees
- * @param gps_ground_speed GPS ground speed
+ * @param ground_heading GPS ground heading in degrees
+ * @param ground_speed GPS ground speed
  * @param gyro_heading Gyro heading in degrees
  * @return Returns None
  */
 void ins_init(double gps_precision_factor,
-              double gps_ground_heading,
-              double gps_ground_speed,
+              double ground_heading,
+              double ground_speed,
               double gyro_heading);
 
 /**
@@ -116,8 +116,8 @@ void ins_init(double gps_precision_factor,
  * @param gps_latitude GPS latitude degrees
  * @param gps_longitude GPS longitude degrees
  * @param gps_altitude GPS Altitude in meters
- * @param gps_ground_heading GPS ground heading in degrees
- * @param gps_ground_speed GPS ground speed
+ * @param ground_heading GPS ground heading in degrees
+ * @param ground_speed GPS ground speed
  * @param gps_precision_factor GPS precision factor
  * @param gyro_heading Gyro heading in degrees
  * @return Returns None
@@ -125,8 +125,8 @@ void ins_init(double gps_precision_factor,
 void set_ins(double gps_latitude,
              double gps_longitude,
              double gps_altitude,
-             double gps_ground_heading,
-             double gps_ground_speed,
+             double ground_heading,
+             double ground_speed,
              double gps_precision_factor,
              double gyro_heading);
 

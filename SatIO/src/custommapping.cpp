@@ -33,6 +33,7 @@ struct CustomMappingStruct mappingData={
     "Gyro0GyroX", // 13
     "Gyro0GyroY", // 14
     "Gyro0GyroZ", // 15
+    // reduce the following using an index array
     "ADMPlex0_0", // 16
     "ADMPlex0_1", // 17
     "ADMPlex0_2", // 18
@@ -59,9 +60,6 @@ struct CustomMappingStruct mappingData={
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 40-49
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 50-59
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 60-69
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 70-79
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 80-89
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 90-99
       }
     },
   .mapping_config={
@@ -80,12 +78,6 @@ struct CustomMappingStruct mappingData={
       {0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0}, // 55-59
       {0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0}, // 60-64
       {0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0}, // 65-69
-      {0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0}, // 70-74
-      {0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0}, // 75-79
-      {0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0}, // 80-84
-      {0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0}, // 85-89
-      {0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0}, // 90-04
-      {0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0}  // 95-99
     }
   },
   .index_mapped_value={
@@ -96,9 +88,6 @@ struct CustomMappingStruct mappingData={
       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 40-49
       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 50-59
       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 60-69
-      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 70-79
-      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 80-89
-      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 90-99
   },
   .mapped_value={
     {
@@ -109,9 +98,6 @@ struct CustomMappingStruct mappingData={
       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 40-49
       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 50-59
       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 60-69
-      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 70-79
-      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 80-89
-      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 90-99
     }
   },
 };
@@ -223,6 +209,7 @@ void map_values(void) {
         case INDEX_MAPPABLE_VALUES_GYRO0GYROZ:
             map_values_helper(map_slot, gyroData.gyro_0_gyr_z);
             break;
+        // reduce the following using an index array
         case INDEX_MAPPABLE_VALUES_ADMPLEX0_0:
             map_values_helper(map_slot, multiplexerData.ADMPLEX_0_DATA[0]);
             break;
@@ -291,4 +278,5 @@ void set_mapping_default(int map_slot) {
 
 void set_all_mapping_default(void) {
     for (int Mi=0; Mi < MAX_MAP_SLOTS; Mi++) {set_mapping_default(Mi);}
+    Serial.println("$MAPPINGNEW");
 }

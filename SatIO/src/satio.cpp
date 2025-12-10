@@ -5,6 +5,7 @@
 
 #include "satio.h"
 #include <Arduino.h>
+#include <Wire.h>
 #include <RTClib.h>  // https://github.com/adafruit/RTClib
 #include "wtgps300p.h"
 
@@ -119,7 +120,10 @@ struct SATIOStruct satioData = {
     .speed_conversion_mode = SPEED_CONVERSION_MODE_GPS,
     .char_speed_conversion_mode = {"STATIC", "GPS"},
 
-    .ground_heading = {0},
+    .ground_heading_name = {0},
+    .ground_heading = 0.0,
+    .ground_heading_mode = GROUND_HEADING_MODE_GPS,
+    .char_ground_heading_mode = {"STATIC", "GPS"},
     .mileage = "pending",
 };
 
@@ -179,6 +183,44 @@ void setSatIOSspeed() {
   else if (satioData.speed_unit_mode==SPEED_UNIT_MODE_KPH) {speed=speed*KNOTS_TO_MPH;}
   else if (satioData.speed_unit_mode==SPEED_UNIT_MODE_METERS_A_SECOND) {speed=speed*KNOTS_TO_METERS_PER_SECOND;}
   satioData.speed_converted=speed;
+}
+
+void setSatIOGroundHeading() {
+  double ground_heading=satioData.ground_heading;
+  char *endptr;
+  // ---------------------------------------------------------------------
+  // Select which value to use from the system.
+  // ---------------------------------------------------------------------
+  if      (satioData.ground_heading_mode==GROUND_HEADING_MODE_STATIC) {} // is set elsewhere or remains static
+  else if (satioData.ground_heading_mode==GROUND_HEADING_MODE_GPS) {ground_heading=strtod(gnrmcData.ground_heading, &endptr);}
+  satioData.ground_heading=ground_heading;
+}
+
+// ----------------------------------------------------------------------------------------
+// groundHeadingDegreesToNESW.
+// ----------------------------------------------------------------------------------------
+String groundHeadingDegreesToNESW(float num) {
+  if (num == 0 || num == 360)      {return String("N");}
+  else if (num > 0 && num < 45)    {return String("NNE");}
+  else if (num == 45)              {return String("NE");}
+  else if (num > 45 && num < 90)   {return String("ENE");}
+  else if (num == 90)              {return String("E");}
+  else if (num > 90 && num < 135)  {return String("ESE");}
+  else if (num == 135)             {return String("SE");}
+  else if (num > 135 && num < 180) {return String("SSE");}
+  else if (num == 180)             {return String("S");}
+  else if (num > 180 && num < 225) {return String("SSW");}
+  else if (num == 225)             {return String("SW");}
+  else if (num > 225 && num < 270) {return String("WSW");}
+  else if (num == 270)             {return String("W");}
+  else if (num > 270 && num < 315) {return String("WNW");}
+  else if (num == 315)             {return String("NW");}
+  else if (num > 315 && num < 360) {return String("NNW");}
+  return String("");
+}
+void setGroundHeadingName(float num) {
+  memset(satioData.ground_heading_name, 0, sizeof(satioData.ground_heading_name));
+  strcpy(satioData.ground_heading_name, groundHeadingDegreesToNESW(num).c_str());
 }
 
 // ------------------------------------------------------------------------------------------------------------------------------
@@ -282,33 +324,6 @@ void setSatioCoordinates(){
     // -----------------------------------------------------------------------------------------
     scanf("%f17", &satioData.degrees_longitude);
   }
-}
-
-// ----------------------------------------------------------------------------------------
-// groundHeadingDegreesToNESW.
-// ----------------------------------------------------------------------------------------
-String groundHeadingDegreesToNESW(float num) {
-  if (num == 0 || num == 360)      {return String("N");}
-  else if (num > 0 && num < 45)    {return String("NNE");}
-  else if (num == 45)              {return String("NE");}
-  else if (num > 45 && num < 90)   {return String("ENE");}
-  else if (num == 90)              {return String("E");}
-  else if (num > 90 && num < 135)  {return String("ESE");}
-  else if (num == 135)             {return String("SE");}
-  else if (num > 135 && num < 180) {return String("SSE");}
-  else if (num == 180)             {return String("S");}
-  else if (num > 180 && num < 225) {return String("SSW");}
-  else if (num == 225)             {return String("SW");}
-  else if (num > 225 && num < 270) {return String("WSW");}
-  else if (num == 270)             {return String("W");}
-  else if (num > 270 && num < 315) {return String("WNW");}
-  else if (num == 315)             {return String("NW");}
-  else if (num > 315 && num < 360) {return String("NNW");}
-  return String("");
-}
-void setGroundHeadingName(float num) {
-  memset(satioData.ground_heading, 0, sizeof(satioData.ground_heading));
-  strcpy(satioData.ground_heading, groundHeadingDegreesToNESW(num).c_str());
 }
 
  double calculateSpeedFromLocationData(LocPoint p1, LocPoint p2) {
@@ -721,6 +736,7 @@ void setSatIOData(void) {
       setSatioCoordinates();
       setSatIOAltitude();
       setSatIOSspeed();
+      setSatIOGroundHeading();
       setGroundHeadingName(atof(gnrmcData.ground_heading));
 }
 
@@ -741,6 +757,10 @@ void initSystemTime(void) {
                  " (+- offset seconds " + String(satioData.utc_second_offset) + ")");
 }
 
+TwoWire iic_0(0);
+
 void initRTC(void) {
-  rtc.begin();
+  iic_0.begin(2, 3, 400000UL);
+  rtc.begin(&iic_0);
+  // rtc.begin();
 }

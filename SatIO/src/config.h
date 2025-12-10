@@ -8,13 +8,14 @@
 extern "C" {
 #endif
 
-
+#define MAX_MATRIX_OUTPUT_MODES 2
 // ----------------------------------------------------------------------------------------
 // Globals.
 // ----------------------------------------------------------------------------------------
 #define EARTH_MEAN_RADIUS 6371000.0 // Mean Earth radius (meters)
 #define MAX_GLOBAL_SERIAL_BUFFER_SIZE 512
 #define MAX_GLOBAL_ELEMENT_SIZE 56
+#define MAX_INPUT_PORTCONTROLLER_RESPONSE_BYTES 32
 #define FORMAT_SPIFFS_IF_FAILED false
 // ----------------------------------------------------------------------------------------
 // IIC.
@@ -22,7 +23,8 @@ extern "C" {
 #define MAX_I2C_MUX 1              // Maximum number of I2C multiplexers (TCA9548A).
 #define MAX_IIC_BUFFER_SIZE 32
 #define I2C_ADDR_CONTROL_PAD 8
-#define I2C_ADDR_PORTCONTROLLER_0 9
+#define I2C_ADDR_OUTPUT_PORTCONTROLLER 9
+#define I2C_ADDR_INPUT_PORTCONTROLLER    10
 // ----------------------------------------------------------------------------------------
 // Gyro.
 // ----------------------------------------------------------------------------------------
@@ -47,7 +49,7 @@ extern "C" {
 // ----------------------------------------------------------------------------------------
 #define MAX_MAPPABLE_VALUES 32   // Maximum number of mappable values
 #define MAX_MAPPING_PARAMETERS 6 // Number of parameters per mapping slot
-#define MAX_MAP_SLOTS 100        // Maximum number of map slots.
+#define MAX_MAP_SLOTS 70        // Maximum number of map slots.
 #define MAX_MAP_MODES 3
 #define INDEX_MAPPABLE_VALUES_DIGITAL      0
 #define INDEX_MAPPABLE_VALUES_YAWGPATT     1
@@ -118,7 +120,7 @@ extern "C" {
 #define MAX_MATRIX_OVERRIDE_TIME 1000000
 #define MAX_MATRIX_SWITCHES 70         // logical max is current subjective max<=sytem memory capacity (actual max is subjective max<=sytem memory capacity and or limited by portcontroller max I/O range if using port controller for output)
 #define MAX_MATRIX_SWITCH_FUNCTIONS 10 // logical max is current subjective max<=sytem memory capacity (actual max is subjective max<=sytem memory capacity and or limited by portcontroller max I/O range if using port controller for output)
-#define MAX_MATRIX_FUNCTION_NAMES 86 // should match length matrixData.matrix_function_names[]
+#define MAX_MATRIX_FUNCTION_NAMES 87 // should match length matrixData.matrix_function_names[]
 #define MAX_MATRIX_OPERATORS 5
 #define INDEX_MATRIX_FUNTION_X 0
 #define INDEX_MATRIX_FUNTION_Y 1
@@ -215,6 +217,7 @@ extern "C" {
 #define INDEX_MATRIX_SWITCH_FUNCTION_MAPPEDVALUE 83
 #define INDEX_MATRIX_SWITCH_FUNCTION_SDCARDINSERTED 84
 #define INDEX_MATRIX_SWITCH_FUNCTION_SDCARDMOUNTED 85
+#define INDEX_MATRIX_SWITCH_FUNCTION_PCINPUTVALUE 86
 
 #define INDEX_MATRIX_MOD_0 0
 #define INDEX_MATRIX_MOD_1 1
@@ -323,6 +326,11 @@ extern "C" {
 #define KNOTS_TO_METERS_PER_SECOND 0.514444
 #define KNOTS_TO_MPH 1.15078
 #define KNOTS_TO_KPH 1.852
+
+#define MAX_GROUND_HEADING_MODES   2
+#define GROUND_HEADING_MODE_STATIC 0
+#define GROUND_HEADING_MODE_GPS    1
+
 
 #define LAST_EPOCH 1900
 // ----------------------------------------------------------------------------------------

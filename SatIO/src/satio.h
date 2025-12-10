@@ -113,24 +113,28 @@ struct SATIOStruct {
     bool set_rtc_datetime_flag;
     bool sync_rtc_immediately_flag;
 
-    int  coordinate_conversion_mode; // 0: STATIC, 1: GNGGA, 2: GNRMC
-    char char_coordinate_conversion_mode[MAX_COORDINATE_CONVERSION_CONVERSION_MODES][10];
+    int   coordinate_conversion_mode; // 0: STATIC, 1: GNGGA, 2: GNRMC
+    char  char_coordinate_conversion_mode[MAX_COORDINATE_CONVERSION_CONVERSION_MODES][10];
 
     double altitude; // should always be meters altitude.
     double altitude_converted;
     int    altitude_unit_mode; // 0: Meters, 1: Miles, 2: Km, add more
     char   char_altitude_unit_mode[MAX_ALTITUDE_UNIT_MODES][10];
-    int  altitude_conversion_mode; // 0: STATIC, 1: GNGGA
-    char char_altitude_conversion_mode[MAX_ALTITUDE_CONVERSION_MODES][10];
+    int    altitude_conversion_mode; // 0: STATIC, 1: GNGGA
+    char   char_altitude_conversion_mode[MAX_ALTITUDE_CONVERSION_MODES][10];
 
     double speed; // should always be meters a second.
     double speed_converted;
     int    speed_unit_mode; // 0: M/S, 1: MPH, 2: KPH, 3: KTS add more
     char   char_speed_unit_mode[MAX_SPEED_UNIT_MODES][10]; // Speed mode names
-    int  speed_conversion_mode; // 0: STATIC, 1: GNRMC
-    char char_speed_conversion_mode[MAX_COORDINATE_CONVERSION_CONVERSION_MODES][10];
+    int    speed_conversion_mode; // 0: STATIC, 1: GNRMC
+    char   char_speed_conversion_mode[MAX_COORDINATE_CONVERSION_CONVERSION_MODES][10];
 
-    char ground_heading[MAX_GLOBAL_ELEMENT_SIZE]; // Ground heading (e.g., N, NNE)
+    char   ground_heading_name[MAX_GLOBAL_ELEMENT_SIZE]; // Ground heading (e.g., N, NNE)
+    double ground_heading;
+    int    ground_heading_mode;
+    char   char_ground_heading_mode[MAX_GROUND_HEADING_MODES][10];
+
     char mileage[MAX_GLOBAL_ELEMENT_SIZE];        // Mileage (pending processing)
 };
 extern struct SATIOStruct satioData;

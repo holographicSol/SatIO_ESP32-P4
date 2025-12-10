@@ -254,6 +254,7 @@ static void PrintHelp(void) {
                                   [83] MAPPEDVALUE
                                   [84] SDCARDINSERTED
                                   [85] SDCARDMOUNTED
+                                  [86] PCINPUTVALUE
       matrix -fx n                Set function -f value x for switch -s.
       matrix -fy n                Set function -f value y for switch -s.
       matrix -fz n                Set function -f value z for switch -s.
@@ -404,6 +405,7 @@ static void PrintHelp(void) {
       stat --sentence --gnrmc     Takes arguments -e, -d.
       stat --sentence --gpatt     Takes arguments -e, -d.
       stat --sentence --matrix    Takes arguments -e, -d.
+      stat --sentence --pcinput   Takes arguments -e, -d.
       stat --sentence --admplex0  Takes arguments -e, -d.
       stat --sentence --gyro0     Takes arguments -e, -d.
       stat --sentence --sun       Takes arguments -e, -d.
@@ -437,6 +439,7 @@ void PrintSystemData(void) {
     Serial.println("[output_gnrmc_enabled] " + String(systemData.output_gnrmc_enabled));
     Serial.println("[output_gpatt_enabled] " + String(systemData.output_gpatt_enabled));
     Serial.println("[output_matrix_enabled] " + String(systemData.output_matrix_enabled));
+    Serial.println("[output_input_portcontroller] " + String(systemData.output_input_portcontroller));
     Serial.println("[output_admplex0_enabled] " + String(systemData.output_admplex0_enabled));
     Serial.println("[output_gyro_0_enabled] " + String(systemData.output_gyro_0_enabled));
     Serial.println("[output_sun_enabled] " + String(systemData.output_sun_enabled));
@@ -540,6 +543,7 @@ void setAllSentenceOutput(bool enable) {
   systemData.output_gpatt_enabled=enable;
   systemData.output_ins_enabled=enable;
   systemData.output_matrix_enabled=enable;
+  systemData.output_input_portcontroller=enable;
   systemData.output_admplex0_enabled=enable;
   systemData.output_gyro_0_enabled=enable;
   systemData.output_sun_enabled=enable;
@@ -846,6 +850,17 @@ void setSpeed(double speed) {
   }
 }
 
+void setGroundHeading(double heading) {
+  /*
+     satio --ground-heading-mode-static
+     satio --ground-heading-mode-gps
+     satio --set-ground-heading 180
+  */
+  if (heading>=0 && heading<DBL_MAX && heading!=NAN) {
+    satioData.ground_heading=heading;
+  }
+}
+
 void star_nav() {
   // star sirius test: starnav 6 45 8.9 -16 42 58.0
   // ngc test:         starnav 2 20 35.0 -23 7 0.0
@@ -1022,6 +1037,7 @@ void CmdProcess(void) {
         if (argparser_has_flag(&parser, "gpatt")) {systemData.output_gpatt_enabled=enable;}
         if (argparser_has_flag(&parser, "ins")) {systemData.output_ins_enabled=enable;}
         if (argparser_has_flag(&parser, "matrix")) {systemData.output_matrix_enabled=enable;}
+        if (argparser_has_flag(&parser, "pcinput")) {systemData.output_input_portcontroller=enable;}
         if (argparser_has_flag(&parser, "admplex0")) {systemData.output_admplex0_enabled=enable;}
         if (argparser_has_flag(&parser, "gyro0")) {systemData.output_gyro_0_enabled=enable;}
         if (argparser_has_flag(&parser, "sun")) {systemData.output_sun_enabled=enable;}
@@ -1034,6 +1050,8 @@ void CmdProcess(void) {
         if (argparser_has_flag(&parser, "uranus")) {systemData.output_uranus_enabled=enable;}
         if (argparser_has_flag(&parser, "neptune")) {systemData.output_neptune_enabled=enable;}
         if (argparser_has_flag(&parser, "meteors")) {systemData.output_meteors_enabled=enable;}
+        if (argparser_has_flag(&parser, "xmatrix")) {systemData.output_config_matrix_enabled=enable;}
+        if (argparser_has_flag(&parser, "xmap")) {systemData.output_config_mapping_enabled=enable;}
       }
     }
     
@@ -1078,7 +1096,7 @@ void CmdProcess(void) {
       else if (strcmp(pos[0], "matrix")==0) {
         if (argparser_has_flag(&parser, "startup-enable")) {matrixData.load_matrix_on_startup=true;}
         else if (argparser_has_flag(&parser, "startup-disable")) {matrixData.load_matrix_on_startup=false;}
-        else if (argparser_has_flag(&parser, "new")) {set_all_matrix_default(); return;}
+        else if (argparser_has_flag(&parser, "new")) {override_all_computer_assists(); set_all_matrix_default(); return;}
         else if (argparser_has_flag(&parser, "save")) {saveMatrix(argparser_get_int8(&parser, "save", -1));}
         else if (argparser_has_flag(&parser, "load")) {loadMatrix(argparser_get_int8(&parser, "load", -1));}
         else if (argparser_has_flag(&parser, "delete")) {deleteMatrix(argparser_get_int8(&parser, "delete", -1));}
@@ -1155,6 +1173,12 @@ void CmdProcess(void) {
           setSpeed(argparser_get_double(&parser, "set-speed", NAN));
         }
 
+        if (argparser_has_flag(&parser, "ground-heading-mode-static")) {satioData.ground_heading_mode=GROUND_HEADING_MODE_STATIC;}
+        if (argparser_has_flag(&parser, "ground-heading-mode-gps")) {satioData.ground_heading_mode=GROUND_HEADING_MODE_GPS;}
+        if (argparser_has_flag(&parser, "set-ground-heading")) {
+          setGroundHeading(argparser_get_double(&parser, "set-ground-heading", NAN));
+        }
+
         if (argparser_has_flag(&parser, "coord-mode-static")) {satioData.coordinate_conversion_mode=COORDINATE_CONVERSION_MODE_STATIC;}
         if (argparser_has_flag(&parser, "coord-mode-gps")) {satioData.coordinate_conversion_mode=COORDINATE_CONVERSION_MODE_GPS;}
         if (argparser_has_flag(&parser, "set-coord")) {
@@ -1193,6 +1217,8 @@ void CmdProcess(void) {
   Serial TXD : Output.
 */
 // ---------------------------------------------------------------------------------------------------------------
+long i_output_config_matrix = 0;
+
 void outputSentences(void) {
   if (systemData.interval_breach_1_second==true) {outputStat();}
 
@@ -1204,24 +1230,51 @@ void outputSentences(void) {
     if (systemData.output_satio_enabled) {
       memset(serial0Data.BUFFER, 0, sizeof(serial0Data.BUFFER));
       strcat(serial0Data.BUFFER, "$SATIO,");
+
       strcat(serial0Data.BUFFER, String(satioData.padded_rtc_time_HHMMSS).c_str());
       strcat(serial0Data.BUFFER, ",");
       strcat(serial0Data.BUFFER, String(satioData.padded_rtc_date_DDMMYYYY).c_str());
       strcat(serial0Data.BUFFER, ",");
+
       strcat(serial0Data.BUFFER, String(satioData.padded_rtc_sync_time_HHMMSS).c_str());
       strcat(serial0Data.BUFFER, ",");
       strcat(serial0Data.BUFFER, String(satioData.padded_rtc_sync_date_DDMMYYYY).c_str());
       strcat(serial0Data.BUFFER, ",");
+
       strcat(serial0Data.BUFFER, String(satioData.padded_local_time_HHMMSS).c_str());
       strcat(serial0Data.BUFFER, ",");
       strcat(serial0Data.BUFFER, String(satioData.padded_local_date_DDMMYYYY).c_str());
       strcat(serial0Data.BUFFER, ",");
+
       strcat(serial0Data.BUFFER, String(systemData.uptime_seconds).c_str());
+      strcat(serial0Data.BUFFER, ",");
+
+      strcat(serial0Data.BUFFER, String(satioData.char_coordinate_conversion_mode[satioData.coordinate_conversion_mode]).c_str()); // static/GPS
       strcat(serial0Data.BUFFER, ",");
       strcat(serial0Data.BUFFER, String(satioData.degrees_latitude, 7).c_str());
       strcat(serial0Data.BUFFER, ",");
       strcat(serial0Data.BUFFER, String(satioData.degrees_longitude, 7).c_str());
       strcat(serial0Data.BUFFER, ",");
+
+      strcat(serial0Data.BUFFER, String(satioData.char_altitude_conversion_mode[satioData.altitude_conversion_mode]).c_str()); // static/GPS
+      strcat(serial0Data.BUFFER, ",");
+      strcat(serial0Data.BUFFER, String(satioData.altitude_converted, 7).c_str()); // value
+      strcat(serial0Data.BUFFER, ",");
+      strcat(serial0Data.BUFFER, String(satioData.char_altitude_unit_mode[satioData.altitude_unit_mode]).c_str()); // units of measurement
+      strcat(serial0Data.BUFFER, ",");
+
+      strcat(serial0Data.BUFFER, String(satioData.char_speed_conversion_mode[satioData.speed_conversion_mode]).c_str()); // static/GPS
+      strcat(serial0Data.BUFFER, ",");
+      strcat(serial0Data.BUFFER, String(satioData.speed_converted, 7).c_str()); // value
+      strcat(serial0Data.BUFFER, ",");
+      strcat(serial0Data.BUFFER, String(satioData.char_speed_unit_mode[satioData.speed_unit_mode]).c_str()); // units of measurement
+      strcat(serial0Data.BUFFER, ",");
+
+      strcat(serial0Data.BUFFER, String(satioData.char_ground_heading_mode[satioData.ground_heading_mode]).c_str()); // static/GPS
+      strcat(serial0Data.BUFFER, ",");
+      strcat(serial0Data.BUFFER, String(satioData.ground_heading, 7).c_str()); // value
+      strcat(serial0Data.BUFFER, ",");
+
       strcat(serial0Data.BUFFER, String(insData.ins_latitude, 7).c_str());
       strcat(serial0Data.BUFFER, ",");
       strcat(serial0Data.BUFFER, String(insData.ins_longitude, 7).c_str());
@@ -1229,38 +1282,33 @@ void outputSentences(void) {
       strcat(serial0Data.BUFFER, String(insData.ins_altitude).c_str());
       strcat(serial0Data.BUFFER, ",");
       strcat(serial0Data.BUFFER, String(insData.ins_heading).c_str());
+      
       strcat(serial0Data.BUFFER, ",");
       strcat(serial0Data.BUFFER, String(insData.INS_INITIALIZATION_FLAG).c_str());
       strcat(serial0Data.BUFFER, ",");
+      strcat(serial0Data.BUFFER, String(insData.INS_MODE).c_str());
+      strcat(serial0Data.BUFFER, ",");
+      strcat(serial0Data.BUFFER, String(insData.INS_FORCED_ON_FLAG).c_str());
+      strcat(serial0Data.BUFFER, ",");
+
+      strcat(serial0Data.BUFFER, String(insData.INS_REQ_GPS_PRECISION).c_str());
+      strcat(serial0Data.BUFFER, ",");
+      strcat(serial0Data.BUFFER, String(insData.INS_REQ_HEADING_RANGE_DIFF).c_str());
+      strcat(serial0Data.BUFFER, ",");
+      strcat(serial0Data.BUFFER, String(insData.INS_REQ_MIN_SPEED).c_str());
+      strcat(serial0Data.BUFFER, ",");
+      strcat(serial0Data.BUFFER, String(insData.INS_USE_GYRO_HEADING).c_str());
+      strcat(serial0Data.BUFFER, ",");
+
+      strcat(serial0Data.BUFFER, String(insData.INS_ENABLED).c_str());
+      strcat(serial0Data.BUFFER, ",");
+
       createChecksumSerial0(serial0Data.BUFFER);
       strcat(serial0Data.BUFFER, "*");
       strcat(serial0Data.BUFFER, serial0Data.checksum);
       Serial.println(serial0Data.BUFFER);
     }
   }
-  // if (systemData.interval_breach_ins) {
-  //   systemData.interval_breach_ins = 0;
-  //   if (systemData.output_ins_enabled) {
-  //     memset(serial0Data.BUFFER, 0, sizeof(serial0Data.BUFFER));
-  //     strcat(serial0Data.BUFFER, "$INS,");
-  //     // strcat(serial0Data.BUFFER, String(satioData.rtc_unixtime).c_str());
-  //     // strcat(serial0Data.BUFFER, ",");
-  //     strcat(serial0Data.BUFFER, String(insData.INS_INITIALIZATION_FLAG).c_str());
-  //     strcat(serial0Data.BUFFER, ",");
-  //     strcat(serial0Data.BUFFER, String(insData.ins_latitude, 7).c_str());
-  //     strcat(serial0Data.BUFFER, ",");
-  //     strcat(serial0Data.BUFFER, String(insData.ins_longitude, 7).c_str());
-  //     strcat(serial0Data.BUFFER, ",");
-  //     strcat(serial0Data.BUFFER, String(insData.ins_altitude).c_str());
-  //     strcat(serial0Data.BUFFER, ",");
-  //     strcat(serial0Data.BUFFER, String(insData.ins_heading).c_str());
-  //     strcat(serial0Data.BUFFER, ",");
-  //     createChecksumSerial0(serial0Data.BUFFER);
-  //     strcat(serial0Data.BUFFER, "*");
-  //     strcat(serial0Data.BUFFER, serial0Data.checksum);
-  //     Serial.println(serial0Data.BUFFER);
-  //   }
-  // }
   if (systemData.interval_breach_gyro_0) {
     systemData.interval_breach_gyro_0 = 0;
     if (systemData.output_gyro_0_enabled) {
@@ -1481,20 +1529,102 @@ void outputSentences(void) {
       Serial.println(serial0Data.BUFFER);
     }
   }
+
   // if (systemData.interval_breach_matrix) {
-    // systemData.interval_breach_matrix = 0;
-    if (systemData.output_matrix_enabled) {
+  // systemData.interval_breach_matrix = 0;
+  if (systemData.output_matrix_enabled) {
+    memset(serial0Data.BUFFER, 0, sizeof(serial0Data.BUFFER));
+    strcpy(serial0Data.BUFFER, "$MATRIX,");
+    // append matrix switch state data
+    for (int i=0; i < MAX_MATRIX_SWITCHES; i++)
+      {strcat(serial0Data.BUFFER, String(String(matrixData.switch_intention[0][i])+",").c_str());}
+    for (int i=0; i < MAX_MATRIX_SWITCHES; i++)
+      {strcat(serial0Data.BUFFER, String(String(matrixData.computer_intention[0][i])+",").c_str());}
+    for (int i=0; i < MAX_MATRIX_SWITCHES; i++)
+      {strcat(serial0Data.BUFFER, String(String(matrixData.output_value[0][i])+",").c_str());}
+    createChecksumSerial0(serial0Data.BUFFER);
+    strcat(serial0Data.BUFFER, "*");
+    strcat(serial0Data.BUFFER, serial0Data.checksum);
+    Serial.println(serial0Data.BUFFER);
+  }
+
+  if (systemData.output_input_portcontroller) {
+    memset(serial0Data.BUFFER, 0, sizeof(serial0Data.BUFFER));
+    strcpy(serial0Data.BUFFER, "$PCINPT,");
+    // append matrix switch state data
+    for (int i=0; i < MAX_MATRIX_SWITCHES; i++)
+      {strcat(serial0Data.BUFFER, String(String(matrixData.input_value[0][i])+",").c_str());}
+    createChecksumSerial0(serial0Data.BUFFER);
+    strcat(serial0Data.BUFFER, "*");
+    strcat(serial0Data.BUFFER, serial0Data.checksum);
+    Serial.println(serial0Data.BUFFER);
+  }
+
+  /*
+  COMPREHENSIVE MATRIX CONFIGURATION (SENTENCE PER SWITCH)
+  */
+  if (systemData.output_config_matrix_enabled) {
+    // for (int Mi=0; i_output_config_matrix < MAX_MATRIX_SWITCHES; Mi++) { // uncomment to dump all sentences at once
       memset(serial0Data.BUFFER, 0, sizeof(serial0Data.BUFFER));
-      strcpy(serial0Data.BUFFER, "$MATRIX,");
-      // append matrix switch state data
-      for (int i=0; i < MAX_MATRIX_SWITCHES; i++)
-        {strcat(serial0Data.BUFFER, String(String(matrixData.switch_intention[0][i])+",").c_str());}
+      strcpy(serial0Data.BUFFER, "$XMATRIX,");
+      strcat(serial0Data.BUFFER, String(String(i_output_config_matrix)+",").c_str());
+      for (int Fi=0; Fi < MAX_MATRIX_SWITCH_FUNCTIONS; Fi++) {
+        strcat(serial0Data.BUFFER, String(String(matrixData.matrix_function[0][i_output_config_matrix][Fi])+",").c_str());
+      }
+      for (int Fi=0; Fi < MAX_MATRIX_SWITCH_FUNCTIONS; Fi++) {
+        strcat(serial0Data.BUFFER, String(String(matrixData.matrix_switch_operator_index[0][i_output_config_matrix][Fi])+",").c_str());
+      }
+      for (int Fi=0; Fi < MAX_MATRIX_SWITCH_FUNCTIONS; Fi++) {
+        strcat(serial0Data.BUFFER, String(String(matrixData.matrix_switch_inverted_logic[0][i_output_config_matrix][Fi])+",").c_str());
+      }
+      for (int Fi=0; Fi < MAX_MATRIX_SWITCH_FUNCTIONS; Fi++) {
+        strcat(serial0Data.BUFFER, String(String(matrixData.matrix_function_xyz[0][i_output_config_matrix][Fi][INDEX_MATRIX_FUNTION_X])+",").c_str());
+      }
+      for (int Fi=0; Fi < MAX_MATRIX_SWITCH_FUNCTIONS; Fi++) {
+        strcat(serial0Data.BUFFER, String(String(matrixData.matrix_function_xyz[0][i_output_config_matrix][Fi][INDEX_MATRIX_FUNTION_Y])+",").c_str());
+      }
+      for (int Fi=0; Fi < MAX_MATRIX_SWITCH_FUNCTIONS; Fi++) {
+        strcat(serial0Data.BUFFER, String(String(matrixData.matrix_function_xyz[0][i_output_config_matrix][Fi][INDEX_MATRIX_FUNTION_Z])+",").c_str());
+      }
+      strcat(serial0Data.BUFFER, String(String(matrixData.flux_value[0][i_output_config_matrix])+",").c_str());
+      strcat(serial0Data.BUFFER, String(String(matrixData.output_pwm[0][i_output_config_matrix][0])+",").c_str());
+      strcat(serial0Data.BUFFER, String(String(matrixData.output_pwm[0][i_output_config_matrix][1])+",").c_str());
+      strcat(serial0Data.BUFFER, String(String(matrixData.output_mode[0][i_output_config_matrix])+",").c_str());
+      strcat(serial0Data.BUFFER, String(String(mappingData.index_mapped_value[0][i_output_config_matrix])+",").c_str());
+      strcat(serial0Data.BUFFER, String(String(matrixData.computer_assist[0][i_output_config_matrix])+",").c_str());
+      strcat(serial0Data.BUFFER, String(String(matrixData.matrix_port_map[0][i_output_config_matrix])+",").c_str());
+      // strcat(serial0Data.BUFFER, String(String(matrixData.switch_intention[0][i_output_config_matrix])+",").c_str());
+      // strcat(serial0Data.BUFFER, String(String(matrixData.computer_intention[0][i_output_config_matrix])+",").c_str());
+      // strcat(serial0Data.BUFFER, String(String(matrixData.output_value[0][i_output_config_matrix])+",").c_str());
+      createChecksumSerial0(serial0Data.BUFFER);
+      strcat(serial0Data.BUFFER, "*");
+      strcat(serial0Data.BUFFER, serial0Data.checksum);
+      Serial.println(serial0Data.BUFFER);
+      i_output_config_matrix++;
+      if (i_output_config_matrix>=MAX_MATRIX_SWITCHES) {i_output_config_matrix=0;}
+    // }
+  }
+  /*
+  COMPREHENSIVE MAPPING CONFIGURATION
+  */
+  if (systemData.output_config_mapping_enabled) {
+    for (int Mi=0; Mi < MAX_MAP_SLOTS; Mi++) {
+      memset(serial0Data.BUFFER, 0, sizeof(serial0Data.BUFFER));
+      strcpy(serial0Data.BUFFER, "$XMAPP,");
+      strcat(serial0Data.BUFFER, String(String(Mi)+",").c_str());
+      for (int Fi=0; Fi < MAX_MAPPING_PARAMETERS; Fi++) {
+        strcat(serial0Data.BUFFER, String(String(mappingData.mapping_config[0][Mi][Fi])+",").c_str());
+      }
+      strcat(serial0Data.BUFFER, String(String(mappingData.map_mode[0][Mi])+",").c_str());
+      strcat(serial0Data.BUFFER, String(String(mappingData.mapped_value[0][Mi])+",").c_str());
+
       createChecksumSerial0(serial0Data.BUFFER);
       strcat(serial0Data.BUFFER, "*");
       strcat(serial0Data.BUFFER, serial0Data.checksum);
       Serial.println(serial0Data.BUFFER);
     }
-  // }
+  }
+
   if (systemData.interval_breach_mplex) {
     systemData.interval_breach_mplex = 0;
     if (systemData.output_admplex0_enabled) {
@@ -1556,7 +1686,7 @@ signed long print_index_1[35]={35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45,
                                46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56,
                                57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67,
                                68, 69};
-char counter_chars_0[15][56]={"Loops p/s",
+char counter_chars_0[16][56]={"Loops p/s",
                               "GPS p/s",
                               "INS p/s",
                               "Gyro0 p/s",
@@ -1565,11 +1695,12 @@ char counter_chars_0[15][56]={"Loops p/s",
                               "Universe p/s",
                               "Matrix p/s",
                               "I/O p/s",
+                              "PConInput p/s",
                               "LT uS",
                               "LT Max uS",
                               "Satellites",
                               "GPS Precision"};
-double counter_digits_0[15]={};
+double counter_digits_0[16]={};
 
 char counter_chars_1_row_0[9][56]={"Time",
                                    "Date",
@@ -1622,14 +1753,15 @@ void outputStat(void) {
     counter_digits_0[6]=systemData.total_universe;
     counter_digits_0[7]=systemData.total_matrix;
     counter_digits_0[8]=systemData.total_portcon;
-    counter_digits_0[9]=systemData.mainLoopTimeTaken;
-    counter_digits_0[10]=systemData.mainLoopTimeTakenMax;
-    counter_digits_0[11]=atoi(gnggaData.satellite_count);
-    counter_digits_0[12]=atof(gnggaData.gps_precision_factor);
-    for (int i = 0; i < 13; i++) {printf("%-16s", counter_chars_0[i]);}
+    counter_digits_0[9]=systemData.total_portcontroller_input;
+    counter_digits_0[10]=systemData.mainLoopTimeTaken;
+    counter_digits_0[11]=systemData.mainLoopTimeTakenMax;
+    counter_digits_0[12]=atoi(gnggaData.satellite_count);
+    counter_digits_0[13]=atof(gnggaData.gps_precision_factor);
+    for (int i = 0; i < 14; i++) {printf("%-16s", counter_chars_0[i]);}
     printf("\n");
     Serial.println("----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
-    for (int i = 0; i < 13; i++) {printf("%-16f", counter_digits_0[i]);}
+    for (int i = 0; i < 14; i++) {printf("%-16f", counter_digits_0[i]);}
     printf("\n");
     Serial.println();
     // ----------------------------------------------------------------------------------------------------------------------------

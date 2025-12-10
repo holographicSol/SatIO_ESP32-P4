@@ -14,8 +14,8 @@
 struct InsData insData = {
   .INS_ENABLED = true,
   .INS_REQ_GPS_PRECISION = 0.5,
-  .INS_REQ_MIN_SPEED = 0.3,
-  .INS_REQ_HEADING_RANGE_DIFF=0.5,
+  .INS_REQ_MIN_SPEED = 0.1,
+  .INS_REQ_HEADING_RANGE_DIFF=1,
   .INS_USE_GYRO_HEADING = true,
   .INS_FORCED_ON_FLAG = false,
   .INS_MODE = INS_MODE_DYNAMIC,
@@ -53,8 +53,8 @@ bool angles_are_close(double angle1,
 }
 
 void ins_init(double gps_precision_factor,
-              double gps_ground_heading,
-              double gps_ground_speed,
+              double ground_heading,
+              double ground_speed,
               double gyro_heading) {
   // -------------------------------------------------------------------------------
   // 0 : Default.
@@ -70,14 +70,14 @@ void ins_init(double gps_precision_factor,
   // -----------------------------------------------------------------------------
   // 2 : Check Speed.
   // -----------------------------------------------------------------------------
-  if (gps_ground_speed>=insData.INS_REQ_MIN_SPEED)
+  if (ground_speed>=insData.INS_REQ_MIN_SPEED)
   {insData.tmp_ins_initialization_flag++;
   //  Serial.println("INS speed flag: true");
   }
   // ---------------------------------------------------------------------------
   // 3 : Check Heading.
   // ---------------------------------------------------------------------------
-  if ((angles_are_close(gps_ground_heading,
+  if ((angles_are_close(ground_heading,
       gyro_heading,
       insData.INS_REQ_HEADING_RANGE_DIFF)==true) ||
       (insData.INS_USE_GYRO_HEADING==false))
@@ -100,18 +100,18 @@ void ins_init(double gps_precision_factor,
 void set_ins_data_as_gps(double gps_latitude,
                          double gps_longitude,
                          double gps_altitude,
-                         double gps_ground_heading) {
+                         double ground_heading) {
   insData.ins_latitude=gps_latitude;
   insData.ins_longitude=gps_longitude;
   insData.ins_altitude=gps_altitude;
-  insData.ins_heading=gps_ground_heading;
+  insData.ins_heading=ground_heading;
 }
 
 void set_ins(double gps_latitude,
              double gps_longitude,
              double gps_altitude,
-             double gps_ground_heading,
-             double gps_ground_speed,
+             double ground_heading,
+             double ground_speed,
              double gps_precision_factor,
              double gyro_heading) {
   // -------------------------------------------------------------------------------
@@ -119,16 +119,16 @@ void set_ins(double gps_latitude,
   // -------------------------------------------------------------------------------
   if (insData.INS_MODE==0) {
     insData.INS_ENABLED=false;
-    set_ins_data_as_gps(gps_latitude, gps_longitude, gps_altitude, gps_ground_heading);
-    ins_init(gps_precision_factor, gps_ground_heading, gps_ground_speed, gyro_heading);
+    set_ins_data_as_gps(gps_latitude, gps_longitude, gps_altitude, ground_heading);
+    ins_init(gps_precision_factor, ground_heading, ground_speed, gyro_heading);
   }
   // -------------------------------------------------------------------------------
   // 1 : Dynamic.
   // -------------------------------------------------------------------------------
   else if (insData.INS_MODE==1) {
     insData.INS_ENABLED=true;
-    set_ins_data_as_gps(gps_latitude, gps_longitude, gps_altitude, gps_ground_heading);
-    ins_init(gps_precision_factor, gps_ground_heading, gps_ground_speed, gyro_heading);
+    set_ins_data_as_gps(gps_latitude, gps_longitude, gps_altitude, ground_heading);
+    ins_init(gps_precision_factor, ground_heading, ground_speed, gyro_heading);
   }
   // -------------------------------------------------------------------------------
   // 2 : Forced.
@@ -138,10 +138,10 @@ void set_ins(double gps_latitude,
     // Check initialization flag because INS_FORCED_ON_FLAG overrides.
     if (insData.INS_INITIALIZATION_FLAG==MAX_INS_INITIALIZATION_FLAG &&
         insData.INS_FORCED_ON_FLAG==false) {
-      ins_init(gps_precision_factor, gps_ground_heading, gps_ground_speed, gyro_heading);
+      ins_init(gps_precision_factor, ground_heading, ground_speed, gyro_heading);
       // Continue once or try again next time.
       if (insData.INS_FORCED_ON_FLAG==false) {
-        set_ins_data_as_gps(gps_latitude, gps_longitude, gps_altitude, gps_ground_heading);
+        set_ins_data_as_gps(gps_latitude, gps_longitude, gps_altitude, ground_heading);
         insData.INS_FORCED_ON_FLAG=true;
       }
     }
@@ -152,15 +152,15 @@ double temp_lat;
 double temp_lon;
 bool ins_estimate_position(double pitch,
                            double yaw,
-                           double gps_ground_heading,
-                           double gps_ground_speed,
+                           double ground_heading,
+                           double ground_speed,
                            int64_t dt) {
   // -------------------------------------------------------------------------------
   // uncomment to force values for testing purposes
   // -------------------------------------------------------------------------------
   // pitch=0; // force pitch
   // yaw=90; // force heading
-  // gps_ground_speed=500000; // force speed
+  // ground_speed=500000; // force speed
   // INS_INITIALIZATION_FLAG=MAX_INS_INITIALIZATION_FLAG;
 
   if (insData.INS_INITIALIZATION_FLAG==MAX_INS_INITIALIZATION_FLAG ||
@@ -187,8 +187,8 @@ bool ins_estimate_position(double pitch,
     // -------------------------------------------------------------------------------
     // Horizontal and vertical speed components.
     // -------------------------------------------------------------------------------
-    double v_horizontal = gps_ground_speed * cos(pitch_rad);
-    double v_vertical = gps_ground_speed * sin(pitch_rad);
+    double v_horizontal = ground_speed * cos(pitch_rad);
+    double v_vertical = ground_speed * sin(pitch_rad);
     // -------------------------------------------------------------------------------
     // Calculate horizontal distance traveled.
     // -------------------------------------------------------------------------------
@@ -238,7 +238,7 @@ bool ins_estimate_position(double pitch,
     // -------------------------------------------------------------------------------
     insData.ins_altitude = insData.ins_altitude + delta_alt;
     if (insData.INS_USE_GYRO_HEADING==true) {insData.ins_heading=yaw;}
-    else {insData.ins_heading=gps_ground_heading;}
+    else {insData.ins_heading=ground_heading;}
     // -------------------------------------------------------------------------------
     // Ensure presvious datetime is set to current datetime.
     // -------------------------------------------------------------------------------

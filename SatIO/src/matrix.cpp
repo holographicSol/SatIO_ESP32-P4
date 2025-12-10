@@ -746,6 +746,35 @@ struct MatrixStruct matrixData = {
   "MAPPEDVALUE", // 83
   "SDCARDINSERTED", // 84
   "SDCARDMOUNTED", // 85
+  "PCINPUTVALUE", // 85
+  },
+  .input_value = {
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 0-9
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 10-19
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 20-29
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 30-39
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 40-49
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 50-59
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 60-69
+  },
+  .input_port_map={
+    {
+      // --------------------------------------------
+      // digital
+      // --------------------------------------------
+      // 0, 1. 2, 3, 4, 5, 6, 7, 8, 9,
+      // 10,11,12,13,14,15,16,17,18,19,
+      // 20,21,
+      22,23,24,25,26,27,28,29,
+      30,31,32,33,34,35,36,37,38,39,
+      40,41,42,43,44,45,46,47,48,49,
+      50,51,52,53,
+      // --------------------------------------------
+      // analog
+      // --------------------------------------------
+      54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,
+
+    }
   },
 };
 
@@ -1372,6 +1401,13 @@ bool matrixSwitch(void) {
         tmp_z = 0;
         handle_digit=true;
       }
+      else if ((matrixData.matrix_function[0][Mi][Fi]==INDEX_MATRIX_SWITCH_FUNCTION_PCINPUTVALUE)) {
+        tmp_x = matrixData.input_value[0][(int)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z]];
+        tmp_y = 0;
+        tmp_z = 0;
+        handle_digit=true;
+      }
+
       // Handle digits.
       if (handle_digit==true) {
         if ((matrixData.matrix_switch_operator_index[0][Mi][Fi]==INDEX_MATRIX_SWITCH_OPERATOR_OVER)) {
@@ -1554,6 +1590,9 @@ void set_matrix_default(int matrix_switch) {
   matrixData.output_pwm[0][matrix_switch][0]=0;
   matrixData.output_pwm[0][matrix_switch][1]=0;
   matrixData.flux_value[0][matrix_switch]=0;
+  matrixData.switch_intention[0][matrix_switch]=0;
+  matrixData.computer_intention[0][matrix_switch]=0;
+  mappingData.index_mapped_value[0][matrix_switch]=0;
   for (int Fi=0; Fi < MAX_MATRIX_SWITCH_FUNCTIONS; Fi++) {
     matrixData.matrix_function[0][matrix_switch][Fi]=0;
     matrixData.matrix_function_xyz[0][matrix_switch][Fi][INDEX_MATRIX_FUNTION_X]=0.0;
@@ -1566,6 +1605,7 @@ void set_matrix_default(int matrix_switch) {
 
 void set_all_matrix_default(void) {
   for (int Mi=0; Mi < MAX_MATRIX_SWITCHES; Mi++) {set_matrix_default(Mi);}
+  Serial.println("$MATRIXNEW");
 }
 
 void setAllMatrixSwitchesStateFalse() {
@@ -1574,83 +1614,6 @@ void setAllMatrixSwitchesStateFalse() {
 
 void setAllMatrixSwitchesStateTrue() {
   for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {matrixData.switch_intention[0][i]=true;}
-}
-
-struct I2CLinkStruct {
-  char * token;
-  int i_token=0;
-  byte OUTPUT_BUFFER[MAX_IIC_BUFFER_SIZE]; // bytes to be sent
-  char INPUT_BUFFER[MAX_IIC_BUFFER_SIZE];  // chars received
-  char TMP_BUFFER_0[MAX_IIC_BUFFER_SIZE];  // chars of bytes to be sent
-  char TMP_BUFFER_1[MAX_IIC_BUFFER_SIZE];  // some space for type conversions
-};
-I2CLinkStruct I2CLink;
-
-void writeI2C(int I2C_Address) {
-  // Compile bytes array.
-  memset(I2CLink.OUTPUT_BUFFER, 0, sizeof(I2CLink.OUTPUT_BUFFER));
-  for (byte i=0;i<sizeof(I2CLink.OUTPUT_BUFFER);i++)
-    {I2CLink.OUTPUT_BUFFER[i]=(byte)I2CLink.TMP_BUFFER_0[i];}
-  // Begin.
-  Wire.beginTransmission(I2C_Address);
-  // Write bytes array.
-  Wire.write(I2CLink.OUTPUT_BUFFER, sizeof(I2CLink.OUTPUT_BUFFER));
-  // End.
-  Wire.endTransmission();
-}
-
-bool portControllerWriteRequired(int idx) {
-  if (matrixData.matrix_switch_write_required[0][idx]==true)
-    {matrixData.matrix_switch_write_required[0][idx]=false; return true;}
-  return false;
-}
-
-void writePortControllerM0(void) {
-  // Tag.
-  memset(I2CLink.TMP_BUFFER_0, 0, sizeof(I2CLink.TMP_BUFFER_0));
-  strcpy(I2CLink.TMP_BUFFER_0, "M0");
-  // Write instruction.
-  writeI2C(I2C_ADDR_PORTCONTROLLER_0);
-  systemData.i_count_port_controller++;
-}
-
-void writePortControllerM1(void) {
-  for (int Mi=0; Mi<MAX_MATRIX_SWITCHES; Mi++) {
-    // Check for change.
-    if (portControllerWriteRequired(Mi)==true) {
-      // Tag.
-      memset(I2CLink.TMP_BUFFER_0, 0, sizeof(I2CLink.TMP_BUFFER_0));
-      strcpy(I2CLink.TMP_BUFFER_0, "M1,");
-      // Index.
-      memset(I2CLink.TMP_BUFFER_1, 0, sizeof(I2CLink.TMP_BUFFER_1));
-      itoa(Mi, I2CLink.TMP_BUFFER_1, 10);
-      strcat(I2CLink.TMP_BUFFER_0, I2CLink.TMP_BUFFER_1);
-      strcat(I2CLink.TMP_BUFFER_0, ",");
-      // Port.
-      memset(I2CLink.TMP_BUFFER_1, 0, sizeof(I2CLink.TMP_BUFFER_1));
-      itoa(matrixData.matrix_port_map[0][Mi], I2CLink.TMP_BUFFER_1, 10);
-      strcat(I2CLink.TMP_BUFFER_0, I2CLink.TMP_BUFFER_1);
-      strcat(I2CLink.TMP_BUFFER_0, ",");
-      // Output value.
-      memset(I2CLink.TMP_BUFFER_1, 0, sizeof(I2CLink.TMP_BUFFER_1));
-      // Serial.println(matrixData.output_value[0][Mi]);
-      if (matrixData.computer_assist[0][Mi]==true)
-        {ltoa(matrixData.output_value[0][Mi], I2CLink.TMP_BUFFER_1, 10);}
-      else {ltoa(matrixData.override_output_value[0][Mi], I2CLink.TMP_BUFFER_1, 10);}
-      strcat(I2CLink.TMP_BUFFER_0, I2CLink.TMP_BUFFER_1);
-      strcat(I2CLink.TMP_BUFFER_0, ",");
-      // Modulation time.
-      strcat(I2CLink.TMP_BUFFER_0, String(matrixData.output_pwm[0][Mi][INDEX_MATRIX_MOD_0]).c_str());
-      strcat(I2CLink.TMP_BUFFER_0, ",");
-      strcat(I2CLink.TMP_BUFFER_0, String(matrixData.output_pwm[0][Mi][INDEX_MATRIX_MOD_1]).c_str());
-      strcat(I2CLink.TMP_BUFFER_0, ",");
-      // Write instruction.
-      writeI2C(I2C_ADDR_PORTCONTROLLER_0);
-      // Debug.
-      // Serial.println("[SND] " + String(I2CLink.TMP_BUFFER_0));
-    }
-  }
-  systemData.i_count_port_controller++;
 }
 
 void setOutputValues(void) {
@@ -1676,4 +1639,156 @@ void setOutputValues(void) {
     // B : Just update & let matrix passthrough if required.
     else {matrixData.output_value[0][Mi];}
   }
+}
+
+typedef struct {
+  char * token;
+  int i_token=0;
+  byte OUTPUT_BUFFER[MAX_IIC_BUFFER_SIZE]; // bytes to be sent
+  char INPUT_BUFFER[MAX_IIC_BUFFER_SIZE];  // chars received
+  char TMP_BUFFER_0[MAX_IIC_BUFFER_SIZE];  // chars of bytes to be sent
+  char TMP_BUFFER_1[MAX_IIC_BUFFER_SIZE];  // some space for type conversions
+} IICLink;
+IICLink IICLink1;
+IICLink IICLink2;
+
+/*
+   This allocates buffers automatically.
+   Note that naming 'I2C1' will trigger reset while I2C3/I2C2 is fine.
+   0 fine
+   1 fine
+   2 fine (RTC)
+   3 null buffer pointer
+*/
+TwoWire iic_1 = TwoWire(1);
+TwoWire iic_2 = TwoWire(2);
+
+
+void initOutputPortController() {
+  iic_1.setPins(4, 5);
+  iic_1.setBufferSize(256);  // or any size ≥ your OUTPUT_BUFFER
+  iic_1.setTimeOut(1000);
+  iic_1.begin(4, 5);
+  iic_1.setClock(400000);
+}
+
+void initInputPortController() {
+  iic_2.setPins(7, 8);
+  iic_2.setBufferSize(256);  // or any size ≥ your OUTPUT_BUFFER
+  iic_2.setTimeOut(1000);
+  iic_2.begin(7, 8);
+  iic_2.setClock(400000);
+}
+
+bool portControllerWriteRequired(int idx) {
+  if (matrixData.matrix_switch_write_required[0][idx]==true)
+    {matrixData.matrix_switch_write_required[0][idx]=false; return true;}
+  return false;
+}
+
+void writeI2COutputPortController(int I2C_Address) {
+  // Serial.println("writeI2COutputPortController: " + String(IICLink1.TMP_BUFFER_0));
+  // Compile bytes array.
+  memset(IICLink1.OUTPUT_BUFFER, 0, sizeof(IICLink1.OUTPUT_BUFFER));
+  for (byte i=0;i<sizeof(IICLink1.OUTPUT_BUFFER);i++)
+  {IICLink1.OUTPUT_BUFFER[i]=(byte)IICLink1.TMP_BUFFER_0[i];}
+  iic_1.beginTransmission(I2C_Address);
+  // Write bytes array.
+  iic_1.write(IICLink1.OUTPUT_BUFFER, sizeof(IICLink1.OUTPUT_BUFFER));
+  iic_1.endTransmission();
+}
+
+void writeOutputPortControllerM0(void) {
+  // Tag.
+  memset(IICLink1.TMP_BUFFER_0, 0, sizeof(IICLink1.TMP_BUFFER_0));
+  strcpy(IICLink1.TMP_BUFFER_0, "M0");
+  // Write instruction.
+  writeI2COutputPortController(I2C_ADDR_OUTPUT_PORTCONTROLLER);
+  systemData.i_count_port_controller++;
+}
+
+void writeOutputPortControllerM1(void) {
+  for (int Mi=0; Mi<MAX_MATRIX_SWITCHES; Mi++) {
+    // Check for change.
+    if (portControllerWriteRequired(Mi)==true) {
+      // Tag.
+      memset(IICLink1.TMP_BUFFER_0, 0, sizeof(IICLink1.TMP_BUFFER_0));
+      strcpy(IICLink1.TMP_BUFFER_0, "M1,");
+      // Index.
+      memset(IICLink1.TMP_BUFFER_1, 0, sizeof(IICLink1.TMP_BUFFER_1));
+      itoa(Mi, IICLink1.TMP_BUFFER_1, 10);
+      strcat(IICLink1.TMP_BUFFER_0, IICLink1.TMP_BUFFER_1);
+      strcat(IICLink1.TMP_BUFFER_0, ",");
+      // Port.
+      memset(IICLink1.TMP_BUFFER_1, 0, sizeof(IICLink1.TMP_BUFFER_1));
+      itoa(matrixData.matrix_port_map[0][Mi], IICLink1.TMP_BUFFER_1, 10);
+      strcat(IICLink1.TMP_BUFFER_0, IICLink1.TMP_BUFFER_1);
+      strcat(IICLink1.TMP_BUFFER_0, ",");
+
+      // Output value.
+      memset(IICLink1.TMP_BUFFER_1, 0, sizeof(IICLink1.TMP_BUFFER_1));
+      // Serial.println(matrixData.output_value[0][Mi]);
+      if (matrixData.computer_assist[0][Mi]==true)
+        {ltoa(matrixData.output_value[0][Mi], IICLink1.TMP_BUFFER_1, 10);}
+      else {ltoa(matrixData.override_output_value[0][Mi], IICLink1.TMP_BUFFER_1, 10);}
+      strcat(IICLink1.TMP_BUFFER_0, IICLink1.TMP_BUFFER_1);
+      strcat(IICLink1.TMP_BUFFER_0, ",");
+      
+      // Modulation time.
+      strcat(IICLink1.TMP_BUFFER_0, String(matrixData.output_pwm[0][Mi][INDEX_MATRIX_MOD_0]).c_str());
+      strcat(IICLink1.TMP_BUFFER_0, ",");
+      strcat(IICLink1.TMP_BUFFER_0, String(matrixData.output_pwm[0][Mi][INDEX_MATRIX_MOD_1]).c_str());
+      strcat(IICLink1.TMP_BUFFER_0, ",");
+      // Write instruction.
+      writeI2COutputPortController(I2C_ADDR_OUTPUT_PORTCONTROLLER);
+      // Debug.
+      // Serial.println("[SND] " + String(IICLink1.TMP_BUFFER_0));
+    }
+  }
+  systemData.i_count_port_controller++;
+}
+
+bool readInputPortControllerM1(void) {
+  // -----------------------------------------------------------------------------------
+  // Loop requests
+  // -----------------------------------------------------------------------------------
+  for (int pin_index = 0; pin_index < MAX_MATRIX_SWITCHES; pin_index++) {
+    // ---------------------------------------------------------------------------------
+    // Request data from the slave. The slave should now be in a mode 
+    // ---------------------------------------------------------------------------------
+    int bytes = iic_2.requestFrom(I2C_ADDR_INPUT_PORTCONTROLLER, MAX_INPUT_PORTCONTROLLER_RESPONSE_BYTES);
+    // ---------------------------------------------------------------------------------
+    // Slave stopped responding or transaction failed
+    // ---------------------------------------------------------------------------------
+    if (bytes <= 0) {
+      Serial.printf("I2C Read Error on pin %d. Received %d bytes.\n", pin_index, bytes);
+    }
+    // ---------------------------------------------------------------------------------
+    // Read the incoming bytes
+    // ---------------------------------------------------------------------------------
+    int i = 0;
+    memset(IICLink2.INPUT_BUFFER, 0, sizeof(IICLink2.INPUT_BUFFER));
+    while (iic_2.available() && i < sizeof(IICLink2.INPUT_BUFFER) - 1) {
+      IICLink2.INPUT_BUFFER[i++] = iic_2.read();
+    }
+    // ---------------------------------------------------------------------------------
+    // Process
+    // ---------------------------------------------------------------------------------
+    int input_idx;
+    double input_val;
+    IICLink2.token = strtok(IICLink2.INPUT_BUFFER, ",");
+    IICLink2.i_token=0;
+    char * endptr;
+    while (IICLink2.token != NULL) {
+      if (IICLink2.i_token==0)      {if (str_is_int8(IICLink2.token))   {input_idx=atoi(IICLink2.token);}}
+      else if (IICLink2.i_token==1) {if (str_is_double(IICLink2.token)) {input_val=strtod(IICLink2.token, &endptr);}}
+      IICLink2.token = strtok(NULL, ",");
+      IICLink2.i_token++;
+    }
+    // ---------------------------------------------------------------------------------
+    // Store values
+    // ---------------------------------------------------------------------------------
+    if (input_idx && input_val) {matrixData.input_value[0][input_idx]=input_val;}
+  }
+  return true; 
 }

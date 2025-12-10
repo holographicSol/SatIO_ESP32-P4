@@ -21,25 +21,30 @@
 
   Wiring For Keystudio ESP32 PLUS Development Board:
 
-          ESP32: 1st ATMEGA2560 with shield as Port Controller (not on multiplexer):
-          ESP32: I2C SDA -> ATMEGA2560: I2C SDA
-          ESP32: I2C SCL -> ATMEGA2560: I2C SCL
+          ESP32: 1st ATMEGA2560 with shield as Output Port Controller (not on multiplexer):
+          ESP32: IIC 1 SDA as io4 -> ATMEGA2560: I2C SDA
+          ESP32: IIC 1 SCL as io5 -> ATMEGA2560: I2C SCL
 
-          Other ESP32 I2C Devices (not on multiplexer):
-          ESP32: SDA0 SCL0 -> DS3231 (RTC): SDA, SCL (5v)
+          ESP32: 2nd ATMEGA2560 with shield as Input Port Controller (not on multiplexer):
+          ESP32: IIC 2 SDA as io7 -> ATMEGA2560: I2C SDA
+          ESP32: IIC 2 SCL as io8 -> ATMEGA2560: I2C SCL
 
-          ESP32 i2C: I2C Multiplexing (3.3v) (for peripherals):
-          ESP32: i2C -> TCA9548A: SDA, SCL
+          Other ESP32 I2C DS3231 (not on multiplexer) (5v):
+          ESP32: IIC 0 SDA as io2 -> DS3231 (RTC): SDA
+          ESP32: IIC 0 SCL as io3 -> DS3231 (RTC): SCL
 
-          ESP32: Analog/Digital Multiplexing (3.3v) (for peripherals):
-          ESP32: io4    -> CD74HC4067: SIG
-          ESP32: io32   -> CD74HC4067: S0
-          ESP32: io33   -> CD74HC4067: S1
-          ESP32: io16   -> CD74HC4067: S2
-          ESP32: io17   -> CD74HC4067: S3
-          CD74HC4067 C0 -> DHT11: SIG
+          ESP32 i2C: I2C Multiplexing (3.3v):
+          ESP32: IIC 0 SDA as io2 -> TCA9548A: SDA
+          ESP32: IIC 0 SCL as io3 -> TCA9548A: SCL
 
-          ESP32: WTGPS300P (5v) (for getting a downlink):
+          ESP32: Analog/Digital Multiplexing (3.3v):
+          ESP32: io53   -> CD74HC4067: SIG
+          ESP32: io23   -> CD74HC4067: S0
+          ESP32: io22   -> CD74HC4067: S1
+          ESP32: io21   -> CD74HC4067: S2
+          ESP32: io20   -> CD74HC4067: S3
+
+          ESP32: WTGPS300P (5v):
           ESP32: io27 RXD -> WTGPS300P: TXD
           ESP32: null TXD -> WTGPS300P: RXD
 
@@ -72,7 +77,7 @@
 
 #include <Arduino.h>
 #include <Wire.h>
-
+               
 #include "./config.h"
 #include "./REG.h"
 #include "./strval.h"
@@ -113,6 +118,7 @@ TaskHandle_t TaskUniverse;
 TaskHandle_t TaskMultiplexers;
 TaskHandle_t TaskGyro;
 TaskHandle_t TaskSwitches;
+TaskHandle_t TaskPortControllerInput;
 TaskHandle_t TaskSerialInfoCMD;
 TaskHandle_t TasKSystemTiming;
 TaskHandle_t TaskStorage;
@@ -124,6 +130,7 @@ int DELAY_TASK_GYRO0=1;
 int DELAY_TASK_UNIVERSE=500;
 int DELAY_TASK_GPS=1;
 int DELAY_TASK_SWITCHES=1;
+int DELAY_TASK_PORTCONTROLLER_INPUT=false;
 int DELAY_TASK_STORAGE=1000;
 bool TICK_DELAY_TASK_SYSTEM_TIMING=false;
 bool TICK_DELAY_TASK_SERIAL_INFOCMD=false;
@@ -132,6 +139,7 @@ bool TICK_DELAY_TASK_GYRO0=false;
 bool TICK_DELAY_TASK_UNIVERSE=false;
 bool TICK_DELAY_TASK_GPS=false;
 bool TICK_DELAY_TASK_SWITCHES=false;
+bool TICK_DELAY_TASK_PORTCONTROLLER_INPUT=false;
 bool TICK_DELAY_TASK_STORAGE=false;
 bool global_task_sync=false;
 long system_sync_retry_max=2000;
@@ -221,11 +229,18 @@ void taskGPS(void * pvParameters) {
         // --------------------------------------------
         // Set INS data.
         // --------------------------------------------
+        // set_ins(satioData.degrees_latitude,
+        //         satioData.degrees_longitude,
+        //         atof(gnggaData.altitude),
+        //         atof(gnrmcData.ground_heading),
+        //         atof(gnrmcData.ground_speed),
+        //         atof(gnggaData.gps_precision_factor),
+        //         gyroData.gyro_0_ang_z);
         set_ins(satioData.degrees_latitude,
                 satioData.degrees_longitude,
-                atof(gnggaData.altitude),
-                atof(gnrmcData.ground_heading),
-                atof(gnrmcData.ground_speed),
+                satioData.altitude_converted,
+                satioData.ground_heading,
+                satioData.speed_converted,
                 atof(gnggaData.gps_precision_factor),
                 gyroData.gyro_0_ang_z);
         // --------------------------------------------
@@ -242,6 +257,55 @@ void taskGPS(void * pvParameters) {
     if (TICK_DELAY_TASK_GPS==false)
       {vTaskDelay(DELAY_TASK_GPS / portTICK_PERIOD_MS);}
     else {vTaskDelay(DELAY_TASK_GPS);}
+  }
+}
+
+/**
+ * Gyro Task.
+ * 
+ * @brief Reads and stores gyroscopic data.
+ */
+void taskGyro(void * pvParameters) {
+  esp_task_wdt_add(nullptr);
+  while (global_task_sync==false) {vTaskDelay(1);}
+  while (1) {
+    esp_task_wdt_reset();
+    if (readGyro()==true) {
+      systemData.i_count_read_gyro_0++;
+      systemData.interval_breach_gyro_0 = 1;
+      if (systemData.i_count_read_gyro_0>=UINT32_MAX-2)
+        {systemData.i_count_read_gyro_0=0;}
+      // ----------------------------------------------
+      // Estimate INS data.
+      // INS data is fed bsck into INS.
+      // ----------------------------------------------
+      if (systemData.interval_breach_gyro_0==true) {
+      // if (ins_estimate_position(gyroData.gyro_0_ang_y,
+      //                           gyroData.gyro_0_ang_z,
+      //                           atof(gnrmcData.ground_heading),
+      //                           atof(gnrmcData.ground_speed),
+      //                           satioData.local_unixtime_uS)==true) {
+      //                           systemData.i_count_read_ins++;
+      //                           systemData.interval_breach_ins=1;
+      //                           if (systemData.i_count_read_ins>=UINT32_MAX-2)
+      //                             {systemData.i_count_read_ins=0;}}
+      if (ins_estimate_position(gyroData.gyro_0_ang_y,
+                          gyroData.gyro_0_ang_z,
+                          satioData.ground_heading,
+                          satioData.speed_converted,
+                          satioData.local_unixtime_uS)==true) {
+                          systemData.i_count_read_ins++;
+                          systemData.interval_breach_ins=1;
+                          if (systemData.i_count_read_ins>=UINT32_MAX-2)
+                            {systemData.i_count_read_ins=0;}}
+      }
+    }
+    // ------------------------------------------------
+    // Delay next iteration of task.
+    // ------------------------------------------------
+    if (TICK_DELAY_TASK_GYRO0==false)
+      {vTaskDelay(DELAY_TASK_GYRO0 / portTICK_PERIOD_MS);}
+    else {vTaskDelay(DELAY_TASK_GYRO0);}
   }
 }
 
@@ -297,6 +361,7 @@ void taskUniverse(void * pvParameters) {
  *  (3) Sets output values.
  *  (4) Instructing the portcontroller accordingly.
  */
+// int i_count_input_values=0;
 void taskSwitches(void * pvParameters) {
   esp_task_wdt_add(nullptr);
   while (global_task_sync==false) {vTaskDelay(1);}
@@ -309,7 +374,7 @@ void taskSwitches(void * pvParameters) {
     }
     map_values();
     setOutputValues();
-    writePortControllerM1();
+    writeOutputPortControllerM1();
     SwitchStat();
     // ------------------------------------------------
     // Delay next iteration of task.
@@ -319,6 +384,32 @@ void taskSwitches(void * pvParameters) {
     else {vTaskDelay(DELAY_TASK_SWITCHES);}
   }
 }
+
+/**
+ * Port Controller Input Task.
+ * 
+ * @brief Reads pins on portcontroller.
+ */
+// int i_count_input_values=0;
+void taskPortControllerInput(void * pvParameters) {
+  esp_task_wdt_add(nullptr);
+  while (global_task_sync==false) {vTaskDelay(1);}
+  while ((1)) {
+    esp_task_wdt_reset();
+    if (readInputPortControllerM1()) {
+      systemData.i_count_portcontroller_input++;
+      if (systemData.i_count_portcontroller_input>=UINT64_MAX-2)
+        {systemData.i_count_portcontroller_input=0;}
+    }
+    // ------------------------------------------------
+    // Delay next iteration of task.
+    // ------------------------------------------------
+    if (TICK_DELAY_TASK_PORTCONTROLLER_INPUT==false)
+      {vTaskDelay(DELAY_TASK_PORTCONTROLLER_INPUT / portTICK_PERIOD_MS);}
+    else {vTaskDelay(DELAY_TASK_PORTCONTROLLER_INPUT);}
+  }
+}
+
 
 int i_chan=0;
 /**
@@ -354,46 +445,6 @@ void taskMultiplexers(void * pvParameters) {
     if (TICK_DELAY_TASK_MULTIPLEXERS==false)
       {vTaskDelay(DELAY_TASK_MULTIPLEXERS / portTICK_PERIOD_MS);}
     else {vTaskDelay(DELAY_TASK_MULTIPLEXERS);}
-  }
-}
-
-/**
- * Gyro Task.
- * 
- * @brief Reads and stores gyroscopic data.
- */
-void taskGyro(void * pvParameters) {
-  esp_task_wdt_add(nullptr);
-  while (global_task_sync==false) {vTaskDelay(1);}
-  while (1) {
-    esp_task_wdt_reset();
-    if (readGyro()==true) {
-      systemData.i_count_read_gyro_0++;
-      systemData.interval_breach_gyro_0 = 1;
-      if (systemData.i_count_read_gyro_0>=UINT32_MAX-2)
-        {systemData.i_count_read_gyro_0=0;}
-      // ----------------------------------------------
-      // Estimate INS data.
-      // INS data is fed bsck into INS.
-      // ----------------------------------------------
-      if (systemData.interval_breach_gyro_0==true) {
-      if (ins_estimate_position(gyroData.gyro_0_ang_y,
-                                gyroData.gyro_0_ang_z,
-                                atof(gnrmcData.ground_heading),
-                                atof(gnrmcData.ground_speed),
-                                satioData.local_unixtime_uS)==true) {
-                                systemData.i_count_read_ins++;
-                                systemData.interval_breach_ins=1;
-                                if (systemData.i_count_read_ins>=UINT32_MAX-2)
-                                  {systemData.i_count_read_ins=0;}}
-      }
-    }
-    // ------------------------------------------------
-    // Delay next iteration of task.
-    // ------------------------------------------------
-    if (TICK_DELAY_TASK_GYRO0==false)
-      {vTaskDelay(DELAY_TASK_GYRO0 / portTICK_PERIOD_MS);}
-    else {vTaskDelay(DELAY_TASK_GYRO0);}
   }
 }
 
@@ -448,6 +499,10 @@ void setup() {
   pinMode(ADMPLEX_0_S2, OUTPUT); 
   pinMode(ADMPLEX_0_S3, OUTPUT); 
   pinMode(ADMPLEX_0_SIG, INPUT); 
+
+  analogReadResolution(16);
+  analogSetAttenuation(ADC_11db);   // 0–3.3 V range
+
   digitalWrite(ADMPLEX_0_S0, LOW);
   digitalWrite(ADMPLEX_0_S1, LOW);
   digitalWrite(ADMPLEX_0_S2, LOW);
@@ -463,6 +518,7 @@ void setup() {
   Serial.println();
   Serial.println("[SERIAL] (Commands and general output)");
   Serial.println("[SERIAL] Baud rate: 921600");
+
   // --------------------------------------------------------------
   // System Information.
   // --------------------------------------------------------------
@@ -516,28 +572,31 @@ void setup() {
   if (matrixData.load_matrix_on_startup) {
     sdmmcFlagData.load_mapping=true; sdcardFlagHandler();
     sdmmcFlagData.load_matrix=true; sdcardFlagHandler();}
+
   // --------------------------------------------------------------
   // Initialize I2C.
   // --------------------------------------------------------------
   Serial.println("[IIC] starting IIC as master");
-  while(!Wire.begin());
-  Serial.println("[IIC] setting IIC clock: 400kHz (400000L)");
-  Wire.setClock(400000L);
-  // --------------------------------------------------------------
-  // Initialize Port Controller.
-  // --------------------------------------------------------------
-  Serial.println("[IIC] instructing port controller set low...");
-  writePortControllerM0();
+
+  initInputPortController();
+  initOutputPortController();
+  // Wire.setClock(1000000);
+  // Wire.setClock(800000L);
+  // Wire.setClock(400000);
+  // Wire.setClock(200000);
+  // Wire.setClock(100000L);
+  writeOutputPortControllerM0();
+
   // --------------------------------------------------------------
   // Analog/Digital Multiplexers(s).
   // --------------------------------------------------------------
-  Serial.println("[AD] setting analog/digital multiplexer channel: 0");
-  setMultiplexChannel_AD(0, 0);
+  // Serial.println("[AD] setting analog/digital multiplexer channel: 0");
+  // setMultiplexChannel_AD(0, 0);
   // --------------------------------------------------------------
   // Initialize I2C Multiplexer(s).
   // --------------------------------------------------------------
   Serial.println("[IIC] setting IIC multiplexer channel: 0");
-  setMultiplexChannel_I2C(0, 0);
+  // setMultiplexChannel_I2C(0, 0);
   // --------------------------------------------------------------
   // Initialize RTC (for UTC).
   // --------------------------------------------------------------
@@ -626,9 +685,9 @@ void setup() {
     "TaskMultiplexers", /* Name of the task */
     4096,               /* Stack size in words */
     NULL,               /* Task input parameter */
-    3,                  /* Priority of the task */
+    4,                  /* Priority of the task */
     &TaskMultiplexers,  /* Task handle. */
-    0);                 /* Core where the task should run */
+    1);                 /* Core where the task should run */
     delay(50);          /* delay between task creation */
   vTaskSuspend(TaskMultiplexers);
   // --------------------------------------------------------------
@@ -650,7 +709,7 @@ void setup() {
   // xTask Universe.
   // --------------------------------------------------------------
   myAstroBegin(); // call helper library begin function
-  DELAY_TASK_UNIVERSE=1;       // delay time/ticks
+  DELAY_TASK_UNIVERSE=1000;       // delay time/ticks
   TICK_DELAY_TASK_UNIVERSE=false; // false for millisecond delay
   xTaskCreatePinnedToCore(
     taskUniverse,   /* Function to implement the task */
@@ -679,6 +738,22 @@ void setup() {
   vTaskSuspend(TaskSwitches);
 
   // --------------------------------------------------------------
+  // xTask TaskSwitches.
+  // --------------------------------------------------------------
+  DELAY_TASK_PORTCONTROLLER_INPUT=1;         // delay time/ticks
+  TICK_DELAY_TASK_PORTCONTROLLER_INPUT=true; // false for millisecond delay
+  xTaskCreatePinnedToCore(
+    taskPortControllerInput,   /* Function to implement the task */
+    "TaskPortControllerInput", /* Name of the task */
+    4096,           /* Stack size in words */
+    NULL,           /* Task input parameter */
+    4,              /* Priority of the task */
+    &TaskPortControllerInput,  /* Task handle. */
+    0);             /* Core where the task should run */
+  delay(50);        /* delay between task creation */
+  vTaskSuspend(TaskPortControllerInput);
+
+  // --------------------------------------------------------------
   // Wait for sync function to complete.
   // --------------------------------------------------------------
   syncTasks();
@@ -688,6 +763,7 @@ void setup() {
   vTaskResume(TaskGyro);
   vTaskResume(TaskUniverse);
   vTaskResume(TaskSwitches);
+  vTaskResume(TaskPortControllerInput);
 }
 
 /**

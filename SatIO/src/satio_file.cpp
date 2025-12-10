@@ -62,41 +62,47 @@ struct satioFileStruct satioFileData = {
     .mapping_filepath="/MAPPING/mapping_conf.csv",
     .system_tags=
     {
-        "SERIAL_COMMAND",             // 0
-        "OUTPUT_ALL",                 // 1
-        "OUTPUT_SATIO",               // 2
-        "OUTPUT_INS",                 // 3
-        "OUTPUT_GNGGA",               // 4
-        "OUTPUT_GNRMC",               // 5
-        "OUTPUT_GPATT",               // 6
-        "OUTPUT_MATRIX",              // 7
-        "OUTPUT_ADMPLEX0",            // 8
-        "OUTPUT_GYRO0",               // 9
-        "OUTPUT_SUN",                 // 10
-        "OUTPUT_MOON",                // 11
-        "OUTPUT_MERCURY",             // 12
-        "OUTPUT_VENUS",               // 13
-        "OUTPUT_MARS",                // 14
-        "OUTPUT_JUPITER",             // 15
-        "OUTPUT_SATURN",              // 16
-        "OUTPUT_URANUS",              // 17
-        "OUTPUT_NEPTUNE",             // 18
-        "OUTPUT_METEORS",             // 19
-        "COORDINATE_CONVERSION_MODE", // 20
-        "SPEED_CONVERSION_MODE",      // 21
-        "ALTITUDE_CONVERSION_MODE",   // 22
-        "UTC_SECOND_OFFSET",          // 23
-        "UTC_AUTO_OFFSET_FLAG",       // 24
-        "SET_DATETIME_AUTOMATICALLY", // 25
-        "INS_REQ_GPS_PRECISION",      // 26
-        "INS_REQ_MIN_SPEED",          // 27
-        "INS_REQ_HEADING_RANGE_DIFF", // 28
-        "INS_MODE",                   // 29
-        "INS_USE_GYRO_HEADING",       // 30
-        "MATRIX_FILE",                // 31
-        "LOAD_MATRIX_ON_STARTUP",     // 32
-        "SPEED_UNIT_MODE",            // 33
-        "ALTITUDE_UNIT_MODE",         // 34
+        "SERIAL_COMMAND",               // 0
+        "OUTPUT_ALL",                   // 1
+        "OUTPUT_SATIO",                 // 2
+        "OUTPUT_INS",                   // 3
+        "OUTPUT_GNGGA",                 // 4
+        "OUTPUT_GNRMC",                 // 5
+        "OUTPUT_GPATT",                 // 6
+        "OUTPUT_MATRIX",                // 7
+        "OUTPUT_ADMPLEX0",              // 8
+        "OUTPUT_GYRO0",                 // 9
+        "OUTPUT_SUN",                   // 10
+        "OUTPUT_MOON",                  // 11
+        "OUTPUT_MERCURY",               // 12
+        "OUTPUT_VENUS",                 // 13
+        "OUTPUT_MARS",                  // 14
+        "OUTPUT_JUPITER",               // 15
+        "OUTPUT_SATURN",                // 16
+        "OUTPUT_URANUS",                // 17
+        "OUTPUT_NEPTUNE",               // 18
+        "OUTPUT_METEORS",               // 19
+        "COORDINATE_CONVERSION_MODE",   // 20
+        "SPEED_CONVERSION_MODE",        // 21
+        "ALTITUDE_CONVERSION_MODE",     // 22
+        "UTC_SECOND_OFFSET",            // 23
+        "UTC_AUTO_OFFSET_FLAG",         // 24
+        "SET_DATETIME_AUTOMATICALLY",   // 25
+        "INS_REQ_GPS_PRECISION",        // 26
+        "INS_REQ_MIN_SPEED",            // 27
+        "INS_REQ_HEADING_RANGE_DIFF",   // 28
+        "INS_MODE",                     // 29
+        "INS_USE_GYRO_HEADING",         // 30
+        "MATRIX_FILE",                  // 31
+        "LOAD_MATRIX_ON_STARTUP",       // 32
+        "SPEED_UNIT_MODE",              // 33
+        "ALTITUDE_UNIT_MODE",           // 34
+        "GROUND_HEADING_MODE",          // 35
+        "ALTITUDE",                     // 36
+        "COORDINATES_LATITUDE",         // 37
+        "COORDINATES_LONGITUDE",        // 38
+        "GROUND_SPEED",                 // 39
+        "GROUND_HEADING",               // 40
     },
     .system_filepath="/SYSTEM/system_conf.csv",
 
@@ -104,14 +110,14 @@ struct satioFileStruct satioFileData = {
 
 void printLine(File f, String line) {
     line = line+"\n";
-    Serial.print(line);
+    // Serial.print(line);  // uncomment to debug
     f.print(line);
 }
 
 char *endptr;
 
 bool saveMappingFile(FS &fs, const char *filepath) {
-    Serial.println("saveMappingFile");
+    Serial.println("$MAPPINGSAVING");
     File f = fs.open(filepath, "w", true);
     if (!f) return false;
     if (fs.exists(filepath)) {
@@ -127,13 +133,14 @@ bool saveMappingFile(FS &fs, const char *filepath) {
             else if (i_tag==7) {for (int i_map=0; i_map<MAX_MAP_SLOTS; i_map++) {line = String(satioFileData.mapping_tags[i_tag]) + String("," + String(i_map) + "," + String(mappingData.mapping_config[0][i_map][5])).c_str(); printLine(f, line);}}
         }
     }
-    else {return false;}
+    else {Serial.println("$MAPPINGSAVEFAILED"); return false;}
     f.close();
-    Serial.println();
+    Serial.println("$MAPPINGSAVED");  // currently no checks
     return true;
 }
 
 bool loadMappingFile(FS &fs, const char *filepath) {
+    Serial.println("$MAPPINGLOADING");
     if (fs.exists(filepath)) {
         File f = fs.open(filepath, "r", false);
         if (!f) return false;
@@ -146,7 +153,7 @@ bool loadMappingFile(FS &fs, const char *filepath) {
             if (len <= 0) break;
             lineBuffer[len] = '\0'; // null-terminate
             if (strlen(lineBuffer) == 0) continue;
-            Serial.println("Processing Tag Token Number: " + String(currentTag) + " (data: " + String(lineBuffer) + ")"); // uncomment to debug
+            // Serial.println("Processing Tag Token Number: " + String(currentTag) + " (data: " + String(lineBuffer) + ")"); // uncomment to debug
             char *commaToken = strtok(lineBuffer, ",");
             int tokenCount = 0;
             int tag_index;
@@ -166,21 +173,22 @@ bool loadMappingFile(FS &fs, const char *filepath) {
             currentTag++;
         }
         f.close();
-        if (currentTag == 0) {Serial.println("No valid lines found"); return false;}
-        Serial.println();
+        if (currentTag == 0) {Serial.println("$MAPPINGLOADFAILED"); return false;}
+        Serial.println("$MAPPINGLOADED");  // currently no checks
         return true;
     }
-    else {return false;}
+    else {Serial.println("$MAPPINGLOADFAILED"); return false;}
 }
 
 bool deleteMappingFile(FS &fs, const char *filepath) {
-    if (fs.exists(filepath)) {if (fs.remove(filepath)) {return true;}}
+    if (fs.exists(filepath)) {if (fs.remove(filepath)) {Serial.println("$MAPPINGDELETED"); return true;}}
+    Serial.println("$MAPPINGDELETEFAILED");
     return false;
 }
 
 // todo: mapping data will saved with matrix data
 bool saveMatrixFile(FS &fs, const char *filepath) {    
-    Serial.println("saveMatrixFile");
+    Serial.println("$MATRIXSAVING");
     File f = fs.open(filepath, "w", true);
     if (!f) return false;
     if (fs.exists(filepath)) {
@@ -218,13 +226,14 @@ bool saveMatrixFile(FS &fs, const char *filepath) {
                 printLine(f, line);}}
         }
     }
-    else {return false;}
+    else {Serial.println("$MATRIXSAVEFAILED"); return false;}
     f.close();
-    Serial.println();
+    Serial.println("$MATRIXSAVED");  // currently no checks
     return true;
 }
 
 bool loadMatrixFile(FS &fs, const char *filepath) {
+    Serial.println("$MATRIXLOADING");
     if (fs.exists(filepath)) {
         File f = fs.open(filepath, "r", false);
         if (!f) return false;
@@ -237,7 +246,7 @@ bool loadMatrixFile(FS &fs, const char *filepath) {
             if (len <= 0) break;
             lineBuffer[len] = '\0'; // null-terminate
             if (strlen(lineBuffer) == 0) continue;
-            Serial.println("Processing Tag Token Number: " + String(currentTag) + " (data: " + String(lineBuffer) + ")"); // uncomment to debug
+            // Serial.println("Processing Tag Token Number: " + String(currentTag) + " (data: " + String(lineBuffer) + ")"); // uncomment to debug
             char *commaToken = strtok(lineBuffer, ",");
             int tokenCount = 0;
             int tag_index;
@@ -261,20 +270,21 @@ bool loadMatrixFile(FS &fs, const char *filepath) {
             currentTag++;
         }
         f.close();
-        if (currentTag == 0) {Serial.println("No valid lines found"); return false;}
-        Serial.println();
+        if (currentTag == 0) {Serial.println("$MATRIXLOADFAILED"); return false;}
+        Serial.println("$MATRIXLOADED");  // currently no checks
         return true;
     }
-    else {return false;}
+    else {Serial.println("$MATRIXLOADFAILED"); return false;}
 }
 
 bool deleteMatrixFile(FS &fs, const char *filepath) {
-    if (fs.exists(filepath)) {if (fs.remove(filepath)) {return true;}}
+    if (fs.exists(filepath)) {if (fs.remove(filepath)) {Serial.println("$MATRIXDELETED"); return true;}}
+    Serial.println("$MATRIXDELETEFAILED");
     return false;
 }
 
 bool saveSystemFile(FS &fs, const char *filepath) {
-    Serial.println("saveSystemFile");
+    Serial.println("$SYSTEMSAVING");
     File f = fs.open(filepath, "w", true);
     if (!f) return false;
     if (fs.exists(filepath)) {
@@ -315,17 +325,23 @@ bool saveSystemFile(FS &fs, const char *filepath) {
             else if  (i_tag==32) {line = String(satioFileData.system_tags[i_tag]) + String("," + String(matrixData.load_matrix_on_startup)); printLine(f, line);}
             else if  (i_tag==33) {line = String(satioFileData.system_tags[i_tag]) + String("," + String(satioData.speed_unit_mode)); printLine(f, line);}
             else if  (i_tag==34) {line = String(satioFileData.system_tags[i_tag]) + String("," + String(satioData.altitude_unit_mode)); printLine(f, line);}
+
+            else if  (i_tag==35) {line = String(satioFileData.system_tags[i_tag]) + String("," + String(satioData.ground_heading_mode)); printLine(f, line);}
+            else if  (i_tag==36) {line = String(satioFileData.system_tags[i_tag]) + String("," + String(satioData.altitude)); printLine(f, line);}
+            else if  (i_tag==37) {line = String(satioFileData.system_tags[i_tag]) + String("," + String(satioData.degrees_latitude)); printLine(f, line);}
+            else if  (i_tag==38) {line = String(satioFileData.system_tags[i_tag]) + String("," + String(satioData.degrees_longitude)); printLine(f, line);}
+            else if  (i_tag==39) {line = String(satioFileData.system_tags[i_tag]) + String("," + String(satioData.speed)); printLine(f, line);}
+            else if  (i_tag==40) {line = String(satioFileData.system_tags[i_tag]) + String("," + String(satioData.ground_heading)); printLine(f, line);}
         }
     }
-    else {return false;}
+    else {Serial.println("$SYSTEMSAVEFAILED"); return false;}
     f.close();
-    Serial.println();
+    Serial.println("$SYSTEMSAVED");  // currently no checks
     return true;
-    return false;
 }
 
 bool loadSystemFile(FS &fs, const char *filepath) {
-    Serial.println("loadSystemFile");
+    Serial.println("$SYSTEMLOADING");
     if (fs.exists(filepath)) {
         File f = fs.open(filepath, "r", false);
         if (!f) return false;
@@ -336,7 +352,7 @@ bool loadSystemFile(FS &fs, const char *filepath) {
             if (len <= 0) break;
             lineBuffer[len] = '\0'; // null-terminate
             if (strlen(lineBuffer) == 0) continue;
-            Serial.println("Processing Tag Token Number: " + String(currentTag) + " (data: " + String(lineBuffer) + ")"); // uncomment to debug
+            // Serial.println("Processing Tag Token Number: " + String(currentTag) + " (data: " + String(lineBuffer) + ")"); // uncomment to debug
             char *commaToken = strtok(lineBuffer, ",");
             int tokenCount = 0;
             int tag_index;
@@ -380,17 +396,25 @@ bool loadSystemFile(FS &fs, const char *filepath) {
             else if (tag_index==32) {if (str_is_bool(data_0.c_str())) {matrixData.load_matrix_on_startup=atoi(data_0.c_str());}}
             else if (tag_index==33) {if (str_is_uint8(data_0.c_str())) {if (atoi(data_0.c_str())<MAX_SPEED_UNIT_MODES) {satioData.speed_unit_mode=atoi(data_0.c_str());}}}
             else if (tag_index==34) {if (str_is_uint8(data_0.c_str())) {if (atoi(data_0.c_str())<MAX_ALTITUDE_UNIT_MODES) {satioData.altitude_unit_mode=atoi(data_0.c_str());}}}
+
+            else if (tag_index==35) {if (str_is_uint8(data_0.c_str())) {if (atoi(data_0.c_str())<MAX_GROUND_HEADING_MODES) {satioData.ground_heading_mode=atoi(data_0.c_str());}}}
+            else if (tag_index==36) {if (str_is_double(data_0.c_str())) {satioData.altitude=strtod(data_0.c_str(), &endptr);}}
+            else if (tag_index==37) {if (str_is_double(data_0.c_str())) {satioData.degrees_latitude=strtod(data_0.c_str(), &endptr);}}
+            else if (tag_index==38) {if (str_is_double(data_0.c_str())) {satioData.degrees_longitude=strtod(data_0.c_str(), &endptr);}}
+            else if (tag_index==39) {if (str_is_double(data_0.c_str())) {satioData.speed=strtod(data_0.c_str(), &endptr);}}
+            else if (tag_index==40) {if (str_is_double(data_0.c_str())) {satioData.ground_heading=strtod(data_0.c_str(), &endptr);}}
             currentTag++;
         }
         f.close();
-        if (currentTag == 0) {Serial.println("No valid lines found"); return false;}
-        Serial.println();
+        if (currentTag == 0) {Serial.println("$SYSTEMLOADFAILED"); return false;}
+        Serial.println("$SYSTEMLOADED");  // currently no checks
         return true;
     }
-    else {return false;}
+    else {Serial.println("$SYSTEMLOADFAILED"); return false;}
 }
 
 bool deleteSystemFile(FS &fs, const char *filepath) {
-    if (fs.exists(filepath)) {if (fs.remove(filepath)) {return true;}}
+    if (fs.exists(filepath)) {if (fs.remove(filepath)) {Serial.println("$SYSTEMDELETED"); return true;}}
+    Serial.println("$SYSTEMDELETEFAILED");
     return false;
 }

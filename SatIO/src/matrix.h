@@ -14,8 +14,6 @@ extern "C" {
 #include <stdbool.h>
 #include "config.h"
 
-#define MAX_MATRIX_OUTPUT_MODES 2
-
 /**
  * @struct MatrixStruct
  */
@@ -214,6 +212,9 @@ struct MatrixStruct {
     * 85 SDCARDMOUNTED
    */
   char matrix_function_names[MAX_MATRIX_FUNCTION_NAMES][MAX_GLOBAL_ELEMENT_SIZE]={};
+  
+  double input_value[1][MAX_MATRIX_SWITCHES];
+  signed int input_port_map[1][MAX_MATRIX_SWITCHES];
 };
 extern struct MatrixStruct matrixData;
 
@@ -242,16 +243,11 @@ void set_all_matrix_default(void);
 void setOutputValues();
 
 /**
- * Instruct portcontroller to clear all stored instructions.
+ * Override all computer assist.
+ * This can be csequentially different from disabling all computer assist. 
  * @return Returns None
  */
-void writePortControllerM0(void);
-
-/**
- * Instruct portcontroller in mode 1 (pin config/output/pwm).
- * @return Returns None
- */
-void writePortControllerM1();
+void override_all_computer_assists();
 
 /**
  * Determines if intructions need to be sent to the port controller.
@@ -260,17 +256,24 @@ void writePortControllerM1();
 bool portControllerWriteRequired(int idx);
 
 /**
- * Writes buffer over I2C.
+ * Initialize portcopntrollers.
  * @return Returns None
  */
-void writeI2C(int I2C_Address);
+void initOutputPortController();
+void initInputPortController();
 
 /**
- * Override all computer assist.
- * This can be csequentially different from disabling all computer assist. 
+ * Instruct portcontroller to clear all stored instructions.
  * @return Returns None
  */
-void override_all_computer_assists();
+void writeOutputPortControllerM0(void);
+
+/**
+ * Write mode 1 instructions to portcontroller.
+ * @return Returns None
+ */
+void writeOutputPortControllerM1(void);
+bool readInputPortControllerM1();
 
 #ifdef __cplusplus
 }
