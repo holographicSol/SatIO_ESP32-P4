@@ -164,17 +164,48 @@ void clearMatrixSwitch() {
   }
 }
 
+// ------------------------------------------------------------
+// requestEvent: human
+// ------------------------------------------------------------
+// void requestEvent() {
+//   // Format exactly what we need, get the real length
+//   int len = snprintf(I2CLink.TMP_BUFFER, sizeof(I2CLink.TMP_BUFFER),
+//                      "%d,%u", current_pin, input_value[current_pin]);
+//   // Serial.println(I2CLink.TMP_BUFFER);
+//   // Send ONLY the real data (no garbage!)
+//   Wire.write((uint8_t*)I2CLink.TMP_BUFFER, sizeof(I2CLink.TMP_BUFFER));
+
+//   // Advance pin
+//   if (++current_pin >= NUM_ANALOG + NUM_DIGITAL) {
+//     current_pin = 0;
+//     multi_read_mode = false;
+//   }
+// }
+
+// ------------------------------------------------------------
+// requestEvent: binary for double value
+// ------------------------------------------------------------
 void requestEvent() {
-  // if (multi_read_mode) {
-    memset(I2CLink.TMP_BUFFER, 0, sizeof(I2CLink.TMP_BUFFER));
-    strcpy(I2CLink.TMP_BUFFER, String(String(current_pin) + "," + String(input_value[current_pin])).c_str());
-    Wire.write((uint8_t*)I2CLink.TMP_BUFFER, sizeof(I2CLink.TMP_BUFFER));
-    current_pin++;
-    if (current_pin >= NUM_ANALOG+NUM_DIGITAL) {
-        current_pin = 0; // Reset pin index for next 'M' command
-        multi_read_mode = false; // Turn off the mode after the last pin
-    }
-  // }
+  // if (!multi_read_mode) return;
+  float value = (float)input_value[current_pin];   // your original double → float (safe!)
+  // Union = fastest way to get raw bytes of a float
+  union {
+    float    f;
+    uint8_t  bytes[4];
+  } u;
+  u.f = value;
+  uint8_t packet[5] = {
+    (uint8_t)current_pin,
+    u.bytes[0],
+    u.bytes[1],
+    u.bytes[2],
+    u.bytes[3]
+  };
+  Wire.write(packet, 5);
+  if (++current_pin >= NUM_ANALOG + NUM_DIGITAL) {
+    current_pin = 0;
+    multi_read_mode = false;
+  }
 }
 
 void receiveEvent(int) {
