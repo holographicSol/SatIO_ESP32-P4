@@ -1642,9 +1642,10 @@ void setOutputValues(void) {
 }
 
 typedef struct {
-  char * token;
-  int i_token=0;
+  int  i_token=0;
+  long i_bytes;
   byte OUTPUT_BUFFER[MAX_IIC_BUFFER_SIZE]; // bytes to be sent
+  char * token;
   char INPUT_BUFFER[MAX_IIC_BUFFER_SIZE];  // chars received
   char TMP_BUFFER_0[MAX_IIC_BUFFER_SIZE];  // chars of bytes to be sent
   char TMP_BUFFER_1[MAX_IIC_BUFFER_SIZE];  // some space for type conversions
@@ -1657,7 +1658,7 @@ IICLink IICLink2;
    Note that naming 'I2C1' will trigger reset while I2C3/I2C2 is fine.
    0 fine
    1 fine
-   2 fine (RTC)
+   2 fine
    3 null buffer pointer
 */
 TwoWire iic_1 = TwoWire(1);
@@ -1666,7 +1667,7 @@ TwoWire iic_2 = TwoWire(2);
 
 void initOutputPortController() {
   iic_1.setPins(4, 5);
-  iic_1.setBufferSize(256);  // or any size ≥ your OUTPUT_BUFFER
+  iic_1.setBufferSize(256);
   iic_1.setTimeOut(1000);
   iic_1.begin(4, 5);
   iic_1.setClock(400000);
@@ -1674,7 +1675,7 @@ void initOutputPortController() {
 
 void initInputPortController() {
   iic_2.setPins(7, 8);
-  iic_2.setBufferSize(256);  // or any size ≥ your OUTPUT_BUFFER
+  iic_2.setBufferSize(256);
   iic_2.setTimeOut(1000);
   iic_2.begin(7, 8);
   iic_2.setClock(400000);
@@ -1748,47 +1749,79 @@ void writeOutputPortControllerM1(void) {
   systemData.i_count_port_controller++;
 }
 
+// ------------------------------------------------------------
+// readInputPortControllerM1: human
+// ------------------------------------------------------------
+// bool readInputPortControllerM1(void) {
+//   // -----------------------------------------------------------------------------------
+//   // Loop requests
+//   // -----------------------------------------------------------------------------------
+//   for (int pin_index = 0; pin_index < MAX_MATRIX_SWITCHES; pin_index++) {
+//     // ---------------------------------------------------------------------------------
+//     // Request data from the slave. The slave should now be in a mode 
+//     // ---------------------------------------------------------------------------------
+//     IICLink2.i_bytes = iic_2.requestFrom(I2C_ADDR_INPUT_PORTCONTROLLER, MAX_INPUT_PORTCONTROLLER_RESPONSE_BYTES);
+//     // ---------------------------------------------------------------------------------
+//     // Slave stopped responding or transaction failed
+//     // ---------------------------------------------------------------------------------
+//     if (IICLink2.i_bytes <= 0) {
+//       Serial.printf("I2C Read Error on pin %d. Received %d bytes.\n", pin_index, IICLink2.i_bytes);
+//     }
+//     // ---------------------------------------------------------------------------------
+//     // Read the incoming bytes
+//     // ---------------------------------------------------------------------------------
+//     int i = 0;
+//     memset(IICLink2.INPUT_BUFFER, 0, sizeof(IICLink2.INPUT_BUFFER));
+//     while (iic_2.available() && i < sizeof(IICLink2.INPUT_BUFFER) - 1) {
+//       IICLink2.INPUT_BUFFER[i++] = iic_2.read();
+//     }
+//     IICLink2.INPUT_BUFFER[i]='\0';
+//     // Serial.println("[RCV] " + String(IICLink2.INPUT_BUFFER));
+//     // ---------------------------------------------------------------------------------
+//     // Process
+//     // ---------------------------------------------------------------------------------
+//     int input_idx;
+//     double input_val;
+//     IICLink2.token = strtok(IICLink2.INPUT_BUFFER, ",");
+//     IICLink2.i_token=0;
+//     char * endptr;
+//     while (IICLink2.token != NULL) {
+//       if (IICLink2.i_token==0)      {if (str_is_int8(IICLink2.token))   {input_idx=atoi(IICLink2.token);}}
+//       else if (IICLink2.i_token==1) {if (str_is_double(IICLink2.token)) {input_val=strtod(IICLink2.token, &endptr);}}
+//       IICLink2.token = strtok(NULL, ",");
+//       IICLink2.i_token++;
+//     }
+//     // ---------------------------------------------------------------------------------
+//     // Store values
+//     // ---------------------------------------------------------------------------------
+//     if (input_idx && input_val) {matrixData.input_value[0][input_idx]=input_val;}
+//   }
+//   return true; 
+// }
+
+// ------------------------------------------------------------
+// readInputPortControllerM1: binary for double value
+// ------------------------------------------------------------
 bool readInputPortControllerM1(void) {
-  // -----------------------------------------------------------------------------------
-  // Loop requests
-  // -----------------------------------------------------------------------------------
-  for (int pin_index = 0; pin_index < MAX_MATRIX_SWITCHES; pin_index++) {
-    // ---------------------------------------------------------------------------------
-    // Request data from the slave. The slave should now be in a mode 
-    // ---------------------------------------------------------------------------------
-    int bytes = iic_2.requestFrom(I2C_ADDR_INPUT_PORTCONTROLLER, MAX_INPUT_PORTCONTROLLER_RESPONSE_BYTES);
-    // ---------------------------------------------------------------------------------
-    // Slave stopped responding or transaction failed
-    // ---------------------------------------------------------------------------------
-    if (bytes <= 0) {
-      Serial.printf("I2C Read Error on pin %d. Received %d bytes.\n", pin_index, bytes);
+  const uint8_t TOTAL_PINS = 70;
+  for (uint8_t i = 0; i < TOTAL_PINS; i++) {
+    if (iic_2.requestFrom(I2C_ADDR_INPUT_PORTCONTROLLER, (uint8_t)5) != 5) {
+      Serial.printf("I2C timeout at expected pin %d\n", i);
+      return false;
     }
-    // ---------------------------------------------------------------------------------
-    // Read the incoming bytes
-    // ---------------------------------------------------------------------------------
-    int i = 0;
-    memset(IICLink2.INPUT_BUFFER, 0, sizeof(IICLink2.INPUT_BUFFER));
-    while (iic_2.available() && i < sizeof(IICLink2.INPUT_BUFFER) - 1) {
-      IICLink2.INPUT_BUFFER[i++] = iic_2.read();
+    uint8_t pin = iic_2.read();
+    union {
+      float    f;
+      uint8_t  bytes[4];
+    } u;
+    u.bytes[0] = iic_2.read();
+    u.bytes[1] = iic_2.read();
+    u.bytes[2] = iic_2.read();
+    u.bytes[3] = iic_2.read();
+    if (pin < TOTAL_PINS) {
+      matrixData.input_value[0][pin] = (double)u.f;   // float → double (no precision loss)
+      // Serial.printf("[BIN] P%d = %.6f\n", pin, matrixData.input_value[0][pin]);
     }
-    // ---------------------------------------------------------------------------------
-    // Process
-    // ---------------------------------------------------------------------------------
-    int input_idx;
-    double input_val;
-    IICLink2.token = strtok(IICLink2.INPUT_BUFFER, ",");
-    IICLink2.i_token=0;
-    char * endptr;
-    while (IICLink2.token != NULL) {
-      if (IICLink2.i_token==0)      {if (str_is_int8(IICLink2.token))   {input_idx=atoi(IICLink2.token);}}
-      else if (IICLink2.i_token==1) {if (str_is_double(IICLink2.token)) {input_val=strtod(IICLink2.token, &endptr);}}
-      IICLink2.token = strtok(NULL, ",");
-      IICLink2.i_token++;
-    }
-    // ---------------------------------------------------------------------------------
-    // Store values
-    // ---------------------------------------------------------------------------------
-    if (input_idx && input_val) {matrixData.input_value[0][input_idx]=input_val;}
   }
-  return true; 
+  return true;
 }
