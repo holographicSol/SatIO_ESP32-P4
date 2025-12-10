@@ -1709,56 +1709,10 @@ void writeOutputPortControllerM0(void) {
 }
 
 // ------------------------------------------------------------
-// readInputPortControllerM1: human
-// ------------------------------------------------------------
-// void writeOutputPortControllerM1(void) {
-//   for (int Mi=0; Mi<MAX_MATRIX_SWITCHES; Mi++) {
-//     // Check for change.
-//     if (portControllerWriteRequired(Mi)==true) {
-//       // Tag.
-//       memset(IICLink1.TMP_BUFFER_0, 0, sizeof(IICLink1.TMP_BUFFER_0));
-//       strcpy(IICLink1.TMP_BUFFER_0, "M1,");
-//       // Index.
-//       memset(IICLink1.TMP_BUFFER_1, 0, sizeof(IICLink1.TMP_BUFFER_1));
-//       itoa(Mi, IICLink1.TMP_BUFFER_1, 10);
-//       strcat(IICLink1.TMP_BUFFER_0, IICLink1.TMP_BUFFER_1);
-//       strcat(IICLink1.TMP_BUFFER_0, ",");
-//       // Port.
-//       memset(IICLink1.TMP_BUFFER_1, 0, sizeof(IICLink1.TMP_BUFFER_1));
-//       itoa(matrixData.matrix_port_map[0][Mi], IICLink1.TMP_BUFFER_1, 10);
-//       strcat(IICLink1.TMP_BUFFER_0, IICLink1.TMP_BUFFER_1);
-//       strcat(IICLink1.TMP_BUFFER_0, ",");
-
-//       // Output value.
-//       memset(IICLink1.TMP_BUFFER_1, 0, sizeof(IICLink1.TMP_BUFFER_1));
-//       // Serial.println(matrixData.output_value[0][Mi]);
-//       if (matrixData.computer_assist[0][Mi]==true)
-//         {ltoa(matrixData.output_value[0][Mi], IICLink1.TMP_BUFFER_1, 10);}
-//       else {ltoa(matrixData.override_output_value[0][Mi], IICLink1.TMP_BUFFER_1, 10);}
-//       strcat(IICLink1.TMP_BUFFER_0, IICLink1.TMP_BUFFER_1);
-//       strcat(IICLink1.TMP_BUFFER_0, ",");
-      
-//       // Modulation time.
-//       strcat(IICLink1.TMP_BUFFER_0, String(matrixData.output_pwm[0][Mi][INDEX_MATRIX_MOD_0]).c_str());
-//       strcat(IICLink1.TMP_BUFFER_0, ",");
-//       strcat(IICLink1.TMP_BUFFER_0, String(matrixData.output_pwm[0][Mi][INDEX_MATRIX_MOD_1]).c_str());
-//       strcat(IICLink1.TMP_BUFFER_0, ",");
-//       // Write instruction.
-//       writeI2COutputPortController(I2C_ADDR_OUTPUT_PORTCONTROLLER);
-//       // Debug.
-//       // Serial.println("[SND] " + String(IICLink1.TMP_BUFFER_0));
-//     }
-//   }
-//   systemData.i_count_port_controller++;
-// }
-
-// value to send is: M1,Mi(int),port(signed int),output_value(int32_t),
-
-// ------------------------------------------------------------
 // readInputPortControllerM1: binary
 // ------------------------------------------------------------
 void writeOutputPortControllerM1(void) {
-  uint8_t packet[12];  // EXACTLY 12 bytes — no wasted space
+  uint8_t packet[15];  // EXACTLY 12 bytes — no wasted space
   for (int Mi = 0; Mi < MAX_MATRIX_SWITCHES; Mi++) {
     if (!matrixData.matrix_switch_write_required[0][Mi])  // ← your real flag
       continue;
@@ -1769,11 +1723,11 @@ void writeOutputPortControllerM1(void) {
                             ? matrixData.output_value[0][Mi]
                             : (int32_t)matrixData.override_output_value[0][Mi];
     // ------------------------------------------------------------
-    // Build 12-byte binary packet
+    // Build binary packet
     // ------------------------------------------------------------
-    packet[0] = 0xB1;                                           // Command: M1 binary
-    packet[1] = (uint8_t)Mi;                                    // Matrix index (0–69)
-    packet[2] = (uint8_t)(int8_t)matrixData.matrix_port_map[0][Mi];  // Signed pin (-1 allowed!)
+    packet[0] = 0xB1;                                               // Command: M1 binary
+    packet[1] = (uint8_t)Mi;                                        // Matrix index (0–69)
+    packet[2] = (uint8_t)(int8_t)matrixData.matrix_port_map[0][Mi]; // Signed pin (-1 allowed!)
     // ------------------------------------------------------------
     // int32_t output value (4 bytes, little-endian)
     // ------------------------------------------------------------
@@ -1784,22 +1738,24 @@ void writeOutputPortControllerM1(void) {
     // ------------------------------------------------------------
     // uint32_t OFF time µs (4 bytes)
     // ------------------------------------------------------------
-    uint32_t off_time = matrixData.output_pwm[0][Mi][0];        // INDEX_MATRIX_MOD_0
+    uint32_t off_time = matrixData.output_pwm[0][Mi][0];
     packet[7]  = (uint8_t)(off_time & 0xFF);
     packet[8]  = (uint8_t)((off_time >> 8)  & 0xFF);
     packet[9]  = (uint8_t)((off_time >> 16) & 0xFF);
     packet[10] = (uint8_t)((off_time >> 24) & 0xFF);
     // ------------------------------------------------------------
-    // uint16_t ON time µs (2 bytes)
+    // uint16_t ON time µs (4 bytes)
     // ------------------------------------------------------------
-    uint16_t on_time = (uint16_t)matrixData.output_pwm[0][Mi][1];  // INDEX_MATRIX_MOD_1
+    uint32_t on_time = matrixData.output_pwm[0][Mi][1];
     packet[11] = (uint8_t)(on_time & 0xFF);
-    // packet[12] not needed — only 12 bytes total
+    packet[12] = (uint8_t)((on_time >> 8)  & 0xFF);
+    packet[13] = (uint8_t)((on_time >> 16) & 0xFF);
+    packet[14] = (uint8_t)((on_time >> 24) & 0xFF);
     // ------------------------------------------------------------
     // Send over I2C
     // ------------------------------------------------------------
     iic_1.beginTransmission(I2C_ADDR_OUTPUT_PORTCONTROLLER);
-    iic_1.write(packet, 12);                    // Exactly 12 bytes
+    iic_1.write(packet, 15);
     uint8_t result = iic_1.endTransmission();
     // ------------------------------------------------------------
     // Check error code (0=success)
@@ -1817,56 +1773,6 @@ void writeOutputPortControllerM1(void) {
   }
   systemData.i_count_port_controller++;
 }
-
-// ------------------------------------------------------------
-// readInputPortControllerM1: human
-// ------------------------------------------------------------
-// bool readInputPortControllerM1(void) {
-//   // -----------------------------------------------------------------------------------
-//   // Loop requests
-//   // -----------------------------------------------------------------------------------
-//   for (int pin_index = 0; pin_index < MAX_MATRIX_SWITCHES; pin_index++) {
-//     // ---------------------------------------------------------------------------------
-//     // Request data from the slave. The slave should now be in a mode 
-//     // ---------------------------------------------------------------------------------
-//     IICLink2.i_bytes = iic_2.requestFrom(I2C_ADDR_INPUT_PORTCONTROLLER, MAX_INPUT_PORTCONTROLLER_RESPONSE_BYTES);
-//     // ---------------------------------------------------------------------------------
-//     // Slave stopped responding or transaction failed
-//     // ---------------------------------------------------------------------------------
-//     if (IICLink2.i_bytes <= 0) {
-//       Serial.printf("I2C Read Error on pin %d. Received %d bytes.\n", pin_index, IICLink2.i_bytes);
-//     }
-//     // ---------------------------------------------------------------------------------
-//     // Read the incoming bytes
-//     // ---------------------------------------------------------------------------------
-//     int i = 0;
-//     memset(IICLink2.INPUT_BUFFER, 0, sizeof(IICLink2.INPUT_BUFFER));
-//     while (iic_2.available() && i < sizeof(IICLink2.INPUT_BUFFER) - 1) {
-//       IICLink2.INPUT_BUFFER[i++] = iic_2.read();
-//     }
-//     IICLink2.INPUT_BUFFER[i]='\0';
-//     // Serial.println("[RCV] " + String(IICLink2.INPUT_BUFFER));
-//     // ---------------------------------------------------------------------------------
-//     // Process
-//     // ---------------------------------------------------------------------------------
-//     int input_idx;
-//     double input_val;
-//     IICLink2.token = strtok(IICLink2.INPUT_BUFFER, ",");
-//     IICLink2.i_token=0;
-//     char * endptr;
-//     while (IICLink2.token != NULL) {
-//       if (IICLink2.i_token==0)      {if (str_is_int8(IICLink2.token))   {input_idx=atoi(IICLink2.token);}}
-//       else if (IICLink2.i_token==1) {if (str_is_double(IICLink2.token)) {input_val=strtod(IICLink2.token, &endptr);}}
-//       IICLink2.token = strtok(NULL, ",");
-//       IICLink2.i_token++;
-//     }
-//     // ---------------------------------------------------------------------------------
-//     // Store values
-//     // ---------------------------------------------------------------------------------
-//     if (input_idx && input_val) {matrixData.input_value[0][input_idx]=input_val;}
-//   }
-//   return true; 
-// }
 
 // ------------------------------------------------------------
 // readInputPortControllerM1: binary for double value
