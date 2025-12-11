@@ -383,6 +383,30 @@ static void PrintHelp(void) {
       sdcard --mount
       sdcard --unmount
 
+  [ PERFORMANCE ]
+
+      powercfg --ultimate-performance  Sets power configuration to ultimate performance mode.
+      powercfg --power-saving          Sets power configuration to low power consumption mode.
+      settick -e                       Enable tick delay for specified args.
+      settick -d                       Disable tick delay for specified args (enables millisecond delay).
+      settick --admplex0               Takes arguments -e, -d.
+      settick --gyro0                  Takes arguments -e, -d.
+      settick --universe               Takes arguments -e, -d.
+      settick --gps                    Takes arguments -e, -d.
+      settick --matrix                 Takes arguments -e, -d.
+      settick --pcinput                Takes arguments -e, -d.
+
+      example: settick -e --admplex0 --gyro0 --gps
+
+      setdelay --admplex0               Specify ticks/milliseconds delay.
+      setdelay --gyro0                  Specify ticks/milliseconds delay.
+      setdelay --universe               Specify ticks/milliseconds delay.
+      setdelay --gps                    Specify ticks/milliseconds delay.
+      setdelay --matrix                 Specify ticks/milliseconds delay.
+      setdelay --pcinput                Specify ticks/milliseconds delay.
+
+      example: setdelay --admplex0 1 --gyro0 1 --gps 1
+
   [ StarNav ]
 
       starnav RA_HOUR RA_MIN RA_SEC DEC_D DEC_M DEC_S
