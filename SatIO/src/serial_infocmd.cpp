@@ -26,6 +26,16 @@
 #include <limits.h>
 #include <float.h>
 #include "matrix.h"
+#include "config.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+#include <rtc_wdt.h>
+#include <esp_task_wdt.h>
+#include "task_handler.h"
+#include "config.h"
+#include "system_data.h"
+#include "multiplexers.h"
+
 
 bool debug_bool=true;
 void debug(String debug_str) {if (debug_bool==true) {Serial.println(debug_str);}}
@@ -1238,86 +1248,32 @@ void CmdProcess(void) {
       }
 
       else if (strcmp(pos[0], "powercfg")==0) {
-        // The intention is to further develop powercfg.
+        // The intention is to further develop powercfg in regards to sleep modes.
         // powercfg --ultimate-performance
-        if (argparser_has_flag(&parser, "ultimate-performance")) {
-          DELAY_TASK_SYSTEM_TIMING=POWER_CONFIG_ULTIMATE_PERFORMANCE_DELAY_TASK_SYSTEM_TIMING;
-          TICK_DELAY_TASK_SYSTEM_TIMING=POWER_CONFIG_ULTIMATE_PERFORMANCE_TICK_DELAY_TASK_SYSTEM_TIMING;
-
-          DELAY_TASK_SERIAL_INFOCMD=POWER_CONFIG_ULTIMATE_PERFORMANCE_DELAY_TASK_SERIAL_INFOCMD;
-          TICK_DELAY_TASK_SERIAL_INFOCMD=POWER_CONFIG_ULTIMATE_PERFORMANCE_TICK_DELAY_TASK_SERIAL_INFOCMD;
-
-          DELAY_TASK_MULTIPLEXERS=POWER_CONFIG_ULTIMATE_PERFORMANCE_DELAY_TASK_MULTIPLEXERS;
-          TICK_DELAY_TASK_MULTIPLEXERS=POWER_CONFIG_ULTIMATE_PERFORMANCE_TICK_DELAY_TASK_MULTIPLEXERS;
-
-          DELAY_TASK_GYRO0=POWER_CONFIG_ULTIMATE_PERFORMANCE_DELAY_TASK_GYRO;
-          TICK_DELAY_TASK_GYRO0=POWER_CONFIG_ULTIMATE_PERFORMANCE_TICK_DELAY_TASK_GYRO;
-          
-          DELAY_TASK_UNIVERSE=POWER_CONFIG_ULTIMATE_PERFORMANCE_DELAY_TASK_UNIVERSE;
-          TICK_DELAY_TASK_UNIVERSE=POWER_CONFIG_ULTIMATE_PERFORMANCE_TICK_DELAY_TASK_UNIVERSE;
-
-          DELAY_TASK_GPS=POWER_CONFIG_ULTIMATE_PERFORMANCE_DELAY_TASK_GPS;
-          TICK_DELAY_TASK_GPS=POWER_CONFIG_ULTIMATE_PERFORMANCE_TICK_DELAY_TASK_GPS;
-
-          DELAY_TASK_SWITCHES=POWER_CONFIG_ULTIMATE_PERFORMANCE_DELAY_TASK_SWITCHES;
-          TICK_DELAY_TASK_SWITCHES=POWER_CONFIG_ULTIMATE_PERFORMANCE_TICK_DELAY_TASK_SWITCHES;
-
-          DELAY_TASK_PORTCONTROLLER_INPUT=POWER_CONFIG_ULTIMATE_PERFORMANCE_DELAY_TASK_PORTCONTROLLER_INPUT;
-          TICK_DELAY_TASK_PORTCONTROLLER_INPUT=POWER_CONFIG_ULTIMATE_PERFORMANCE_TICK_DELAY_TASK_PORTCONTROLLER_INPUT;
-
-          DELAY_TASK_STORAGE=POWER_CONFIG_ULTIMATE_PERFORMANCE_DELAY_TASK_STORAGE;
-          TICK_DELAY_TASK_STORAGE=POWER_CONFIG_ULTIMATE_PERFORMANCE_TICK_DELAY_TASK_STORAGE;
-        }
-        // powercfg --power-saving
-        if (argparser_has_flag(&parser, "power-saving")) {
-          DELAY_TASK_SYSTEM_TIMING=POWER_CONFIG_1_SECOND_DELAY_TASK_SYSTEM_TIMING;
-          TICK_DELAY_TASK_SYSTEM_TIMING=POWER_CONFIG_1_SECOND_TICK_DELAY_TASK_SYSTEM_TIMING;
-
-          DELAY_TASK_SERIAL_INFOCMD=POWER_CONFIG_ULTIMATE_PERFORMANCE_DELAY_TASK_SERIAL_INFOCMD;
-          TICK_DELAY_TASK_SERIAL_INFOCMD=POWER_CONFIG_ULTIMATE_PERFORMANCE_TICK_DELAY_TASK_SERIAL_INFOCMD;
-
-          DELAY_TASK_MULTIPLEXERS=POWER_CONFIG_1_SECOND_DELAY_TASK_MULTIPLEXERS;
-          TICK_DELAY_TASK_MULTIPLEXERS=POWER_CONFIG_1_SECOND_TICK_DELAY_TASK_MULTIPLEXERS;
-
-          DELAY_TASK_GYRO0=POWER_CONFIG_1_SECOND_DELAY_TASK_GYRO;
-          TICK_DELAY_TASK_GYRO0=POWER_CONFIG_1_SECOND_TICK_DELAY_TASK_GYRO;
-          
-          DELAY_TASK_UNIVERSE=POWER_CONFIG_1_SECOND_DELAY_TASK_UNIVERSE;
-          TICK_DELAY_TASK_UNIVERSE=POWER_CONFIG_1_SECOND_TICK_DELAY_TASK_UNIVERSE;
-
-          DELAY_TASK_GPS=POWER_CONFIG_1_SECOND_DELAY_TASK_GPS;
-          TICK_DELAY_TASK_GPS=POWER_CONFIG_1_SECOND_TICK_DELAY_TASK_GPS;
-
-          DELAY_TASK_SWITCHES=POWER_CONFIG_1_SECOND_DELAY_TASK_SWITCHES;
-          TICK_DELAY_TASK_SWITCHES=POWER_CONFIG_1_SECOND_TICK_DELAY_TASK_SWITCHES;
-
-          DELAY_TASK_PORTCONTROLLER_INPUT=POWER_CONFIG_1_SECOND_DELAY_TASK_PORTCONTROLLER_INPUT;
-          TICK_DELAY_TASK_PORTCONTROLLER_INPUT=POWER_CONFIG_1_SECOND_TICK_DELAY_TASK_PORTCONTROLLER_INPUT;
-
-          DELAY_TASK_STORAGE=POWER_CONFIG_1_SECOND_DELAY_TASK_STORAGE;
-          TICK_DELAY_TASK_STORAGE=POWER_CONFIG_1_SECOND_TICK_DELAY_TASK_STORAGE;
-        }
+        if (argparser_has_flag(&parser, "ultimate-performance")) {setTasksDelayUltimatePerformance();}
+        // powercfg --power-saving 
+        else if (argparser_has_flag(&parser, "power-saving")) {setTasksDelayPowerSaving();}
       }
 
       else if (strcmp(pos[0], "settick")==0) {
         // if (argparser_has_flag(&parser, "infocmd")) {TICK_DELAY_TASK_SERIAL_INFOCMD=enable;}
-        if (argparser_has_flag(&parser, "admplex0")) {TICK_DELAY_TASK_MULTIPLEXERS=enable;}
-        if (argparser_has_flag(&parser, "gyro0")) {TICK_DELAY_TASK_GYRO0=enable;}
-        if (argparser_has_flag(&parser, "universe")) {TICK_DELAY_TASK_UNIVERSE=enable;}
-        if (argparser_has_flag(&parser, "gps")) {TICK_DELAY_TASK_GPS=enable;}
-        if (argparser_has_flag(&parser, "matrix")) {TICK_DELAY_TASK_SWITCHES=enable;}
-        if (argparser_has_flag(&parser, "pcinput")) {TICK_DELAY_TASK_PORTCONTROLLER_INPUT=enable;}
+        if (argparser_has_flag(&parser, "admplex0")) {TICK_DELAY_TASK_MULTIPLEXERS=enable; xTaskNotifyGive(TaskMultiplexers);}
+        if (argparser_has_flag(&parser, "gyro0")) {TICK_DELAY_TASK_GYRO0=enable; xTaskNotifyGive(TaskGyro);}
+        if (argparser_has_flag(&parser, "universe")) {TICK_DELAY_TASK_UNIVERSE=enable; xTaskNotifyGive(TaskUniverse);}
+        if (argparser_has_flag(&parser, "gps")) {TICK_DELAY_TASK_GPS=enable; xTaskNotifyGive(TaskGPS);}
+        if (argparser_has_flag(&parser, "matrix")) {TICK_DELAY_TASK_SWITCHES=enable; xTaskNotifyGive(TaskSwitches);}
+        if (argparser_has_flag(&parser, "pcinput")) {TICK_DELAY_TASK_PORTCONTROLLER_INPUT=enable; xTaskNotifyGive(TaskPortControllerInput);}
         // if (argparser_has_flag(&parser, "storage")) {TICK_DELAY_TASK_STORAGE=enable;}
 
       }
       else if (strcmp(pos[0], "setdelay")==0) {
         // if (argparser_has_flag(&parser, "infocmd")) {DELAY_TASK_SERIAL_INFOCMD=argparser_get_int32(&parser, "infocmd", DELAY_TASK_SERIAL_INFOCMD);}
-        if (argparser_has_flag(&parser, "admplex0")) {DELAY_TASK_MULTIPLEXERS=argparser_get_int32(&parser, "admplex0", DELAY_TASK_MULTIPLEXERS);}
-        if (argparser_has_flag(&parser, "gyro0")) {DELAY_TASK_GYRO0=argparser_get_int32(&parser, "gyro0", DELAY_TASK_GYRO0);}
-        if (argparser_has_flag(&parser, "universe")) {DELAY_TASK_UNIVERSE=argparser_get_int32(&parser, "universe", DELAY_TASK_UNIVERSE);}
-        if (argparser_has_flag(&parser, "gps")) {DELAY_TASK_GPS=argparser_get_int32(&parser, "gps", DELAY_TASK_GPS);}
-        if (argparser_has_flag(&parser, "matrix")) {DELAY_TASK_SWITCHES=argparser_get_int32(&parser, "matrix", DELAY_TASK_SWITCHES);}
-        if (argparser_has_flag(&parser, "pcinput")) {DELAY_TASK_PORTCONTROLLER_INPUT=argparser_get_int32(&parser, "pcinput", DELAY_TASK_PORTCONTROLLER_INPUT);}
+        if (argparser_has_flag(&parser, "admplex0")) {DELAY_TASK_MULTIPLEXERS=argparser_get_int32(&parser, "admplex0", DELAY_TASK_MULTIPLEXERS); xTaskNotifyGive(TaskMultiplexers);}
+        if (argparser_has_flag(&parser, "gyro0")) {DELAY_TASK_GYRO0=argparser_get_int32(&parser, "gyro0", DELAY_TASK_GYRO0); xTaskNotifyGive(TaskGyro);}
+        if (argparser_has_flag(&parser, "universe")) {DELAY_TASK_UNIVERSE=argparser_get_int32(&parser, "universe", DELAY_TASK_UNIVERSE); xTaskNotifyGive(TaskUniverse);}
+        if (argparser_has_flag(&parser, "gps")) {DELAY_TASK_GPS=argparser_get_int32(&parser, "gps", DELAY_TASK_GPS); xTaskNotifyGive(TaskGPS);}
+        if (argparser_has_flag(&parser, "matrix")) {DELAY_TASK_SWITCHES=argparser_get_int32(&parser, "matrix", DELAY_TASK_SWITCHES); xTaskNotifyGive(TaskSwitches);}
+        if (argparser_has_flag(&parser, "pcinput")) {DELAY_TASK_PORTCONTROLLER_INPUT=argparser_get_int32(&parser, "pcinput", DELAY_TASK_PORTCONTROLLER_INPUT); xTaskNotifyGive(TaskPortControllerInput);}
         // if (argparser_has_flag(&parser, "storage")) {DELAY_TASK_STORAGE=argparser_get_int32(&parser, "storage", DELAY_TASK_STORAGE);}
       }
     }

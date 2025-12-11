@@ -95,6 +95,7 @@
 #include "./serial_infocmd.h"
 #include "./system_data.h"
 #include "./sdmmc_helper.h"
+#include "./task_handler.h"
 
 #include <sys/time.h>
 #include <rtc_wdt.h>
@@ -112,346 +113,6 @@
 #include "esp_system.h"
 #include "driver/uart.h"
 #include "SPIFFS.h"
-
-TaskHandle_t TaskGPS;
-TaskHandle_t TaskUniverse;
-TaskHandle_t TaskMultiplexers;
-TaskHandle_t TaskGyro;
-TaskHandle_t TaskSwitches;
-TaskHandle_t TaskPortControllerInput;
-TaskHandle_t TaskSerialInfoCMD;
-TaskHandle_t TasKSystemTiming;
-TaskHandle_t TaskStorage;
-
-/**
- * Syncronize Taks.
- * 
- * @brief Time syncronize tasks.
- */
-void syncTasks() {
-  Serial.println("[syncronizing system] please wait");
-  global_task_sync=false;
-  while (satioData.sync_rtc_immediately_flag==true) {
-    getSystemTime();
-    system_sync_retry_max--;
-    if (system_sync_retry_max<=0)
-      {Serial.println("[sync] took too long"); break;}
-    delay(1);
-  }
-  global_task_sync=true;
-  // Serial.println("unixtime sync: " + String(satioData.local_unixtime_uS));
-}
-
-/**
- * Storage Task.
- * 
- * @brief Performas many operations including:
- *  (1) Card insertion checks.
- *  (2) Mount automatically.
- *  (3) Unmount automatically.
- *  (4) Read/write operations.
- *  (5) Other storage operations.
- *  (6) Powers down the sdcard when not in use. 
- */
-void taskStorage(void * pvParameters) {
-  esp_task_wdt_add(nullptr);
-  while (global_task_sync==false) {vTaskDelay(1);}
-  while (1) {
-    esp_task_wdt_reset();
-    // ------------------------------------------------
-    // SDCard Begin
-    // ------------------------------------------------
-    sdcardBegin();
-    // statSDCard(); // uncomment to debug
-    // ------------------------------------------------
-    // Check Flags
-    // ------------------------------------------------
-    sdcardFlagHandler();
-    // ------------------------------------------------
-    // Power Down and persist sdcard data
-    // ------------------------------------------------
-    sdcardSleepMode0();
-    // ------------------------------------------------
-    // Delay next iteration of task.
-    // ------------------------------------------------
-    if (TICK_DELAY_TASK_STORAGE==false)
-      {vTaskDelay(DELAY_TASK_STORAGE / portTICK_PERIOD_MS);}
-    else {vTaskDelay(DELAY_TASK_STORAGE);}
-  }
-}
-
-/**
- * GPS Task.
- * 
- * @brief Performas many operations including:
- *  (1) Collects, validates and stores GPS data.
- *  (2) Syncs INS data on successful validation.
- * Consider renaming task to something like 'time and location'
- */
-void taskGPS(void * pvParameters) {
-  esp_task_wdt_add(nullptr);
-  while (1) {
-    esp_task_wdt_reset();
-    // ------------------------------------------------
-    // Get, check and set gps data.
-    // ------------------------------------------------
-    readGPS();
-    validateGPSData();
-    // ------------------------------------------------
-    // Set SatIO data.
-    // ------------------------------------------------
-    if (((gnggaData.valid_checksum=true) &&
-        (gnrmcData.valid_checksum=true) &&
-        (gpattData.valid_checksum=true)) ||
-        satioData.set_rtc_datetime_flag==true) {
-        setSatIOData();
-        // --------------------------------------------
-        // Set INS data.
-        // --------------------------------------------
-        // set_ins(satioData.degrees_latitude,
-        //         satioData.degrees_longitude,
-        //         atof(gnggaData.altitude),
-        //         atof(gnrmcData.ground_heading),
-        //         atof(gnrmcData.ground_speed),
-        //         atof(gnggaData.gps_precision_factor),
-        //         gyroData.gyro_0_ang_z);
-        set_ins(satioData.degrees_latitude,
-                satioData.degrees_longitude,
-                satioData.altitude_converted,
-                satioData.ground_heading,
-                satioData.speed_converted,
-                atof(gnggaData.gps_precision_factor),
-                gyroData.gyro_0_ang_z);
-        // --------------------------------------------
-        // Count reads.
-        // --------------------------------------------
-        systemData.i_count_read_gps++;
-        systemData.interval_breach_gps = 1;
-        if (systemData.i_count_read_gps>=UINT32_MAX-2)
-          {systemData.i_count_read_gps=0;}
-    }
-    // ------------------------------------------------
-    // Delay next iteration of task.
-    // ------------------------------------------------
-    if (TICK_DELAY_TASK_GPS==false)
-      {vTaskDelay(DELAY_TASK_GPS / portTICK_PERIOD_MS);}
-    else {vTaskDelay(DELAY_TASK_GPS);}
-  }
-}
-
-/**
- * Gyro Task.
- * 
- * @brief Reads and stores gyroscopic data.
- */
-void taskGyro(void * pvParameters) {
-  esp_task_wdt_add(nullptr);
-  while (global_task_sync==false) {vTaskDelay(1);}
-  while (1) {
-    esp_task_wdt_reset();
-    if (readGyro()==true) {
-      systemData.i_count_read_gyro_0++;
-      systemData.interval_breach_gyro_0 = 1;
-      if (systemData.i_count_read_gyro_0>=UINT32_MAX-2)
-        {systemData.i_count_read_gyro_0=0;}
-      // ----------------------------------------------
-      // Estimate INS data.
-      // INS data is fed bsck into INS.
-      // ----------------------------------------------
-      if (systemData.interval_breach_gyro_0==true) {
-      // if (ins_estimate_position(gyroData.gyro_0_ang_y,
-      //                           gyroData.gyro_0_ang_z,
-      //                           atof(gnrmcData.ground_heading),
-      //                           atof(gnrmcData.ground_speed),
-      //                           satioData.local_unixtime_uS)==true) {
-      //                           systemData.i_count_read_ins++;
-      //                           systemData.interval_breach_ins=1;
-      //                           if (systemData.i_count_read_ins>=UINT32_MAX-2)
-      //                             {systemData.i_count_read_ins=0;}}
-      if (ins_estimate_position(gyroData.gyro_0_ang_y,
-                          gyroData.gyro_0_ang_z,
-                          satioData.ground_heading,
-                          satioData.speed_converted,
-                          satioData.local_unixtime_uS)==true) {
-                          systemData.i_count_read_ins++;
-                          systemData.interval_breach_ins=1;
-                          if (systemData.i_count_read_ins>=UINT32_MAX-2)
-                            {systemData.i_count_read_ins=0;}}
-      }
-    }
-    // ------------------------------------------------
-    // Delay next iteration of task.
-    // ------------------------------------------------
-    if (TICK_DELAY_TASK_GYRO0==false)
-      {vTaskDelay(DELAY_TASK_GYRO0 / portTICK_PERIOD_MS);}
-    else {vTaskDelay(DELAY_TASK_GYRO0);}
-  }
-}
-
-/**
- * Universe Task.
- * 
- * @brief Stores various information about the universe!
- */
-void taskUniverse(void * pvParameters) {
-  esp_task_wdt_add(nullptr);
-  while (global_task_sync==false) {vTaskDelay(1);}
-  while (1) {
-    esp_task_wdt_reset();
-    // ------------------------------------------------
-    // Track Home Sun, Moon & Planets.
-    // ------------------------------------------------
-    trackPlanets(satioData.degrees_latitude,
-                 satioData.degrees_longitude,
-                 satioData.rtc_year,
-                 satioData.rtc_month,
-                 satioData.rtc_mday,
-                 satioData.rtc_hour,
-                 satioData.rtc_minute,
-                 satioData.rtc_second,
-                 satioData.local_hour,
-                 satioData.local_minute,
-                 satioData.local_second,
-                 atol(gnggaData.altitude));
-    systemData.i_count_track_planets++;
-    systemData.interval_breach_track_planets = 1;
-    if (systemData.i_count_track_planets>=UINT32_MAX-2)
-      {systemData.i_count_track_planets=0;}
-    // ------------------------------------------------
-    // Track Meteors.
-    // ------------------------------------------------
-    setMeteorShowerWarning(satioData.local_month,
-                           satioData.local_mday);
-    // ------------------------------------------------
-    // Delay next iteration of task.
-    // ------------------------------------------------
-    if (TICK_DELAY_TASK_UNIVERSE==false)
-      {vTaskDelay(DELAY_TASK_UNIVERSE / portTICK_PERIOD_MS);}
-    else {vTaskDelay(DELAY_TASK_UNIVERSE);}
-  }
-}
-
-/**
- * Switch Task.
- * 
- * @brief Performs various operations including:
- *  (1) Martix calculations.
- *  (2) Mapping values.
- *  (3) Sets output values.
- *  (4) Instructing the portcontroller accordingly.
- */
-// int i_count_input_values=0;
-void taskSwitches(void * pvParameters) {
-  esp_task_wdt_add(nullptr);
-  while (global_task_sync==false) {vTaskDelay(1);}
-  while ((1)) {
-    esp_task_wdt_reset();
-    if (matrixSwitch()) {
-      systemData.i_count_matrix++;
-      if (systemData.i_count_matrix>=UINT64_MAX-2)
-        {systemData.i_count_matrix=0;}
-    }
-    map_values();
-    setOutputValues();
-    writeOutputPortControllerM1();
-    SwitchStat();
-    // ------------------------------------------------
-    // Delay next iteration of task.
-    // ------------------------------------------------
-    if (TICK_DELAY_TASK_SWITCHES==false)
-      {vTaskDelay(DELAY_TASK_SWITCHES / portTICK_PERIOD_MS);}
-    else {vTaskDelay(DELAY_TASK_SWITCHES);}
-  }
-}
-
-/**
- * Port Controller Input Task.
- * 
- * @brief Reads pins on portcontroller.
- */
-// int i_count_input_values=0;
-void taskPortControllerInput(void * pvParameters) {
-  esp_task_wdt_add(nullptr);
-  while (global_task_sync==false) {vTaskDelay(1);}
-  while ((1)) {
-    esp_task_wdt_reset();
-    if (readInputPortControllerM1()) {
-      systemData.i_count_portcontroller_input++;
-      if (systemData.i_count_portcontroller_input>=UINT64_MAX-2)
-        {systemData.i_count_portcontroller_input=0;}
-    }
-    // ------------------------------------------------
-    // Delay next iteration of task.
-    // ------------------------------------------------
-    if (TICK_DELAY_TASK_PORTCONTROLLER_INPUT==false)
-      {vTaskDelay(DELAY_TASK_PORTCONTROLLER_INPUT / portTICK_PERIOD_MS);}
-    else {vTaskDelay(DELAY_TASK_PORTCONTROLLER_INPUT);}
-  }
-}
-
-
-int i_chan=0;
-/**
- * Multiplexer Task.
- * 
- * @brief Any reads/writes to multiplexers occur on this task.
- */
-void taskMultiplexers(void * pvParameters) {
-  esp_task_wdt_add(nullptr);
-  while (global_task_sync==false) {vTaskDelay(1);}
-  while (1) {
-    esp_task_wdt_reset();
-    // ------------------------------------------------
-    // Step over analog/digital multiplexer channela
-    // ------------------------------------------------
-    for (i_chan=0; i_chan < 16; i_chan++) {
-      // ------------------------------------------------
-      // Set multiplexer channel.
-      // ------------------------------------------------
-      setMultiplexChannel_AD(0, i_chan);
-      multiplexerData.ADMPLEX_0_DATA[i_chan]=analogRead(ADMPLEX_0_SIG);
-    }
-    // ------------------------------------------------
-    // Count reads.
-    // ------------------------------------------------
-    systemData.i_count_read_mplex++;
-    systemData.interval_breach_mplex = 1;
-    if (systemData.i_count_read_mplex>=UINT32_MAX-2)
-      {systemData.i_count_read_mplex=0;}
-    // ------------------------------------------------
-    // Delay next iteration of task.
-    // ------------------------------------------------
-    if (TICK_DELAY_TASK_MULTIPLEXERS==false)
-      {vTaskDelay(DELAY_TASK_MULTIPLEXERS / portTICK_PERIOD_MS);}
-    else {vTaskDelay(DELAY_TASK_MULTIPLEXERS);}
-  }
-}
-
-/**
- * Info Command Task.
- * 
- * @brief Processes a serial TXD and RXD operations:
- *  (1) Information out for other system and debug.
- *  (2) Commands in.
- */
-void taskSerialInfoCMD(void * pvParameters) {
-  esp_task_wdt_add(nullptr);
-  while (global_task_sync==false) {vTaskDelay(1);}
-  while (1) {
-    esp_task_wdt_reset();
-    // ------------------------------------------------
-    // Note that stat is ran in main loop, not here.
-    // ------------------------------------------------
-    CmdProcess();
-    outputSentences();
-    // ------------------------------------------------
-    // Delay next iteration of task.
-    // ------------------------------------------------
-    if (TICK_DELAY_TASK_SERIAL_INFOCMD==false)
-      {vTaskDelay(DELAY_TASK_SERIAL_INFOCMD / portTICK_PERIOD_MS);}
-    else {vTaskDelay(DELAY_TASK_SERIAL_INFOCMD);}
-  }
-}
 
 /**
  * @brief Setup
@@ -478,10 +139,8 @@ void setup() {
   pinMode(ADMPLEX_0_S2, OUTPUT); 
   pinMode(ADMPLEX_0_S3, OUTPUT); 
   pinMode(ADMPLEX_0_SIG, INPUT); 
-
   analogReadResolution(16);
   analogSetAttenuation(ADC_11db);   // 0–3.3 V range
-
   digitalWrite(ADMPLEX_0_S0, LOW);
   digitalWrite(ADMPLEX_0_S1, LOW);
   digitalWrite(ADMPLEX_0_S2, LOW);
@@ -497,7 +156,6 @@ void setup() {
   Serial.println();
   Serial.println("[SERIAL] (Commands and general output)");
   Serial.println("[SERIAL] Baud rate: 921600");
-
   // --------------------------------------------------------------
   // System Information.
   // --------------------------------------------------------------
@@ -551,12 +209,10 @@ void setup() {
   if (matrixData.load_matrix_on_startup) {
     sdmmcFlagData.load_mapping=true; sdcardFlagHandler();
     sdmmcFlagData.load_matrix=true; sdcardFlagHandler();}
-
   // --------------------------------------------------------------
   // Initialize I2C.
   // --------------------------------------------------------------
   Serial.println("[IIC] starting IIC as master");
-
   initInputPortController();
   initOutputPortController();
   // Wire.setClock(1000000);
@@ -565,12 +221,6 @@ void setup() {
   // Wire.setClock(200000);
   // Wire.setClock(100000L);
   writeOutputPortControllerM0();
-
-  // --------------------------------------------------------------
-  // Analog/Digital Multiplexers(s).
-  // --------------------------------------------------------------
-  // Serial.println("[AD] setting analog/digital multiplexer channel: 0");
-  // setMultiplexChannel_AD(0, 0);
   // --------------------------------------------------------------
   // Initialize I2C Multiplexer(s).
   // --------------------------------------------------------------
@@ -607,142 +257,20 @@ void setup() {
   Serial.println("[SERIAL2] (hardware serial remap: Rx=33 Tx=32)");
 	Serial.println("[SERIAL2] initializing Gyro0");
   initWT901();
-
   delay(1000);
   // --------------------------------------------------------------
-  // xTask Storage.
+  // Create Tasks.
   // --------------------------------------------------------------
-  DELAY_TASK_STORAGE=500;       // delay time/ticks
-  TICK_DELAY_TASK_STORAGE=false; // false for millisecond delay
-  xTaskCreatePinnedToCore(
-    taskStorage,   /* Function to implement the task */
-    "TaskStorage", /* Name of the task */
-    4096,          /* Stack size in words */
-    NULL,          /* Task input parameter */
-    2,             /* Priority of the task */
-    &TaskStorage,  /* Task handle. */
-    0);            /* Core where the task should run */
-    delay(50);     /* delay between task creation */
-  vTaskSuspend(TaskStorage);
-  // --------------------------------------------------------------
-  // xTask GPS.
-  // --------------------------------------------------------------
-  DELAY_TASK_GPS=1;         // delay time/ticks
-  TICK_DELAY_TASK_GPS=true; // false for millisecond delay
-  xTaskCreatePinnedToCore(
-    taskGPS,   /* Function to implement the task */
-    "TaskGPS", /* Name of the task */
-    4096,      /* Stack size in words */
-    NULL,      /* Task input parameter */
-    3,         /* Priority of the task */
-    &TaskGPS,  /* Task handle. */
-    0);        /* Core where the task should run */
-    delay(50); /* delay between task creation */
-  // vTaskSuspend(TaskGPS);
-  // --------------------------------------------------------------
-  // xTask Serial Information Command.
-  // --------------------------------------------------------------
-  DELAY_TASK_SERIAL_INFOCMD=1;         // delay time/ticks
-  TICK_DELAY_TASK_SERIAL_INFOCMD=true; // false for millisecond delay
-  xTaskCreatePinnedToCore(
-    taskSerialInfoCMD,   /* Function to implement the task */
-    "TaskSerialInfoCMD", /* Name of the task */
-    16384,                /* Stack size in words */
-    NULL,                /* Task input parameter */
-    3,                   /* Priority of the task */
-    &TaskSerialInfoCMD,  /* Task handle. */
-    0);                  /* Core where the task should run */
-    delay(50);           /* delay between task creation */
-  // vTaskSuspend(TaskSerialInfoCMD);
-  // --------------------------------------------------------------
-  // xTask Multiplexers.
-  // --------------------------------------------------------------
-  DELAY_TASK_MULTIPLEXERS=1;          // delay time/ticks
-  TICK_DELAY_TASK_MULTIPLEXERS=true; // false for millisecond delay
-  xTaskCreatePinnedToCore(
-    taskMultiplexers,   /* Function to implement the task */
-    "TaskMultiplexers", /* Name of the task */
-    4096,               /* Stack size in words */
-    NULL,               /* Task input parameter */
-    4,                  /* Priority of the task */
-    &TaskMultiplexers,  /* Task handle. */
-    1);                 /* Core where the task should run */
-    delay(50);          /* delay between task creation */
-  vTaskSuspend(TaskMultiplexers);
-  // --------------------------------------------------------------
-  // xTask Gyro.
-  // --------------------------------------------------------------
-  DELAY_TASK_GYRO0=1;         // delay time/ticks
-  TICK_DELAY_TASK_GYRO0=true; // false for millisecond delay
-  xTaskCreatePinnedToCore(
-    taskGyro,   /* Function to implement the task */
-    "TaskGyro", /* Name of the task */
-    4096,       /* Stack size in words */
-    NULL,       /* Task input parameter */
-    3,          /* Priority of the task */
-    &TaskGyro,  /* Task handle. */
-    0);         /* Core where the task should run */
-    delay(50);  /* delay between task creation */
-  vTaskSuspend(TaskGyro);
-  // --------------------------------------------------------------
-  // xTask Universe.
-  // --------------------------------------------------------------
-  myAstroBegin(); // call helper library begin function
-  DELAY_TASK_UNIVERSE=1000;       // delay time/ticks
-  TICK_DELAY_TASK_UNIVERSE=false; // false for millisecond delay
-  xTaskCreatePinnedToCore(
-    taskUniverse,   /* Function to implement the task */
-    "TaskUniverse", /* Name of the task */
-    16384,          /* Stack size in words */
-    NULL,           /* Task input parameter */
-    1,              /* Priority of the task */
-    &TaskUniverse,  /* Task handle. */
-    0);             /* Core where the task should run */
-    delay(50);      /* delay between task creation */
-  vTaskSuspend(TaskUniverse);
-  // --------------------------------------------------------------
-  // xTask TaskSwitches.
-  // --------------------------------------------------------------
-  DELAY_TASK_SWITCHES=1;         // delay time/ticks
-  TICK_DELAY_TASK_SWITCHES=true; // false for millisecond delay
-  xTaskCreatePinnedToCore(
-    taskSwitches,   /* Function to implement the task */
-    "TaskSwitches", /* Name of the task */
-    4096,           /* Stack size in words */
-    NULL,           /* Task input parameter */
-    4,              /* Priority of the task */
-    &TaskSwitches,  /* Task handle. */
-    0);             /* Core where the task should run */
-  delay(50);        /* delay between task creation */
-  vTaskSuspend(TaskSwitches);
-
-  // --------------------------------------------------------------
-  // xTask TaskSwitches.
-  // --------------------------------------------------------------
-  DELAY_TASK_PORTCONTROLLER_INPUT=1;         // delay time/ticks
-  TICK_DELAY_TASK_PORTCONTROLLER_INPUT=true; // false for millisecond delay
-  xTaskCreatePinnedToCore(
-    taskPortControllerInput,   /* Function to implement the task */
-    "TaskPortControllerInput", /* Name of the task */
-    4096,           /* Stack size in words */
-    NULL,           /* Task input parameter */
-    4,              /* Priority of the task */
-    &TaskPortControllerInput,  /* Task handle. */
-    0);             /* Core where the task should run */
-  delay(50);        /* delay between task creation */
-  vTaskSuspend(TaskPortControllerInput);
-
-  // --------------------------------------------------------------
-  // Wait for sync function to complete.
-  // --------------------------------------------------------------
+  createTaskSerialInfoCMD();
+  createTaskStorage();
+  createTaskMultiplexers();
+  createTaskPortControllerInput();
+  createTaskGyro();
+  createTaskGPS();
+  myAstroBegin();
+  createTaskUniverse();
+  createTaskSwitches();
   syncTasks();
-  // vTaskResume(TaskSerialInfoCMD);
-  vTaskResume(TaskStorage);
-  vTaskResume(TaskMultiplexers);
-  vTaskResume(TaskGyro);
-  vTaskResume(TaskUniverse);
-  vTaskResume(TaskSwitches);
-  vTaskResume(TaskPortControllerInput);
 }
 
 /**
