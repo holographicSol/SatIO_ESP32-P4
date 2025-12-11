@@ -8,14 +8,119 @@
 extern "C" {
 #endif
 
-#define MAX_MATRIX_OUTPUT_MODES 2
-// ----------------------------------------------------------------------------------------
-// Globals.
-// ----------------------------------------------------------------------------------------
+
+#include <stdint.h>
+#include <stdbool.h>
+
 #define EARTH_MEAN_RADIUS 6371000.0 // Mean Earth radius (meters)
+
+// ----------------------------------------------------------------------------------------
+// Power & POWER_CONFIG_ULTIMATE_PERFORMANCE.
+// ----------------------------------------------------------------------------------------
+/*
+    Tasks using TICK_DELAY_xxx false will use millisecond timing. 
+    Tasks DELAY_TASK_xxx can be milliseconds or ticks according to TICK_DELAY_xxx.
+*/
+// ----------------------------------------------------------------------------------------
+// ----------------------------------------------------------------------------------------
+// Power & POWER_CONFIG_ULTIMATE_PERFORMANCE – mutable at runtime, no multiple-definition errors
+// ----------------------------------------------------------------------------------------
+
+#define POWER_CONFIG_1_SECOND_DELAY_TASK_SYSTEM_TIMING               1
+#define POWER_CONFIG_1_SECOND_TICK_DELAY_TASK_SYSTEM_TIMING          false
+
+#define POWER_CONFIG_1_SECOND_DELAY_TASK_SERIAL_INFOCMD              1
+#define POWER_CONFIG_1_SECOND_TICK_DELAY_TASK_SERIAL_INFOCMD         true
+
+#define POWER_CONFIG_1_SECOND_DELAY_TASK_MULTIPLEXERS                1000
+#define POWER_CONFIG_1_SECOND_TICK_DELAY_TASK_MULTIPLEXERS           false
+
+#define POWER_CONFIG_1_SECOND_DELAY_TASK_GYRO                        1000
+#define POWER_CONFIG_1_SECOND_TICK_DELAY_TASK_GYRO                   false
+
+#define POWER_CONFIG_1_SECOND_DELAY_TASK_UNIVERSE                    1000
+#define POWER_CONFIG_1_SECOND_TICK_DELAY_TASK_UNIVERSE               false
+
+#define POWER_CONFIG_1_SECOND_DELAY_TASK_GPS                         1000
+#define POWER_CONFIG_1_SECOND_TICK_DELAY_TASK_GPS                    false
+
+#define POWER_CONFIG_1_SECOND_DELAY_TASK_SWITCHES                    1000
+#define POWER_CONFIG_1_SECOND_TICK_DELAY_TASK_SWITCHES               false
+
+#define POWER_CONFIG_1_SECOND_DELAY_TASK_PORTCONTROLLER_INPUT        1000
+#define POWER_CONFIG_1_SECOND_TICK_DELAY_TASK_PORTCONTROLLER_INPUT   false
+
+#define POWER_CONFIG_1_SECOND_DELAY_TASK_STORAGE                     500
+#define POWER_CONFIG_1_SECOND_TICK_DELAY_TASK_STORAGE                false
+
+
+#define POWER_CONFIG_ULTIMATE_PERFORMANCE_DELAY_TASK_SYSTEM_TIMING               1
+#define POWER_CONFIG_ULTIMATE_PERFORMANCE_TICK_DELAY_TASK_SYSTEM_TIMING          false
+
+#define POWER_CONFIG_ULTIMATE_PERFORMANCE_DELAY_TASK_SERIAL_INFOCMD              1
+#define POWER_CONFIG_ULTIMATE_PERFORMANCE_TICK_DELAY_TASK_SERIAL_INFOCMD         true
+
+#define POWER_CONFIG_ULTIMATE_PERFORMANCE_DELAY_TASK_MULTIPLEXERS                1
+#define POWER_CONFIG_ULTIMATE_PERFORMANCE_TICK_DELAY_TASK_MULTIPLEXERS           true
+
+#define POWER_CONFIG_ULTIMATE_PERFORMANCE_DELAY_TASK_GYRO                        1
+#define POWER_CONFIG_ULTIMATE_PERFORMANCE_TICK_DELAY_TASK_GYRO                   true
+
+#define POWER_CONFIG_ULTIMATE_PERFORMANCE_DELAY_TASK_UNIVERSE                    1000
+#define POWER_CONFIG_ULTIMATE_PERFORMANCE_TICK_DELAY_TASK_UNIVERSE               false
+
+#define POWER_CONFIG_ULTIMATE_PERFORMANCE_DELAY_TASK_GPS                         1
+#define POWER_CONFIG_ULTIMATE_PERFORMANCE_TICK_DELAY_TASK_GPS                    true
+
+#define POWER_CONFIG_ULTIMATE_PERFORMANCE_DELAY_TASK_SWITCHES                    1
+#define POWER_CONFIG_ULTIMATE_PERFORMANCE_TICK_DELAY_TASK_SWITCHES               true
+
+#define POWER_CONFIG_ULTIMATE_PERFORMANCE_DELAY_TASK_PORTCONTROLLER_INPUT        1
+#define POWER_CONFIG_ULTIMATE_PERFORMANCE_TICK_DELAY_TASK_PORTCONTROLLER_INPUT   false
+
+#define POWER_CONFIG_ULTIMATE_PERFORMANCE_DELAY_TASK_STORAGE                     500
+#define POWER_CONFIG_ULTIMATE_PERFORMANCE_TICK_DELAY_TASK_STORAGE                false
+
+
+extern long  DELAY_TASK_SYSTEM_TIMING;
+extern bool  TICK_DELAY_TASK_SYSTEM_TIMING;
+
+extern long  DELAY_TASK_SERIAL_INFOCMD;
+extern bool  TICK_DELAY_TASK_SERIAL_INFOCMD;
+
+extern long  DELAY_TASK_MULTIPLEXERS;
+extern bool  TICK_DELAY_TASK_MULTIPLEXERS;
+
+extern long  DELAY_TASK_GYRO0;
+extern bool  TICK_DELAY_TASK_GYRO0;
+
+extern long  DELAY_TASK_UNIVERSE;
+extern bool  TICK_DELAY_TASK_UNIVERSE;
+
+extern long  DELAY_TASK_GPS;
+extern bool  TICK_DELAY_TASK_GPS;
+
+extern long  DELAY_TASK_SWITCHES;
+extern bool  TICK_DELAY_TASK_SWITCHES;
+
+extern long  DELAY_TASK_PORTCONTROLLER_INPUT;
+extern bool  TICK_DELAY_TASK_PORTCONTROLLER_INPUT;
+
+extern long  DELAY_TASK_STORAGE;
+extern bool  TICK_DELAY_TASK_STORAGE;
+
+extern bool global_task_sync;
+extern long system_sync_retry_max;
+
+// ----------------------------------------------------------------------------------------
+// Buffers.
+// ----------------------------------------------------------------------------------------
 #define MAX_GLOBAL_SERIAL_BUFFER_SIZE 512
 #define MAX_GLOBAL_ELEMENT_SIZE 56
 #define MAX_INPUT_PORTCONTROLLER_RESPONSE_BYTES 32
+// ----------------------------------------------------------------------------------------
+// FS.
+// ----------------------------------------------------------------------------------------
 #define FORMAT_SPIFFS_IF_FAILED false
 // ----------------------------------------------------------------------------------------
 // IIC.
@@ -117,6 +222,7 @@ extern "C" {
 // ----------------------------------------------------------------------------------------
 // Matrix.
 // ----------------------------------------------------------------------------------------
+#define MAX_MATRIX_OUTPUT_MODES 2
 #define MAX_MATRIX_OVERRIDE_TIME 1000000
 #define MAX_MATRIX_SWITCHES 70         // logical max is current subjective max<=sytem memory capacity (actual max is subjective max<=sytem memory capacity and or limited by portcontroller max I/O range if using port controller for output)
 #define MAX_MATRIX_SWITCH_FUNCTIONS 10 // logical max is current subjective max<=sytem memory capacity (actual max is subjective max<=sytem memory capacity and or limited by portcontroller max I/O range if using port controller for output)
@@ -348,4 +454,4 @@ extern "C" {
 }
 #endif
 
-#endif
+#endif // CONFIG_H

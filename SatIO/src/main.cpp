@@ -123,27 +123,6 @@ TaskHandle_t TaskSerialInfoCMD;
 TaskHandle_t TasKSystemTiming;
 TaskHandle_t TaskStorage;
 
-int DELAY_TASK_SYSTEM_TIMING=1;
-int DELAY_TASK_SERIAL_INFOCMD=1;
-int DELAY_TASK_MULTIPLEXERS=1;
-int DELAY_TASK_GYRO0=1;
-int DELAY_TASK_UNIVERSE=500;
-int DELAY_TASK_GPS=1;
-int DELAY_TASK_SWITCHES=1;
-int DELAY_TASK_PORTCONTROLLER_INPUT=false;
-int DELAY_TASK_STORAGE=1000;
-bool TICK_DELAY_TASK_SYSTEM_TIMING=false;
-bool TICK_DELAY_TASK_SERIAL_INFOCMD=false;
-bool TICK_DELAY_TASK_MULTIPLEXERS=false;
-bool TICK_DELAY_TASK_GYRO0=false;
-bool TICK_DELAY_TASK_UNIVERSE=false;
-bool TICK_DELAY_TASK_GPS=false;
-bool TICK_DELAY_TASK_SWITCHES=false;
-bool TICK_DELAY_TASK_PORTCONTROLLER_INPUT=false;
-bool TICK_DELAY_TASK_STORAGE=false;
-bool global_task_sync=false;
-long system_sync_retry_max=2000;
-
 /**
  * Syncronize Taks.
  * 

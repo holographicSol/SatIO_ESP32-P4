@@ -1761,15 +1761,16 @@ void writeOutputPortControllerM1(void) {
     // Optional live debug (uncomment when tuning)
     // Serial.printf("[M1] idx:%02d pin:%3d val:%6ld off:%6lu on:%5u\n",
     //               Mi, matrixData.matrix_port_map[0][Mi], value_to_send, off_time, on_time);
-
+    // ------------------------------------------------------------
     // Clear flag after successful send (or retry logic if needed)
+    // ------------------------------------------------------------
     matrixData.matrix_switch_write_required[0][Mi] = false;
   }
   systemData.i_count_port_controller++;
 }
 
 // ------------------------------------------------------------
-// readInputPortControllerM1: binary for double value
+// readInputPortControllerM1: binary
 // ------------------------------------------------------------
 bool readInputPortControllerM1(void) {
   const uint8_t TOTAL_PINS = 70;
