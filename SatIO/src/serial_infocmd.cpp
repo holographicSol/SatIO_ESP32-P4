@@ -1238,6 +1238,7 @@ void CmdProcess(void) {
       }
 
       else if (strcmp(pos[0], "powercfg")==0) {
+        // The intention is to further develop powercfg.
         // powercfg --ultimate-performance
         if (argparser_has_flag(&parser, "ultimate-performance")) {
           DELAY_TASK_SYSTEM_TIMING=POWER_CONFIG_ULTIMATE_PERFORMANCE_DELAY_TASK_SYSTEM_TIMING;
@@ -1310,14 +1311,14 @@ void CmdProcess(void) {
 
       }
       else if (strcmp(pos[0], "setdelay")==0) {
-        // if (argparser_has_flag(&parser, "infocmd")) {DELAY_TASK_SERIAL_INFOCMD=argparser_get_int64(&parser, "infocmd", DELAY_TASK_SERIAL_INFOCMD);}
-        if (argparser_has_flag(&parser, "admplex0")) {DELAY_TASK_MULTIPLEXERS=argparser_get_int64(&parser, "admplex0", DELAY_TASK_MULTIPLEXERS);}
-        if (argparser_has_flag(&parser, "gyro0")) {DELAY_TASK_GYRO0=argparser_get_int64(&parser, "gyro0", DELAY_TASK_GYRO0);}
-        if (argparser_has_flag(&parser, "universe")) {DELAY_TASK_UNIVERSE=argparser_get_int64(&parser, "universe", DELAY_TASK_UNIVERSE);}
-        if (argparser_has_flag(&parser, "gps")) {DELAY_TASK_GPS=argparser_get_int64(&parser, "gps", DELAY_TASK_GPS);}
-        if (argparser_has_flag(&parser, "matrix")) {DELAY_TASK_SWITCHES=argparser_get_int64(&parser, "matrix", DELAY_TASK_SWITCHES);}
-        if (argparser_has_flag(&parser, "pcinput")) {DELAY_TASK_PORTCONTROLLER_INPUT=argparser_get_int64(&parser, "pcinput", DELAY_TASK_PORTCONTROLLER_INPUT);}
-        // if (argparser_has_flag(&parser, "storage")) {DELAY_TASK_STORAGE=argparser_get_int64(&parser, "storage", DELAY_TASK_STORAGE);}
+        // if (argparser_has_flag(&parser, "infocmd")) {DELAY_TASK_SERIAL_INFOCMD=argparser_get_int32(&parser, "infocmd", DELAY_TASK_SERIAL_INFOCMD);}
+        if (argparser_has_flag(&parser, "admplex0")) {DELAY_TASK_MULTIPLEXERS=argparser_get_int32(&parser, "admplex0", DELAY_TASK_MULTIPLEXERS);}
+        if (argparser_has_flag(&parser, "gyro0")) {DELAY_TASK_GYRO0=argparser_get_int32(&parser, "gyro0", DELAY_TASK_GYRO0);}
+        if (argparser_has_flag(&parser, "universe")) {DELAY_TASK_UNIVERSE=argparser_get_int32(&parser, "universe", DELAY_TASK_UNIVERSE);}
+        if (argparser_has_flag(&parser, "gps")) {DELAY_TASK_GPS=argparser_get_int32(&parser, "gps", DELAY_TASK_GPS);}
+        if (argparser_has_flag(&parser, "matrix")) {DELAY_TASK_SWITCHES=argparser_get_int32(&parser, "matrix", DELAY_TASK_SWITCHES);}
+        if (argparser_has_flag(&parser, "pcinput")) {DELAY_TASK_PORTCONTROLLER_INPUT=argparser_get_int32(&parser, "pcinput", DELAY_TASK_PORTCONTROLLER_INPUT);}
+        // if (argparser_has_flag(&parser, "storage")) {DELAY_TASK_STORAGE=argparser_get_int32(&parser, "storage", DELAY_TASK_STORAGE);}
       }
     }
   }
