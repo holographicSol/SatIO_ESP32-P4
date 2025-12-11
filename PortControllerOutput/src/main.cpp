@@ -202,7 +202,7 @@ void requestEvent() {
 void receiveEvent(int howMany) {
   if (howMany < 1) return;
   uint8_t cmd = Wire.read();
-  Serial.println("cmd " + String(cmd) + " (" + String(howMany) + " bytes)");
+  // Serial.println("cmd " + String(cmd) + " (" + String(howMany) + " bytes)");
   switch (cmd) {
     // ------------------------------------------------------------
     // Instruction: M0
@@ -257,10 +257,10 @@ void receiveEvent(int howMany) {
       // ------------------------------------------------------------
       // Debug: I2C timeouts may occur if blocking with serial prints 
       // ------------------------------------------------------------
-      Serial.println("pin  " + String(matrix_port_map[idx]));
-      Serial.println("outv " + String(output_value[idx]));
-      Serial.println("pwm0 " + String(matrix_modulation_time[idx][0]));
-      Serial.println("pwm1 " + String(matrix_modulation_time[idx][1]));
+      // Serial.println("pin  " + String(matrix_port_map[idx]));
+      // Serial.println("outv " + String(output_value[idx]));
+      // Serial.println("pwm0 " + String(matrix_modulation_time[idx][0]));
+      // Serial.println("pwm1 " + String(matrix_modulation_time[idx][1]));
       // Serial.println("pwm2 " + String(matrix_modulation_time[idx][2]));
       // Serial.println("pwm3 " + String(matrix_modulation_switch_state[idx] ? "true" : "false"));
       // ------------------------------------------------------------

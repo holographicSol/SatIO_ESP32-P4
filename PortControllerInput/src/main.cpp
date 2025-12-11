@@ -288,6 +288,7 @@ void receiveEvent(int howMany) {
       else if (isAnalogPin(matrix_port_map[port_index])) {
         pinMode(matrix_port_map[port_index], OUTPUT); // new
         analogWrite(matrix_port_map[port_index], output_value[port_index]);
+        // matrix_modulation_time[port_index][2]=0;
       }
       break;
     }
