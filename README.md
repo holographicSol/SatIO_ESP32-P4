@@ -26,93 +26,93 @@ Logic may require or not require values X,Y,Z.
 
 All of the following values can be used in the matrix:
 
-    [0] NONE
-    [1] ON
-    [2] SWITCHLINK
-    [3] LOCALTIME
-    [4] WEEKDAY
-    [5] DATEDAYX
-    [6] DATEMONTHX
-    [7] DATEYEARX
-    [8] DEGLAT
-    [9] DEGLON
-    [10] INSLAT
-    [11] INSLON
-    [12] INSHEADING
-    [13] INSALTITUDE
-    [14] POSSTATUSGNGGA
-    [15] SATCOUNT
-    [16] GPSPRECISION
-    [17] ALTGNGGA
-    [18] GSPEEDGNRMC
-    [19] HEADINGGNRMC
-    [20] LFLAGGPATT
-    [21] SFLAGGPATT
-    [22] RSFLAGGPATT
-    [23] INSGPATT
-    [24] SPEEDNUMGPATT
-    [25] MILEAGEGPATT
-    [26] GSTDATAGPATT
-    [27] YAWGPATT
-    [28] ROLLGPATT
-    [29] PITCHGPATT
-    [30] GNGGAVALIDCS
-    [31] GNRMCVALIDCS
-    [32] GPATTVALIDCS
-    [33] GNGGAVALIDCD
-    [34] GNRMCVALIDCD
-    [35] GPATTVALIDCD
-    [36] GYRO0ACCX
-    [37] GYRO0ACCY
-    [38] GYRO0ACCZ
-    [39] GYRO0ANGX
-    [40] GYRO0ANGY
-    [41] GYRO0ANGZ
-    [42] GYRO0MAGX
-    [43] GYRO0MAGY
-    [44] GYRO0MAGZ
-    [45] GYRO0GYROX
-    [46] GYRO0GYROY
-    [47] GYRO0GYROZ
-    [48] METEORS
-    [49] SUNAZ
-    [50] SUNALT
-    [51] MOONAZ
-    [52] MOONALT
-    [53] MOONPHASE
-    [54] MERCURYAZ
-    [55] MERCURYALT
-    [56] VENUSAZ
-    [57] VENUSALT
-    [58] MARSAZ
-    [59] MARSALT
-    [60] JUPITERAZ
-    [61] JUPITERALT
-    [62] SATURNAZ
-    [63] SATURNALT
-    [64] URANUSAZ
-    [65] URANUSALT
-    [66] NEPTUNEAZ
-    [67] NEPTUNEALT
-    [68] HEMIGNGGANORTH
-    [69] HEMIGNGGASOUTH
-    [70] HEMIGNGGAEAST
-    [71] HEMIGNGGAWEST
-    [72] POSSTATUSGNRMCA
-    [73] POSSTATUSGNRMCV
-    [74] MODEGNRMCA
-    [75] MODEGNRMCD
-    [76] MODEGNRMCE
-    [77] MODEGNRMCN
-    [78] HEMIGNRMCNORTH
-    [79] HEMIGNRMCSOUTH
-    [80] HEMIGNRMCEAST
-    [81] HEMIGNRMCWEST
-    [82] ADMPLEX0
-    [83] MAPPEDVALUE
-    [84] SDCARDINSERTED
-    [85] SDCARDMOUNTED
-    [86] PCINPUTVALUE
+        [0] NONE
+        [1] ON
+        [2] SWITCHLINK
+        [3] LOCALTIME
+        [4] WEEKDAY
+        [5] DATEDAYX
+        [6] DATEMONTHX
+        [7] DATEYEARX
+        [8] DEGLAT
+        [9] DEGLON
+        [10] INSLAT
+        [11] INSLON
+        [12] INSHEADING
+        [13] INSALTITUDE
+        [14] POSSTATUSGNGGA
+        [15] SATCOUNT
+        [16] GPSPRECISION
+        [17] ALTGNGGA
+        [18] GSPEEDGNRMC
+        [19] HEADINGGNRMC
+        [20] LFLAGGPATT
+        [21] SFLAGGPATT
+        [22] RSFLAGGPATT
+        [23] INSGPATT
+        [24] SPEEDNUMGPATT
+        [25] MILEAGEGPATT
+        [26] GSTDATAGPATT
+        [27] YAWGPATT
+        [28] ROLLGPATT
+        [29] PITCHGPATT
+        [30] GNGGAVALIDCS
+        [31] GNRMCVALIDCS
+        [32] GPATTVALIDCS
+        [33] GNGGAVALIDCD
+        [34] GNRMCVALIDCD
+        [35] GPATTVALIDCD
+        [36] GYRO0ACCX
+        [37] GYRO0ACCY
+        [38] GYRO0ACCZ
+        [39] GYRO0ANGX
+        [40] GYRO0ANGY
+        [41] GYRO0ANGZ
+        [42] GYRO0MAGX
+        [43] GYRO0MAGY
+        [44] GYRO0MAGZ
+        [45] GYRO0GYROX
+        [46] GYRO0GYROY
+        [47] GYRO0GYROZ
+        [48] METEORS
+        [49] SUNAZ
+        [50] SUNALT
+        [51] MOONAZ
+        [52] MOONALT
+        [53] MOONPHASE
+        [54] MERCURYAZ
+        [55] MERCURYALT
+        [56] VENUSAZ
+        [57] VENUSALT
+        [58] MARSAZ
+        [59] MARSALT
+        [60] JUPITERAZ
+        [61] JUPITERALT
+        [62] SATURNAZ
+        [63] SATURNALT
+        [64] URANUSAZ
+        [65] URANUSALT
+        [66] NEPTUNEAZ
+        [67] NEPTUNEALT
+        [68] HEMIGNGGANORTH
+        [69] HEMIGNGGASOUTH
+        [70] HEMIGNGGAEAST
+        [71] HEMIGNGGAWEST
+        [72] POSSTATUSGNRMCA
+        [73] POSSTATUSGNRMCV
+        [74] MODEGNRMCA
+        [75] MODEGNRMCD
+        [76] MODEGNRMCE
+        [77] MODEGNRMCN
+        [78] HEMIGNRMCNORTH
+        [79] HEMIGNRMCSOUTH
+        [80] HEMIGNRMCEAST
+        [81] HEMIGNRMCWEST
+        [82] ADMPLEX0
+        [83] MAPPEDVALUE
+        [84] SDCARDINSERTED
+        [85] SDCARDMOUNTED
+        [86] PCINPUTVALUE
 
 -----
 
@@ -199,7 +199,7 @@ example stat switch zero:
 
 example set switch zero:
 
-    matrix -s 0 -f 0 -p 33 -fn 91 -fx 1 -fo 1 --pwm0 1000000 --pwm1 15000 --computer-assist 1
+    matrix -s 0 -f 0 -p 33 -fn 85 -fx 1 -fo 1 --pwm0 1000000 --pwm1 15000 --computer-assist 1
 
 example set mapped output mode:
 
@@ -270,6 +270,32 @@ SDCard
 
 -----
 
+Performance
+
+    powercfg --ultimate-performance  Sets power configuration to ultimate performance mode.
+    powercfg --power-saving          Sets power configuration to low power consumption mode.
+    settick -e                       Enable tick delay for specified args.
+    settick -d                       Disable tick delay for specified args (enables millisecond delay).
+    settick --admplex0               Takes arguments -e, -d.
+    settick --gyro0                  Takes arguments -e, -d.
+    settick --universe               Takes arguments -e, -d.
+    settick --gps                    Takes arguments -e, -d.
+    settick --matrix                 Takes arguments -e, -d.
+    settick --pcinput                Takes arguments -e, -d.
+
+    example: settick -e --admplex0 --gyro0 --gps
+
+    setdelay --admplex0               Specify ticks/milliseconds delay.
+    setdelay --gyro0                  Specify ticks/milliseconds delay.
+    setdelay --universe               Specify ticks/milliseconds delay.
+    setdelay --gps                    Specify ticks/milliseconds delay.
+    setdelay --matrix                 Specify ticks/milliseconds delay.
+    setdelay --pcinput                Specify ticks/milliseconds delay.
+
+    example: setdelay --admplex0 1 --gyro0 1 --gps 1
+
+-----
+
 Stat
 
     stat -e     Enable print.
@@ -277,12 +303,12 @@ Stat
     stat -t     Enables/disables serial print stats and counters. Takes arguments -e, -d.
     stat --partition-table      Print partition table.
     stat --memory-ram           Print ram information.
-    stat --sdcard               Print SDCard information.
+    stat --sdcard               Print matrix information.
     stat --system               Print system configuration.
+    stat --matrix               Print matrix configuration.
     stat --matrix n             Print matrix switch n configuration.
     stat --matrix -A            Print configuration of all matrix switches.
-    stat --map n                Print map slot n data.
-    stat --map -A               Print all map slot data.
+    stat --mapping              Print configuration of all mapping slots.
     stat --sentence -A          Print all sentences. Takes arguments -e, -d.
     stat --sentence --satio     Takes arguments -e, -d.
     stat --sentence --ins       Takes arguments -e, -d.
@@ -360,8 +386,6 @@ Other
   https://drive.google.com/drive/folders/13yynSxkKL-zxb7iLSkg0v0VXkSLgmtW-?usp=sharing
 
 -----
-
-
 
 
 
