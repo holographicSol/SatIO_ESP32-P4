@@ -38,8 +38,8 @@ void terminateTask(TaskHandle_t taskHandle, bool safe_abort);
 
 void setTasksDelayUltimatePerformance();
 void setTasksDelayPowerSaving();
-void setTick(long var, bool use_tick, TaskHandle_t task_handle);
-void setDelay(long var, long time_delay, TaskHandle_t task_handle);
+void setTick(TaskHandle_t task_handle, bool *tick_delay, bool use_tick);
+void setDelay(TaskHandle_t task_handle, long *task_delay, long time_delay);
 
 #ifdef __cplusplus
 }

@@ -470,9 +470,15 @@ void createTaskMultiplexers() {
     esp_task_wdt_add(TaskMultiplexers);
 }
 
+/** ----------------------------------------------------------------------------
+ * PowerCfg: Ultimate Performance.
+ * 
+ * @brief Sets all task delay timings to optimum performance.  
+ */
 void setTasksDelayUltimatePerformance() {
     // DELAY_TASK_SERIAL_INFOCMD=POWER_CONFIG_ULTIMATE_PERFORMANCE_DELAY_TASK_SERIAL_INFOCMD;
     // TICK_DELAY_TASK_SERIAL_INFOCMD=POWER_CONFIG_ULTIMATE_PERFORMANCE_TICK_DELAY_TASK_SERIAL_INFOCMD;
+    // xTaskNotifyGive(TaskSerialInfoCMD);
 
     DELAY_TASK_MULTIPLEXERS=POWER_CONFIG_ULTIMATE_PERFORMANCE_DELAY_TASK_MULTIPLEXERS;
     TICK_DELAY_TASK_MULTIPLEXERS=POWER_CONFIG_ULTIMATE_PERFORMANCE_TICK_DELAY_TASK_MULTIPLEXERS;
@@ -500,8 +506,15 @@ void setTasksDelayUltimatePerformance() {
 
     // DELAY_TASK_STORAGE=POWER_CONFIG_ULTIMATE_PERFORMANCE_DELAY_TASK_STORAGE;
     // TICK_DELAY_TASK_STORAGE=POWER_CONFIG_ULTIMATE_PERFORMANCE_TICK_DELAY_TASK_STORAGE;
+    // xTaskNotifyGive(TaskStorage);
+    // xTaskNotifyGive(TaskSerialInfoCMD);
 }
 
+/** ----------------------------------------------------------------------------
+ * PowerCfg: Power Saving.
+ * 
+ * @brief Sets all task delay timings to power saving.  
+ */
 void setTasksDelayPowerSaving() {
     // DELAY_TASK_SERIAL_INFOCMD=POWER_CONFIG_ULTIMATE_PERFORMANCE_DELAY_TASK_SERIAL_INFOCMD;
     // TICK_DELAY_TASK_SERIAL_INFOCMD=POWER_CONFIG_ULTIMATE_PERFORMANCE_TICK_DELAY_TASK_SERIAL_INFOCMD;
@@ -532,4 +545,23 @@ void setTasksDelayPowerSaving() {
 
     // DELAY_TASK_STORAGE=POWER_CONFIG_1_SECOND_DELAY_TASK_STORAGE;
     // TICK_DELAY_TASK_STORAGE=POWER_CONFIG_1_SECOND_TICK_DELAY_TASK_STORAGE;
+    // xTaskNotifyGive(TaskStorage);
+}
+
+/** ----------------------------------------------------------------------------
+ * Set Tick.
+ * 
+ * @brief Manually override use of millisecond or ticks for delays.
+ */
+void setTick(TaskHandle_t task_handle, bool *tick_delay, bool use_tick) {
+  *tick_delay=use_tick; xTaskNotifyGive(task_handle);
+}
+
+/** ----------------------------------------------------------------------------
+ * Set Delay.
+ * 
+ * @brief Manually override delay timing.
+ */
+void setDelay(TaskHandle_t task_handle, long *task_delay, long time_delay) {
+  *task_delay=time_delay; xTaskNotifyGive(task_handle);
 }

@@ -1256,25 +1256,54 @@ void CmdProcess(void) {
       }
 
       else if (strcmp(pos[0], "settick")==0) {
-        // if (argparser_has_flag(&parser, "infocmd")) {TICK_DELAY_TASK_SERIAL_INFOCMD=enable;}
-        if (argparser_has_flag(&parser, "admplex0")) {TICK_DELAY_TASK_MULTIPLEXERS=enable; xTaskNotifyGive(TaskMultiplexers);}
-        if (argparser_has_flag(&parser, "gyro0")) {TICK_DELAY_TASK_GYRO0=enable; xTaskNotifyGive(TaskGyro);}
-        if (argparser_has_flag(&parser, "universe")) {TICK_DELAY_TASK_UNIVERSE=enable; xTaskNotifyGive(TaskUniverse);}
-        if (argparser_has_flag(&parser, "gps")) {TICK_DELAY_TASK_GPS=enable; xTaskNotifyGive(TaskGPS);}
-        if (argparser_has_flag(&parser, "matrix")) {TICK_DELAY_TASK_SWITCHES=enable; xTaskNotifyGive(TaskSwitches);}
-        if (argparser_has_flag(&parser, "pcinput")) {TICK_DELAY_TASK_PORTCONTROLLER_INPUT=enable; xTaskNotifyGive(TaskPortControllerInput);}
-        // if (argparser_has_flag(&parser, "storage")) {TICK_DELAY_TASK_STORAGE=enable;}
+        // if (argparser_has_flag(&parser, "infocmd"))
+        //   {setTick(TaskSerialInfoCMD, &TICK_DELAY_TASK_SERIAL_INFOCMD, enable);}
 
+        if (argparser_has_flag(&parser, "admplex0"))
+          {setTick(TaskMultiplexers, &TICK_DELAY_TASK_MULTIPLEXERS, enable);}
+
+        if (argparser_has_flag(&parser, "gyro0"))
+          {setTick(TaskGyro, &TICK_DELAY_TASK_GYRO0, enable);}
+
+        if (argparser_has_flag(&parser, "universe"))
+          {setTick(TaskUniverse, &TICK_DELAY_TASK_UNIVERSE, enable);}
+
+        if (argparser_has_flag(&parser, "gps"))
+          {setTick(TaskGPS, &TICK_DELAY_TASK_GPS, enable);}
+
+        if (argparser_has_flag(&parser, "matrix"))
+          {setTick(TaskSwitches, &TICK_DELAY_TASK_SWITCHES, enable);}
+
+        if (argparser_has_flag(&parser, "pcinput"))
+          {setTick(TaskPortControllerInput, &TICK_DELAY_TASK_PORTCONTROLLER_INPUT, enable);}
+
+        // if (argparser_has_flag(&parser, "storage"))
+        //   {setTick(TaskStorage, &TICK_DELAY_TASK_STORAGE, enable);}
       }
       else if (strcmp(pos[0], "setdelay")==0) {
-        // if (argparser_has_flag(&parser, "infocmd")) {DELAY_TASK_SERIAL_INFOCMD=argparser_get_int32(&parser, "infocmd", DELAY_TASK_SERIAL_INFOCMD);}
-        if (argparser_has_flag(&parser, "admplex0")) {DELAY_TASK_MULTIPLEXERS=argparser_get_int32(&parser, "admplex0", DELAY_TASK_MULTIPLEXERS); xTaskNotifyGive(TaskMultiplexers);}
-        if (argparser_has_flag(&parser, "gyro0")) {DELAY_TASK_GYRO0=argparser_get_int32(&parser, "gyro0", DELAY_TASK_GYRO0); xTaskNotifyGive(TaskGyro);}
-        if (argparser_has_flag(&parser, "universe")) {DELAY_TASK_UNIVERSE=argparser_get_int32(&parser, "universe", DELAY_TASK_UNIVERSE); xTaskNotifyGive(TaskUniverse);}
-        if (argparser_has_flag(&parser, "gps")) {DELAY_TASK_GPS=argparser_get_int32(&parser, "gps", DELAY_TASK_GPS); xTaskNotifyGive(TaskGPS);}
-        if (argparser_has_flag(&parser, "matrix")) {DELAY_TASK_SWITCHES=argparser_get_int32(&parser, "matrix", DELAY_TASK_SWITCHES); xTaskNotifyGive(TaskSwitches);}
-        if (argparser_has_flag(&parser, "pcinput")) {DELAY_TASK_PORTCONTROLLER_INPUT=argparser_get_int32(&parser, "pcinput", DELAY_TASK_PORTCONTROLLER_INPUT); xTaskNotifyGive(TaskPortControllerInput);}
-        // if (argparser_has_flag(&parser, "storage")) {DELAY_TASK_STORAGE=argparser_get_int32(&parser, "storage", DELAY_TASK_STORAGE);}
+        // if (argparser_has_flag(&parser, "infocmd"))
+        //   setDelay(TaskSerialInfoCMD, &DELAY_TASK_SERIAL_INFOCMD, argparser_get_int32(&parser, "infocmd", DELAY_TASK_SERIAL_INFOCMD));
+
+        if (argparser_has_flag(&parser, "admplex0"))
+          {setDelay(TaskMultiplexers, &DELAY_TASK_MULTIPLEXERS, argparser_get_int32(&parser, "admplex0", DELAY_TASK_MULTIPLEXERS));}
+
+        if (argparser_has_flag(&parser, "gyro0"))
+          {setDelay(TaskGyro, &DELAY_TASK_GYRO0, argparser_get_int32(&parser, "gyro0", DELAY_TASK_GYRO0));}
+
+        if (argparser_has_flag(&parser, "universe"))
+          {setDelay(TaskUniverse, &DELAY_TASK_UNIVERSE, argparser_get_int32(&parser, "universe", DELAY_TASK_UNIVERSE));}
+
+        if (argparser_has_flag(&parser, "gps"))
+          {setDelay(TaskGPS, &DELAY_TASK_GPS, argparser_get_int32(&parser, "gps", DELAY_TASK_GPS));}
+
+        if (argparser_has_flag(&parser, "matrix"))
+          {setDelay(TaskSwitches, &DELAY_TASK_SWITCHES, argparser_get_int32(&parser, "matrix", DELAY_TASK_SWITCHES));}
+
+        if (argparser_has_flag(&parser, "pcinput"))
+          {setDelay(TaskPortControllerInput, &DELAY_TASK_PORTCONTROLLER_INPUT, argparser_get_int32(&parser, "pcinput", DELAY_TASK_PORTCONTROLLER_INPUT));}
+          
+        // if (argparser_has_flag(&parser, "storage"))
+        //   setDelay(TaskStorage, &DELAY_TASK_STORAGE, argparser_get_int32(&parser, "storage", DELAY_TASK_STORAGE));
       }
     }
   }
