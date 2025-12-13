@@ -26,8 +26,6 @@ extern "C" {
 // Power & POWER_CONFIG_ULTIMATE_PERFORMANCE – mutable at runtime, no multiple-definition errors
 // ----------------------------------------------------------------------------------------
 
-#define POWER_CONFIG_1_SECOND_DELAY_TASK_SYSTEM_TIMING               1
-#define POWER_CONFIG_1_SECOND_TICK_DELAY_TASK_SYSTEM_TIMING          false
 
 #define POWER_CONFIG_1_SECOND_DELAY_TASK_SERIAL_INFOCMD              1
 #define POWER_CONFIG_1_SECOND_TICK_DELAY_TASK_SERIAL_INFOCMD         true
@@ -54,9 +52,6 @@ extern "C" {
 #define POWER_CONFIG_1_SECOND_TICK_DELAY_TASK_STORAGE                false
 
 
-#define POWER_CONFIG_ULTIMATE_PERFORMANCE_DELAY_TASK_SYSTEM_TIMING               1
-#define POWER_CONFIG_ULTIMATE_PERFORMANCE_TICK_DELAY_TASK_SYSTEM_TIMING          false
-
 #define POWER_CONFIG_ULTIMATE_PERFORMANCE_DELAY_TASK_SERIAL_INFOCMD              1
 #define POWER_CONFIG_ULTIMATE_PERFORMANCE_TICK_DELAY_TASK_SERIAL_INFOCMD         true
 
@@ -81,9 +76,6 @@ extern "C" {
 #define POWER_CONFIG_ULTIMATE_PERFORMANCE_DELAY_TASK_STORAGE                     500
 #define POWER_CONFIG_ULTIMATE_PERFORMANCE_TICK_DELAY_TASK_STORAGE                false
 
-
-extern long  DELAY_TASK_SYSTEM_TIMING;
-extern bool  TICK_DELAY_TASK_SYSTEM_TIMING;
 
 extern long  DELAY_TASK_SERIAL_INFOCMD;
 extern bool  TICK_DELAY_TASK_SERIAL_INFOCMD;
