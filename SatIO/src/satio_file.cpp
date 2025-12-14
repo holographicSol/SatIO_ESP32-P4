@@ -138,6 +138,10 @@ struct satioFileStruct satioFileData = {
 void printLine(File f, String line) {
     line = line+"\n";
     // Serial.print(line);  // uncomment to debug
+    // calculate line bytes.
+    // calculate remaining disk space.
+    // then write
+    // WARNING! There is currently no disk space check!
     f.print(line);
 }
 
