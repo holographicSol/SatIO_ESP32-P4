@@ -283,6 +283,7 @@ Performance
     settick --gps                    Takes arguments -e, -d.
     settick --matrix                 Takes arguments -e, -d.
     settick --pcinput                Takes arguments -e, -d.
+    settick --log                    Takes arguments -e, -d.
 
     example: settick -e --admplex0 --gyro0 --gps
 
@@ -292,6 +293,7 @@ Performance
     setdelay --gps                    Specify ticks/milliseconds delay.
     setdelay --matrix                 Specify ticks/milliseconds delay.
     setdelay --pcinput                Specify ticks/milliseconds delay.
+    setdelay --log                    Specify ticks/milliseconds delay.
 
     example: setdelay --admplex0 1 --gyro0 1 --gps 1
 
