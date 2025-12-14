@@ -9,7 +9,6 @@
 extern "C" {
 #endif
 
-
 #include <stdint.h>
 #include <stdbool.h>
 #include "freertos/FreeRTOS.h"
@@ -22,6 +21,7 @@ extern TaskHandle_t TaskGyro;
 extern TaskHandle_t TaskGPS;
 extern TaskHandle_t TaskUniverse;
 extern TaskHandle_t TaskSwitches;
+extern TaskHandle_t TaskLogging;
 
 void createTaskSerialInfoCMD();
 void createTaskStorage();
@@ -31,14 +31,48 @@ void createTaskGyro();
 void createTaskGPS();
 void createTaskUniverse();
 void createTaskSwitches();
+void createTaskLogging();
 
+/** ----------------------------------------------------------------------------
+ * Syncronize Tasks.
+ * 
+ * @brief Time syncronize tasks.
+ */
 void syncTasks();
-bool isTaskDelayed(TaskHandle_t taskHandle);
-void terminateTask(TaskHandle_t taskHandle, bool safe_abort);
 
+/** ----------------------------------------------------------------------------
+ * Is Task Delayed.
+ * 
+ * @brief Returns bool for task delayed.
+ */
+bool isTaskDelayed(TaskHandle_t taskHandle);
+
+/** ----------------------------------------------------------------------------
+ * PowerCfg: Ultimate Performance.
+ * 
+ * @brief Sets all task delay timings to optimum performance.  
+ */
 void setTasksDelayUltimatePerformance();
+
+/** ----------------------------------------------------------------------------
+ * PowerCfg: Power Saving.
+ * 
+ * @brief Sets all task delay timings to power saving.  
+ */
 void setTasksDelayPowerSaving();
+
+/** ----------------------------------------------------------------------------
+ * Set Tick.
+ * 
+ * @brief Manually override use of millisecond or ticks for delays.
+ */
 void setTick(TaskHandle_t task_handle, bool *tick_delay, bool use_tick);
+
+/** ----------------------------------------------------------------------------
+ * Set Delay.
+ * 
+ * @brief Manually override delay timing.
+ */
 void setDelay(TaskHandle_t task_handle, long *task_delay, long time_delay);
 
 #ifdef __cplusplus

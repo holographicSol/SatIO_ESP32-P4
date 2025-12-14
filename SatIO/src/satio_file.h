@@ -14,7 +14,7 @@
 #define MAX_MATRIX_TAGS  12
 #define MAX_MATRIX_SLOTS 10
 #define MAX_MAPPING_TAGS 8
-#define MAX_SYSTEM_TAGS  59
+#define MAX_SYSTEM_TAGS  60
 
 struct satioFileStruct {
 
@@ -28,6 +28,8 @@ struct satioFileStruct {
 
     char system_tags[MAX_SYSTEM_TAGS][MAX_GLOBAL_ELEMENT_SIZE];
     char system_filepath[MAX_GLOBAL_ELEMENT_SIZE];
+
+    char log_filepath[MAX_GLOBAL_ELEMENT_SIZE];
 };
 extern struct satioFileStruct satioFileData;
 
@@ -97,5 +99,12 @@ bool loadSystemFile(FS &fs, const char *filepath);
  * @param filepath Specify path to file
  */
 bool deleteSystemFile(FS &fs, const char *filepath);
+
+/**
+ * Write Log.
+ * @param fs Filesystem. Example SD_MMC
+ * @param filepath Specify path to file
+ */
+bool writeLog(FS &fs, const char *filepath);
 
 #endif

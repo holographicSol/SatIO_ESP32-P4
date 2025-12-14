@@ -51,6 +51,9 @@ extern "C" {
 #define POWER_CONFIG_1_SECOND_DELAY_TASK_STORAGE                     500
 #define POWER_CONFIG_1_SECOND_TICK_DELAY_TASK_STORAGE                false
 
+#define POWER_CONFIG_1_SECOND_DELAY_TASK_LOGGING                     1000
+#define POWER_CONFIG_1_SECOND_TICK_DELAY_TASK_LOGGING                false
+
 
 #define POWER_CONFIG_ULTIMATE_PERFORMANCE_DELAY_TASK_SERIAL_INFOCMD              1
 #define POWER_CONFIG_ULTIMATE_PERFORMANCE_TICK_DELAY_TASK_SERIAL_INFOCMD         true
@@ -76,6 +79,9 @@ extern "C" {
 #define POWER_CONFIG_ULTIMATE_PERFORMANCE_DELAY_TASK_STORAGE                     500
 #define POWER_CONFIG_ULTIMATE_PERFORMANCE_TICK_DELAY_TASK_STORAGE                false
 
+#define POWER_CONFIG_ULTIMATE_PERFORMANCE_DELAY_TASK_LOGGING                     1000
+#define POWER_CONFIG_ULTIMATE_PERFORMANCE_TICK_DELAY_TASK_LOGGING                false
+
 
 extern long  DELAY_TASK_SERIAL_INFOCMD;
 extern bool  TICK_DELAY_TASK_SERIAL_INFOCMD;
@@ -100,6 +106,9 @@ extern bool  TICK_DELAY_TASK_PORTCONTROLLER_INPUT;
 
 extern long  DELAY_TASK_STORAGE;
 extern bool  TICK_DELAY_TASK_STORAGE;
+
+extern long  DELAY_TASK_LOGGING;
+extern bool  TICK_DELAY_TASK_LOGGING;
 
 extern bool global_task_sync;
 extern long system_sync_retry_max;

@@ -19,6 +19,7 @@ struct systemStruct systemData = {
   .interval_breach_mplex = false,
   .interval_breach_matrix = false,
   .interval_breach_track_planets = false,
+  .interval_breach_logging = false,
   .interval_breach_1_second = false,
 
   .debug = false,
@@ -26,6 +27,7 @@ struct systemStruct systemData = {
   .output_stat_v = false,
   .output_stat_vv = false,
   .serial_command = 1,
+  .logging_enabled=false,
 
   .output_satio_all = false,
   .output_satio_enabled = false,
@@ -45,7 +47,7 @@ struct systemStruct systemData = {
   .output_venus_enabled = false,
   .output_mars_enabled = false,
   .output_jupiter_enabled = false,
-  .output_saturn_enabled = false, 
+  .output_saturn_enabled = false,
   .output_uranus_enabled = false, 
   .output_neptune_enabled = false,
   .output_meteors_enabled = false,
@@ -82,6 +84,9 @@ struct systemStruct systemData = {
 
   .i_count_read_serial_commands = 0,
   .prev_i_count_read_serial_commands = 0,
+
+  .i_count_logging = 0,
+  .prev_i_count_logging = 0,
 
   .loops_a_second = 0,
   .total_loops_a_second = 0,

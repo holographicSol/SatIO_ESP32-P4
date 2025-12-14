@@ -261,6 +261,7 @@ void setup() {
   // --------------------------------------------------------------
   // Create Tasks.
   // --------------------------------------------------------------
+  createTaskLogging();
   createTaskSerialInfoCMD();
   createTaskStorage();
   createTaskMultiplexers();

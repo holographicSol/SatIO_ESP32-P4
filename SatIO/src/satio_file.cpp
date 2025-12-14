@@ -16,6 +16,9 @@
 #include "custommapping.h"
 #include "ins.h"
 #include "config.h"
+#include "multiplexers.h"
+#include "wtgps300p.h"
+#include "wt901.h"
 
 struct satioFileStruct satioFileData = {
     .matrix_tags=
@@ -122,8 +125,13 @@ struct satioFileStruct satioFileData = {
         "TICK_DELAY_TASK_PORTCONTROLLER_INPUT", // 54
         "DELAY_TASK_STORAGE",               // 55
         "TICK_DELAY_TASK_STORAGE",          // 56
+        "DELAY_TASK_LOGGING",               // 57
+        "TICK_DELAY_TASK_LOGGING",          // 58
+
+        "LOGGING",          // 59
     },
     .system_filepath="/SYSTEM/system_conf.csv",
+    .log_filepath="/LOG/log.csv",
 
 };
 
@@ -142,7 +150,7 @@ bool saveMappingFile(FS &fs, const char *filepath) {
     if (fs.exists(filepath)) {
         for (int i_tag=0; i_tag<MAX_MAPPING_TAGS; i_tag++) {
             String line="";
-            if      (i_tag==0) {for (int i_map=0; i_map<MAX_MAP_SLOTS; i_map++) {line = String(satioFileData.mapping_tags[i_tag]) + String("," + String(i_map) + "," + String(mappingData.map_mode[0][i_map])).c_str(); printLine(f, line);}}
+            if      (i_tag==0) {for (int i_map=0; i_map<MAX_MAP_SLOTS; i_map++){line = String(satioFileData.mapping_tags[i_tag]) + String("," + String(i_map) + "," + String(mappingData.map_mode[0][i_map])).c_str(); printLine(f, line);}}
             else if (i_tag==1) {for (int i_map=0; i_map<MAX_MAP_SLOTS; i_map++) {line = String(satioFileData.mapping_tags[i_tag]) + String("," + String(i_map) + "," + String(mappingData.index_mapped_value[0][i_map])).c_str(); printLine(f, line);}}
             else if (i_tag==2) {for (int i_map=0; i_map<MAX_MAP_SLOTS; i_map++) {line = String(satioFileData.mapping_tags[i_tag]) + String("," + String(i_map) + "," + String(mappingData.mapping_config[0][i_map][0])).c_str(); printLine(f, line);}}
             else if (i_tag==3) {for (int i_map=0; i_map<MAX_MAP_SLOTS; i_map++) {line = String(satioFileData.mapping_tags[i_tag]) + String("," + String(i_map) + "," + String(mappingData.mapping_config[0][i_map][1])).c_str(); printLine(f, line);}}
@@ -213,36 +221,27 @@ bool saveMatrixFile(FS &fs, const char *filepath) {
     if (fs.exists(filepath)) {
         for (int i_tag=0; i_tag<MAX_MATRIX_TAGS; i_tag++) {
             String line="";
-            if  (i_tag==0) {for (int i_switch=0; i_switch<MAX_MATRIX_SWITCHES; i_switch++) {line = String(satioFileData.matrix_tags[i_tag]) + String("," + String(i_switch) + "," + String(matrixData.matrix_port_map[0][i_switch])).c_str();
-                printLine(f, line);}}
+
+            if  (i_tag==0) {for (int i_switch=0; i_switch<MAX_MATRIX_SWITCHES; i_switch++){line = String(satioFileData.matrix_tags[i_tag]) + String("," + String(i_switch) + "," + String(matrixData.matrix_port_map[0][i_switch])).c_str(); printLine(f, line);}}
+
             else if  (i_tag==1) {for (int i_switch=0; i_switch<MAX_MATRIX_SWITCHES; i_switch++) {for (int i_func=0; i_func<MAX_MATRIX_SWITCH_FUNCTIONS; i_func++) {
-                line = String(satioFileData.matrix_tags[i_tag]) + String("," + String(i_switch) + "," + String(i_func) + "," + String(matrixData.matrix_function[0][i_switch][i_func])).c_str();
-                printLine(f, line);}}}
+                line = String(satioFileData.matrix_tags[i_tag]) + String("," + String(i_switch) + "," + String(i_func) + "," + String(matrixData.matrix_function[0][i_switch][i_func])).c_str(); printLine(f, line);}}}
             else if  (i_tag==2) {for (int i_switch=0; i_switch<MAX_MATRIX_SWITCHES; i_switch++) {for (int i_func=0; i_func<MAX_MATRIX_SWITCH_FUNCTIONS; i_func++) {
-                line = String(satioFileData.matrix_tags[i_tag]) + String("," + String(i_switch) + "," + String(i_func) + "," + String(matrixData.matrix_function_xyz[0][i_switch][i_func][INDEX_MATRIX_FUNTION_X], 10)).c_str();
-                printLine(f, line);}}}
+                line = String(satioFileData.matrix_tags[i_tag]) + String("," + String(i_switch) + "," + String(i_func) + "," + String(matrixData.matrix_function_xyz[0][i_switch][i_func][INDEX_MATRIX_FUNTION_X], 10)).c_str(); printLine(f, line);}}}
             else if  (i_tag==3) {for (int i_switch=0; i_switch<MAX_MATRIX_SWITCHES; i_switch++) {for (int i_func=0; i_func<MAX_MATRIX_SWITCH_FUNCTIONS; i_func++) {
-                line = String(satioFileData.matrix_tags[i_tag]) + String("," + String(i_switch) + "," + String(i_func) + "," + String(matrixData.matrix_function_xyz[0][i_switch][i_func][INDEX_MATRIX_FUNTION_Y], 10)).c_str();
-                printLine(f, line);}}}
+                line = String(satioFileData.matrix_tags[i_tag]) + String("," + String(i_switch) + "," + String(i_func) + "," + String(matrixData.matrix_function_xyz[0][i_switch][i_func][INDEX_MATRIX_FUNTION_Y], 10)).c_str(); printLine(f, line);}}}
             else if  (i_tag==4) {for (int i_switch=0; i_switch<MAX_MATRIX_SWITCHES; i_switch++) {for (int i_func=0; i_func<MAX_MATRIX_SWITCH_FUNCTIONS; i_func++) {
-                line = String(satioFileData.matrix_tags[i_tag]) + String("," + String(i_switch) + "," + String(i_func) + "," + String(matrixData.matrix_function_xyz[0][i_switch][i_func][INDEX_MATRIX_FUNTION_Z], 10)).c_str();
-                printLine(f, line);}}}
+                line = String(satioFileData.matrix_tags[i_tag]) + String("," + String(i_switch) + "," + String(i_func) + "," + String(matrixData.matrix_function_xyz[0][i_switch][i_func][INDEX_MATRIX_FUNTION_Z], 10)).c_str(); printLine(f, line);}}}
             else if  (i_tag==5) {for (int i_switch=0; i_switch<MAX_MATRIX_SWITCHES; i_switch++) {for (int i_func=0; i_func<MAX_MATRIX_SWITCH_FUNCTIONS; i_func++) {
-                line = String(satioFileData.matrix_tags[i_tag]) + String("," + String(i_switch) + "," + String(i_func) + "," + String(matrixData.matrix_switch_operator_index[0][i_switch][i_func])).c_str();
-                printLine(f, line);}}}
+                line = String(satioFileData.matrix_tags[i_tag]) + String("," + String(i_switch) + "," + String(i_func) + "," + String(matrixData.matrix_switch_operator_index[0][i_switch][i_func])).c_str(); printLine(f, line);}}}
             else if  (i_tag==6) {for (int i_switch=0; i_switch<MAX_MATRIX_SWITCHES; i_switch++) {for (int i_func=0; i_func<MAX_MATRIX_SWITCH_FUNCTIONS; i_func++) {
-                line = String(satioFileData.matrix_tags[i_tag]) + String("," + String(i_switch) + "," + String(i_func) + "," + String(matrixData.matrix_switch_inverted_logic[0][i_switch][i_func])).c_str();
-                printLine(f, line);}}}
-            else if  (i_tag==7) {for (int i_switch=0; i_switch<MAX_MATRIX_SWITCHES; i_switch++) {line = String(satioFileData.matrix_tags[i_tag]) + String("," + String(i_switch) + "," + String(matrixData.output_mode[0][i_switch])).c_str();
-                printLine(f, line);}}
-            else if  (i_tag==8) {for (int i_switch=0; i_switch<MAX_MATRIX_SWITCHES; i_switch++) {line = String(satioFileData.matrix_tags[i_tag]) + String("," + String(i_switch) + "," + String(matrixData.output_pwm[0][i_switch][0])).c_str();
-                printLine(f, line);}}
-            else if  (i_tag==9) {for (int i_switch=0; i_switch<MAX_MATRIX_SWITCHES; i_switch++) {line = String(satioFileData.matrix_tags[i_tag]) + String("," + String(i_switch) + "," + String(matrixData.output_pwm[0][i_switch][1])).c_str();
-                printLine(f, line);}}
-            else if  (i_tag==10) {for (int i_switch=0; i_switch<MAX_MATRIX_SWITCHES; i_switch++) {line = String(satioFileData.matrix_tags[i_tag]) + String("," + String(i_switch) + "," + String(matrixData.flux_value[0][i_switch])).c_str();
-                printLine(f, line);}}
-            else if  (i_tag==11) {for (int i_switch=0; i_switch<MAX_MATRIX_SWITCHES; i_switch++) {line = String(satioFileData.matrix_tags[i_tag]) + String("," + String(i_switch) + "," + String(matrixData.computer_assist[0][i_switch])).c_str();
-                printLine(f, line);}}
+                line = String(satioFileData.matrix_tags[i_tag]) + String("," + String(i_switch) + "," + String(i_func) + "," + String(matrixData.matrix_switch_inverted_logic[0][i_switch][i_func])).c_str(); printLine(f, line);}}}
+
+            else if  (i_tag==7) {for (int i_switch=0; i_switch<MAX_MATRIX_SWITCHES; i_switch++) {line = String(satioFileData.matrix_tags[i_tag]) + String("," + String(i_switch) + "," + String(matrixData.output_mode[0][i_switch])).c_str(); printLine(f, line);}}
+            else if  (i_tag==8) {for (int i_switch=0; i_switch<MAX_MATRIX_SWITCHES; i_switch++) {line = String(satioFileData.matrix_tags[i_tag]) + String("," + String(i_switch) + "," + String(matrixData.output_pwm[0][i_switch][0])).c_str(); printLine(f, line);}}
+            else if  (i_tag==9) {for (int i_switch=0; i_switch<MAX_MATRIX_SWITCHES; i_switch++) {line = String(satioFileData.matrix_tags[i_tag]) + String("," + String(i_switch) + "," + String(matrixData.output_pwm[0][i_switch][1])).c_str(); printLine(f, line);}}
+            else if  (i_tag==10) {for (int i_switch=0; i_switch<MAX_MATRIX_SWITCHES; i_switch++) {line = String(satioFileData.matrix_tags[i_tag]) + String("," + String(i_switch) + "," + String(matrixData.flux_value[0][i_switch])).c_str(); printLine(f, line);}}
+            else if  (i_tag==11) {for (int i_switch=0; i_switch<MAX_MATRIX_SWITCHES; i_switch++) {line = String(satioFileData.matrix_tags[i_tag]) + String("," + String(i_switch) + "," + String(matrixData.computer_assist[0][i_switch])).c_str(); printLine(f, line);}}
         }
     }
     else {Serial.println("$MATRIXSAVEFAILED"); return false;}
@@ -366,6 +365,9 @@ bool saveSystemFile(FS &fs, const char *filepath) {
             else if  (i_tag==54) {line = String(satioFileData.system_tags[i_tag]) + String("," + String(TICK_DELAY_TASK_PORTCONTROLLER_INPUT)); printLine(f, line);}
             else if  (i_tag==55) {line = String(satioFileData.system_tags[i_tag]) + String("," + String(DELAY_TASK_STORAGE)); printLine(f, line);}
             else if  (i_tag==56) {line = String(satioFileData.system_tags[i_tag]) + String("," + String(TICK_DELAY_TASK_STORAGE)); printLine(f, line);}
+            else if  (i_tag==57) {line = String(satioFileData.system_tags[i_tag]) + String("," + String(DELAY_TASK_LOGGING)); printLine(f, line);}
+            else if  (i_tag==58) {line = String(satioFileData.system_tags[i_tag]) + String("," + String(TICK_DELAY_TASK_LOGGING)); printLine(f, line);}
+            else if  (i_tag==59) {line = String(satioFileData.system_tags[i_tag]) + String("," + String(systemData.logging_enabled)); printLine(f, line);}
         }
     }
     else {Serial.println("$SYSTEMSAVEFAILED"); return false;}
@@ -452,7 +454,9 @@ bool loadSystemFile(FS &fs, const char *filepath) {
             else if (tag_index==54) {if (str_is_bool(data_0.c_str())) {TICK_DELAY_TASK_PORTCONTROLLER_INPUT=atoi(data_0.c_str());}}
             else if (tag_index==55) {if (str_is_long(data_0.c_str())) {DELAY_TASK_STORAGE=strtol(data_0.c_str(), &endptr, 10);}}
             else if (tag_index==56) {if (str_is_bool(data_0.c_str())) {TICK_DELAY_TASK_STORAGE=atoi(data_0.c_str());}}
-
+            else if (tag_index==57) {if (str_is_long(data_0.c_str())) {DELAY_TASK_LOGGING=strtol(data_0.c_str(), &endptr, 10);}}
+            else if (tag_index==58) {if (str_is_bool(data_0.c_str())) {TICK_DELAY_TASK_LOGGING=atoi(data_0.c_str());}}
+            else if (tag_index==59) {if (str_is_bool(data_0.c_str())) {systemData.logging_enabled=atoi(data_0.c_str());}}
             currentTag++;
         }
         f.close();
@@ -467,4 +471,84 @@ bool deleteSystemFile(FS &fs, const char *filepath) {
     if (fs.exists(filepath)) {if (fs.remove(filepath)) {Serial.println("$SYSTEMDELETED"); return true;}}
     Serial.println("$SYSTEMDELETEFAILED");
     return false;
+}
+
+bool writeLog(FS &fs, const char *filepath) {
+    // Serial.println("Writing log...");
+    File f = fs.open(filepath, "a", true);
+    if (!f) return false;
+    if (fs.exists(filepath)) {
+        // --------------------------------
+        // Log Line: Timestamp & Basic Stat
+        // --------------------------------
+        String line="[" + String(satioData.local_unixtime_uS) + "]";
+        printLine(f, line);
+        // --------------------------------
+        // Log Line: Satio
+        // --------------------------------
+        line = "$SATIO,";
+        line=line+ String(satioData.padded_rtc_time_HHMMSS) + ",";
+        line=line+ String(satioData.padded_rtc_date_DDMMYYYY) + ",";
+        line=line+ String(satioData.padded_rtc_sync_time_HHMMSS) + ",";
+        line=line+ String(satioData.padded_rtc_sync_date_DDMMYYYY) + ",";
+        line=line+ String(satioData.padded_local_time_HHMMSS) + ",";
+        line=line+ String(satioData.padded_local_date_DDMMYYYY) + ",";
+        line=line+ String(systemData.uptime_seconds) + ",";
+        line=line+ String(satioData.char_coordinate_conversion_mode[satioData.coordinate_conversion_mode]) + ",";
+        line=line+ String(satioData.degrees_latitude) + ",";
+        line=line+ String(satioData.degrees_longitude) + ",";
+        line=line+ String(satioData.char_altitude_conversion_mode[satioData.altitude_conversion_mode]) + ",";
+        line=line+ String(satioData.altitude_converted) + ",";
+        line=line+ String(satioData.char_altitude_unit_mode[satioData.altitude_unit_mode]) + ",";
+        line=line+ String(satioData.char_speed_conversion_mode[satioData.speed_conversion_mode]) + ",";
+        line=line+ String(satioData.speed_converted, 7) + ",";
+        line=line+ String(satioData.char_speed_unit_mode[satioData.speed_unit_mode]) + ",";
+        line=line+ String(satioData.char_ground_heading_mode[satioData.ground_heading_mode]) + ",";
+        line=line+ String(satioData.ground_heading, 7) + ",";
+        line=line+ String(insData.ins_latitude, 7) + ",";
+        line=line+ String(insData.ins_longitude, 7) + ",";
+        line=line+ String(insData.ins_altitude) + ",";
+        line=line+ String(insData.ins_heading) + ",";
+        line=line+ String(insData.INS_INITIALIZATION_FLAG) + ",";
+        line=line+ String(insData.INS_MODE) + ",";
+        line=line+ String(insData.INS_FORCED_ON_FLAG) + ",";
+        line=line+ String(insData.INS_REQ_GPS_PRECISION) + ",";
+        line=line+ String(insData.INS_REQ_HEADING_RANGE_DIFF) + ",";
+        line=line+ String(insData.INS_REQ_MIN_SPEED) + ",";
+        line=line+ String(insData.INS_USE_GYRO_HEADING) + ",";
+        line=line+ String(insData.INS_ENABLED) + ",";
+        printLine(f, line);
+        // --------------------------------
+        // Log Line: Analog/Digital
+        // --------------------------------
+        line="$MPLEX0,";
+        for (int i=0; i<MAX_AD_MUX_CHANNELS; i++) {line=line+String(multiplexerData.ADMPLEX_0_DATA[i])+",";}
+        printLine(f, line);
+        // --------------------------------
+        // Log Line: Port Controller Input
+        // --------------------------------
+        line="$PCINPT,";
+        for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(matrixData.input_value[0][i])+",";}
+        printLine(f, line);
+        // --------------------------------
+        // Log Line: Gyro0
+        // --------------------------------
+        line="$GYRO0,";
+        line=line+ String(gyroData.gyro_0_acc_x) + ",";
+        line=line+ String(gyroData.gyro_0_acc_y) + ",";
+        line=line+ String(gyroData.gyro_0_acc_z) + ",";
+        line=line+ String(gyroData.gyro_0_ang_x) + ",";
+        line=line+ String(gyroData.gyro_0_ang_y) + ",";
+        line=line+ String(gyroData.gyro_0_ang_z) + ",";
+        line=line+ String(gyroData.gyro_0_gyr_x) + ",";
+        line=line+ String(gyroData.gyro_0_gyr_y) + ",";
+        line=line+ String(gyroData.gyro_0_gyr_z) + ",";
+        line=line+ String(gyroData.gyro_0_mag_x) + ",";
+        line=line+ String(gyroData.gyro_0_mag_y) + ",";
+        line=line+ String(gyroData.gyro_0_mag_z) + ",";
+        printLine(f, line);
+    }
+    else {return false;}
+    f.close();
+    return true;
 }

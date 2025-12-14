@@ -58,6 +58,10 @@ TaskHandle_t TaskSwitches;
 TickType_t   LastWakeTimeTaskSwitches;
 TickType_t   DelayTicksTaskSwitches;
 
+TaskHandle_t TaskLogging;
+TickType_t   LastWakeTimeTaskLogging;
+TickType_t   DelayTicksTaskLogging;
+
 /** ----------------------------------------------------------------------------
  * Syncronize Tasks.
  * 
@@ -470,6 +474,51 @@ void createTaskMultiplexers() {
     esp_task_wdt_add(TaskMultiplexers);
 }
 
+
+/** ----------------------------------------------------------------------------
+ * Logging Task.
+ * 
+ * @brief Writes logs to disk.
+ */
+void taskLogging(void * pvParameters) {
+  for (;;) {
+    esp_task_wdt_reset();
+    // check disk space
+    // delete old logs if required
+    // write new log 
+    // dt,x,y,z
+    if (systemData.logging_enabled) {
+      Serial.println("[log] setting write flag true");
+      sdmmcFlagData.write_log=true;
+    }
+    else {Serial.println("[log] not enabled");}
+    // ------------------------------------------------
+    // Counters
+    // ------------------------------------------------
+    systemData.i_count_logging++;
+    systemData.interval_breach_logging = 1;
+    if (systemData.i_count_logging >= UINT32_MAX - 2)
+    systemData.i_count_logging = 0;
+    // ------------------------------------------------
+    // Delay next iteration of task.
+    // ------------------------------------------------
+    if (TICK_DELAY_TASK_LOGGING==false)
+      {xTaskNotifyWait(0x00, 0x00, NULL, DELAY_TASK_LOGGING / portTICK_PERIOD_MS);}
+    else {xTaskNotifyWait(0x00, 0x00, NULL, DELAY_TASK_LOGGING);}
+  }
+}
+void createTaskLogging() {
+    xTaskCreatePinnedToCore(
+    taskLogging,   /* Function to implement the task */
+    "TaskLogging", /* Name of the task */
+    4096,               /* Stack size in words */
+    NULL,               /* Task input parameter */
+    4,                  /* Priority of the task */
+    &TaskLogging,  /* Task handle. */
+    1);                 /* Core where the task should run */
+    esp_task_wdt_add(TaskLogging);
+}
+
 /** ----------------------------------------------------------------------------
  * PowerCfg: Ultimate Performance.
  * 
@@ -503,6 +552,10 @@ void setTasksDelayUltimatePerformance() {
     DELAY_TASK_PORTCONTROLLER_INPUT=POWER_CONFIG_ULTIMATE_PERFORMANCE_DELAY_TASK_PORTCONTROLLER_INPUT;
     TICK_DELAY_TASK_PORTCONTROLLER_INPUT=POWER_CONFIG_ULTIMATE_PERFORMANCE_TICK_DELAY_TASK_PORTCONTROLLER_INPUT;
     xTaskNotifyGive(TaskPortControllerInput);
+
+    DELAY_TASK_LOGGING=POWER_CONFIG_ULTIMATE_PERFORMANCE_DELAY_TASK_LOGGING;
+    TICK_DELAY_TASK_LOGGING=POWER_CONFIG_ULTIMATE_PERFORMANCE_TICK_DELAY_TASK_LOGGING;
+    xTaskNotifyGive(TaskLogging);
 
     // DELAY_TASK_STORAGE=POWER_CONFIG_ULTIMATE_PERFORMANCE_DELAY_TASK_STORAGE;
     // TICK_DELAY_TASK_STORAGE=POWER_CONFIG_ULTIMATE_PERFORMANCE_TICK_DELAY_TASK_STORAGE;
@@ -542,6 +595,10 @@ void setTasksDelayPowerSaving() {
     DELAY_TASK_PORTCONTROLLER_INPUT=POWER_CONFIG_1_SECOND_DELAY_TASK_PORTCONTROLLER_INPUT;
     TICK_DELAY_TASK_PORTCONTROLLER_INPUT=POWER_CONFIG_1_SECOND_TICK_DELAY_TASK_PORTCONTROLLER_INPUT;
     xTaskNotifyGive(TaskPortControllerInput);
+
+    DELAY_TASK_LOGGING=POWER_CONFIG_1_SECOND_DELAY_TASK_LOGGING;
+    TICK_DELAY_TASK_LOGGING=POWER_CONFIG_1_SECOND_TICK_DELAY_TASK_LOGGING;
+    xTaskNotifyGive(TaskLogging);
 
     // DELAY_TASK_STORAGE=POWER_CONFIG_1_SECOND_DELAY_TASK_STORAGE;
     // TICK_DELAY_TASK_STORAGE=POWER_CONFIG_1_SECOND_TICK_DELAY_TASK_STORAGE;

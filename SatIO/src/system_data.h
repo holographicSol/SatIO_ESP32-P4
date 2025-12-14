@@ -24,6 +24,7 @@ struct systemStruct {
   bool interval_breach_mplex;
   bool interval_breach_matrix;
   bool interval_breach_track_planets;
+  bool interval_breach_logging;
   bool interval_breach_1_second;
 
   bool debug;
@@ -31,6 +32,7 @@ struct systemStruct {
   bool output_stat_v;
   bool output_stat_vv;
   bool serial_command;
+  bool logging_enabled;
 
   bool output_satio_all;
   bool output_satio_enabled;
@@ -88,6 +90,9 @@ struct systemStruct {
 
   int32_t i_count_read_serial_commands;
   int32_t prev_i_count_read_serial_commands;
+
+  int32_t i_count_logging;
+  int32_t prev_i_count_logging;
 
   int32_t loops_a_second;
   int32_t total_loops_a_second;

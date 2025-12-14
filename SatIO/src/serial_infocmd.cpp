@@ -162,9 +162,10 @@ static void PrintHelp(void) {
   R"(
   [ System ]
 
-      system --save
-      system --load
-      system --restore-defaults
+      system --save               Takes no further arguments.
+      system --load               Takes no further arguments.
+      system --restore-defaults   Takes no further arguments.
+      system -log                 Automatically log data to disk (See performance for timing). Takes arguments -e, -d.
 
   [ Matrix ]
 
@@ -405,6 +406,7 @@ static void PrintHelp(void) {
       settick --gps                    Takes arguments -e, -d.
       settick --matrix                 Takes arguments -e, -d.
       settick --pcinput                Takes arguments -e, -d.
+      settick --log                    Takes arguments -e, -d.
 
       example: settick -e --admplex0 --gyro0 --gps
 
@@ -414,6 +416,7 @@ static void PrintHelp(void) {
       setdelay --gps                    Specify ticks/milliseconds delay.
       setdelay --matrix                 Specify ticks/milliseconds delay.
       setdelay --pcinput                Specify ticks/milliseconds delay.
+      setdelay --log                    Specify ticks/milliseconds delay.
 
       example: setdelay --admplex0 1 --gyro0 1 --gps 1
 
@@ -1033,6 +1036,10 @@ void CmdProcess(void) {
     if (verbose==false) {verbose_1=false;}
     Serial.println("[cmd] verbose: " + String(verbose));
     Serial.println("[cmd] verbose1: " + String(verbose_1));
+    // Enable/Disable
+    enable=false;
+    if (argparser_has_flag(&parser, "disable") || argparser_has_flag(&parser, "d")) {enable=false;}
+    else if (argparser_has_flag(&parser, "enable") || argparser_has_flag(&parser, "e")) {enable=true;}
     // Debug Arg Parse.
     printArgParse();
     // Commands.
@@ -1041,9 +1048,6 @@ void CmdProcess(void) {
       if (verbose) {PrintHelp();}
     }
     else if (strcmp(pos[0], "stat")==0) {
-      enable=false;
-      if (argparser_has_flag(&parser, "disable") || argparser_has_flag(&parser, "d")) {enable=false;}
-      else if (argparser_has_flag(&parser, "enable") || argparser_has_flag(&parser, "e")) {enable=true;}
 
       if (argparser_has_flag(&parser, "t")) {
         if (enable) {systemData.output_stat=enable; systemData.output_stat_v=verbose; systemData.output_stat_vv=verbose_1;}
@@ -1114,6 +1118,9 @@ void CmdProcess(void) {
         if (argparser_has_flag(&parser, "save")) {sdmmcFlagData.save_system=true;}
         else if (argparser_has_flag(&parser, "load")) {sdmmcFlagData.load_system=true;}
         else if (argparser_has_flag(&parser, "restore-defaults")) {restore_system_defaults();}
+        else if (argparser_has_flag(&parser, "log")) {
+          Serial.println("setting log enabled: " + String(enable));
+          systemData.logging_enabled=enable;}
       }
       else if (strcmp(pos[0], "map")==0) {
         if (argparser_has_flag(&parser, "new")) {set_all_mapping_default(); {return;}}
@@ -1276,6 +1283,9 @@ void CmdProcess(void) {
 
         if (argparser_has_flag(&parser, "pcinput"))
           {setTick(TaskPortControllerInput, &TICK_DELAY_TASK_PORTCONTROLLER_INPUT, enable);}
+        
+        if (argparser_has_flag(&parser, "log"))
+          {setTick(TaskLogging, &TICK_DELAY_TASK_LOGGING, enable);}
 
         // if (argparser_has_flag(&parser, "storage"))
         //   {setTick(TaskStorage, &TICK_DELAY_TASK_STORAGE, enable);}
@@ -1301,6 +1311,9 @@ void CmdProcess(void) {
 
         if (argparser_has_flag(&parser, "pcinput"))
           {setDelay(TaskPortControllerInput, &DELAY_TASK_PORTCONTROLLER_INPUT, argparser_get_int32(&parser, "pcinput", DELAY_TASK_PORTCONTROLLER_INPUT));}
+
+        if (argparser_has_flag(&parser, "log"))
+          {setDelay(TaskLogging, &DELAY_TASK_LOGGING, argparser_get_int32(&parser, "log", DELAY_TASK_LOGGING));}
           
         // if (argparser_has_flag(&parser, "storage"))
         //   setDelay(TaskStorage, &DELAY_TASK_STORAGE, argparser_get_int32(&parser, "storage", DELAY_TASK_STORAGE));

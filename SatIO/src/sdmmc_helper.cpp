@@ -62,6 +62,7 @@ struct sdmmcFlagStruct sdmmcFlagData = {
   .save_system=false,
   .load_system=false,
   .delete_system=false,
+  .write_log=false,
 };
 
 struct sdmmcArgStruct sdmmcArgData = {
@@ -335,6 +336,13 @@ void sdcardFlagHandler(bool test_rw, bool set_pins, bool bit1_mode, bool format_
       else {Serial.println("delete system failed.");}
       sdmmcFlagData.no_delay_flag=false;
       sdmmcFlagData.delete_system=false;
+    }
+    else if (sdmmcFlagData.write_log) {
+      if (writeLog(SD_MMC, satioFileData.log_filepath))
+        {Serial.println("[log] successfull.");}
+      else {Serial.println("[log] failed.");}
+      sdmmcFlagData.no_delay_flag=false;
+      sdmmcFlagData.write_log=false;
     }
   }
   clearSDMMCArgStruct();

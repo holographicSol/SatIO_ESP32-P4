@@ -80,6 +80,7 @@ struct sdmmcFlagStruct {
   bool save_system;
   bool load_system;
   bool delete_system;
+  bool write_log;
 };
 extern struct sdmmcFlagStruct sdmmcFlagData;
 
