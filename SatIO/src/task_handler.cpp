@@ -445,7 +445,7 @@ void taskMultiplexers(void * pvParameters) {
     // ------------------------------------------------
     for (uint8_t i_chan = 0; i_chan < 16; i_chan++) {
       setMultiplexChannel_AD(0, i_chan);
-      multiplexerData.ADMPLEX_0_DATA[i_chan] = analogRead(ADMPLEX_0_SIG);
+      setADData(i_chan);
     }
     // ------------------------------------------------
     // Counters

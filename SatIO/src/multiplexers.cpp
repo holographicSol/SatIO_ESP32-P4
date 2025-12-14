@@ -77,6 +77,14 @@ void setMultiplexChannel_AD(uint8_t mux_id, int channel) {
     }
 }
 
+void setADData(uint8_t channel) {
+  /*
+    Default is to store raw data.
+    Customize if decoding/non-raw data is required...
+  */
+  multiplexerData.ADMPLEX_0_DATA[channel] = analogRead(ADMPLEX_0_SIG);
+}
+
 void setADMPLEX_0_NAN(void) {
   for (int i=0; i<MAX_AD_MUX_CHANNELS; i++)
     {multiplexerData.ADMPLEX_0_DATA[i]=NAN;}

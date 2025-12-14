@@ -74,6 +74,13 @@ void initMultiplexAD(uint8_t mux_id);
 void setMultiplexChannel_AD(uint8_t mux_id, int channel);
 
 /**
+ * Read analog/digital channel.
+ * @param channel Specify analog/digital multiplexer channel
+ * @return None
+ */
+void setADData(uint8_t channel);
+
+/**
  * NAN analog/digital multiplexer channel results
  */
 void setADMPLEX_0_NAN(void);
