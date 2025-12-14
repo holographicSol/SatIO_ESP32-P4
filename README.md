@@ -130,9 +130,10 @@ Many matrix functions accept operators, where required:
 
 System
 
-    system --save
-    system --load
-    system --restore-defaults
+    system --save               Takes no further arguments.
+    system --load               Takes no further arguments.
+    system --restore-defaults   Takes no further arguments.
+    system -log                 Automatically log data to disk (See performance for timing). Takes arguments -e, -d.
 
 -----
 
