@@ -26,7 +26,7 @@ Support:
 #include "./multiplexers.h"
 #include "./strval.h"
 
-#define SLAVE_ADDR 12 // set address as required.
+#define SLAVE_ADDR 12 // set address as required (specify an I2C address for this device).
 
 #define MASTER_SDA 21 // (Wire)
 #define MASTER_SCL 22 // (Wire)
@@ -175,6 +175,8 @@ I2CLinkStruct I2CLink;
 
 /**----------------------------------------------------------------------------
  * Interrupts.
+ * High/Low inversion for receiving device pin mode INPUT_PULLDOWN.
+ * INPUT_PULLDOWN may be required on receiving device pin to avoid 'floating'.
  */
 #define MASTER_INTERRUPT_PIN 13
 

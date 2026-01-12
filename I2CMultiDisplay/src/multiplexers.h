@@ -7,10 +7,6 @@
 #ifndef MULTIPLEXERS_H
 #define MULTIPLEXERS_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include <stdint.h>
 
 /* Do not modify */
@@ -113,9 +109,5 @@ void setADMultiplexerDataNAN(AnalogDigitalMultiplexer &mux_id);
  * NAN stored IIC multiplexer channel data
  */
 void setI2CMultiplexerDataNAN(I2CMultiplexer &mux_id);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif

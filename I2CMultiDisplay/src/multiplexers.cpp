@@ -53,7 +53,8 @@ void setI2CMultiplexerDataNAN(I2CMultiplexer &mux_id) {
 // ------------------------------------------------------------------------------------
 // Analog/Digital
 // ------------------------------------------------------------------------------------
-static const int AD_MUX_CHANNEL_TABLE[MAX_ANALOG_DIGITAL_MULTIPLEXER_CONTROL_CHANNELS][MAX_ANALOG_DIGITAL_MULTIPLEXER_CONTROL_PINS] = {
+static const int AD_MUX_CHANNEL_TABLE[MAX_ANALOG_DIGITAL_MULTIPLEXER_CONTROL_CHANNELS]
+                                     [MAX_ANALOG_DIGITAL_MULTIPLEXER_CONTROL_PINS] = {
   {0,0,0,0}, // channel 0 
   {1,0,0,0}, // channel 1 
   {0,1,0,0}, // channel 2
