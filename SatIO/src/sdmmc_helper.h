@@ -195,4 +195,12 @@ void listDir(FS &fs, const char *dirname, signed int maxLevels=-1, int currentLe
  */
 void statSDCardPins();
 
+/**
+ * IsDiskSpace.
+ * 
+ * @brief Checks diskspace remaining greater than specified bytes.
+ * @return Returns bool
+ */
+bool isDiskSpace(uint64_t bytes_required);
+
 #endif

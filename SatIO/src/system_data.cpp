@@ -23,7 +23,7 @@ struct systemStruct systemData = {
   .interval_breach_1_second = false,
 
   .debug = false,
-  .output_stat = false,
+  .output_stat = true,
   .output_stat_v = false,
   .output_stat_vv = false,
   .serial_command = 1,

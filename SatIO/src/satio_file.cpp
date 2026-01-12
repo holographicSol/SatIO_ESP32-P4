@@ -19,6 +19,7 @@
 #include "multiplexers.h"
 #include "wtgps300p.h"
 #include "wt901.h"
+#include "sdmmc_helper.h"
 
 struct satioFileStruct satioFileData = {
     .matrix_tags=
@@ -138,10 +139,12 @@ struct satioFileStruct satioFileData = {
 void printLine(File f, String line) {
     line = line+"\n";
     // Serial.print(line);  // uncomment to debug
-    // calculate line bytes.
-    // calculate remaining disk space.
-    // then write
-    // WARNING! There is currently no disk space check!
+
+    // check diskspace (requires sdcard compatible with SD_MMC)
+    // if (isDiskSpace(strlen(line.c_str()))) {f.print(line);}
+    // else {Serial.println("No more diskspace available!");}
+
+    // WARNING! THERE IS NO DISK SPACE CHECK!
     f.print(line);
 }
 
@@ -526,7 +529,7 @@ bool writeLog(FS &fs, const char *filepath) {
         // Log Line: Analog/Digital
         // --------------------------------
         line="$MPLEX0,";
-        for (int i=0; i<MAX_AD_MUX_CHANNELS; i++) {line=line+String(multiplexerData.ADMPLEX_0_DATA[i])+",";}
+        for (int i=0; i<MAX_AD_MUX_CHANNELS; i++) {line=line+String(ad_mux_0.data[i])+",";}
         printLine(f, line);
         // --------------------------------
         // Log Line: Port Controller Input

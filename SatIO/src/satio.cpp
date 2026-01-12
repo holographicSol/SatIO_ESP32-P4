@@ -64,10 +64,22 @@ struct SATIOStruct satioData = {
     .local_yday = 1,
     .local_wday = 1,
     .local_wday_name = {0},
-    .formatted_local_time = "00:00:00",
-    .formatted_local_date = "00/00/00",
+
+    .formatted_local_time_HHMMSS = "00:00:00",
+    .formatted_local_date_DDMMYYYY = "00/00/0000",
+    .formatted_local_short_date_DDMMYY = "00/00/00",
+
     .padded_local_time_HHMMSS = "000000",
+    .padded_local_hour = "00",
+    .padded_local_minute = "00",
+    .padded_local_second = "00",
+
     .padded_local_date_DDMMYYYY = "00000000",
+    .padded_local_short_date_DDMMYY = "000000",
+    .padded_local_day = "00",
+    .padded_local_month = "00",
+    .padded_local_year = "00",
+
     .local_unixtime_uS = 0,
     .rtcsync_hour = 0,
     .rtcsync_minute = 0,
@@ -75,7 +87,6 @@ struct SATIOStruct satioData = {
     .rtcsync_year = 0,
     .rtcsync_month = 0,
     .rtcsync_day = 0,
-    .formatted_rtc_sync_time = "00:00:00",
     .formatted_rtc_sync_date = "00/00/00",
     .padded_rtc_sync_time_HHMMSS = "000000",
     .padded_rtc_sync_date_DDMMYYYY = "00000000",
@@ -520,17 +531,20 @@ void storeLocalTime(void) {
     padDigitsZero(satioData.local_hour, hour_str, MAX_GLOBAL_ELEMENT_SIZE);
     padDigitsZero(satioData.local_minute, min_str, MAX_GLOBAL_ELEMENT_SIZE);
     padDigitsZero(satioData.local_second, sec_str, MAX_GLOBAL_ELEMENT_SIZE);
-
-    memset(satioData.formatted_local_time, 0, sizeof(satioData.formatted_local_time));
-    snprintf(satioData.formatted_local_time, MAX_GLOBAL_ELEMENT_SIZE, "%s:%s:%s", hour_str, min_str, sec_str);
+    memset(satioData.formatted_local_time_HHMMSS, 0, sizeof(satioData.formatted_local_time_HHMMSS));
+    snprintf(satioData.formatted_local_time_HHMMSS, MAX_GLOBAL_ELEMENT_SIZE, "%s:%s:%s", hour_str, min_str, sec_str);
 
     // Format date (DD/MM/YYYY)
     char day_str[MAX_GLOBAL_ELEMENT_SIZE], month_str[MAX_GLOBAL_ELEMENT_SIZE], year_str[MAX_GLOBAL_ELEMENT_SIZE];
     padDigitsZero(satioData.local_mday, day_str, MAX_GLOBAL_ELEMENT_SIZE);
     padDigitsZero(satioData.local_month, month_str, MAX_GLOBAL_ELEMENT_SIZE);
     padDigitsZero(satioData.local_year, year_str, MAX_GLOBAL_ELEMENT_SIZE);
-    memset(satioData.formatted_local_date, 0, sizeof(satioData.formatted_local_date));
-    snprintf(satioData.formatted_local_date, MAX_GLOBAL_ELEMENT_SIZE, "%s/%s/%s", day_str, month_str, year_str);
+    memset(satioData.formatted_local_date_DDMMYYYY, 0, sizeof(satioData.formatted_local_date_DDMMYYYY));
+    snprintf(satioData.formatted_local_date_DDMMYYYY, MAX_GLOBAL_ELEMENT_SIZE, "%s/%s/%s", day_str, month_str, year_str);
+
+    // Format short date (DD/MM/YYYY)
+    memset(satioData.formatted_local_short_date_DDMMYY, 0, sizeof(satioData.formatted_local_short_date_DDMMYY));
+    snprintf(satioData.formatted_local_short_date_DDMMYY, MAX_GLOBAL_ELEMENT_SIZE, "%s/%s/%s", day_str, month_str, String(String(year_str[2])+String(3)).c_str());
 
     // Format padded time (HHMMSS)
     memset(satioData.padded_local_time_HHMMSS, 0, sizeof(satioData.padded_local_time_HHMMSS));
@@ -539,7 +553,35 @@ void storeLocalTime(void) {
     // Format padded date (DDMMYYYY)
     memset(satioData.padded_local_date_DDMMYYYY, 0, sizeof(satioData.padded_local_date_DDMMYYYY));
     snprintf(satioData.padded_local_date_DDMMYYYY, MAX_GLOBAL_ELEMENT_SIZE, "%s%s%s", day_str, month_str, year_str);
-}
+
+    // Format padded short date (DDMMYY)
+    memset(satioData.padded_local_short_date_DDMMYY, 0, sizeof(satioData.padded_local_short_date_DDMMYY));
+    snprintf(satioData.padded_local_short_date_DDMMYY, MAX_GLOBAL_ELEMENT_SIZE, "%s%s%s", day_str, month_str, String(String(year_str[2]) + String(year_str[3])).c_str());
+
+    // Format padded hour (HH)
+    memset(satioData.padded_local_hour, 0, sizeof(satioData.padded_local_hour));
+    snprintf(satioData.padded_local_hour, MAX_GLOBAL_ELEMENT_SIZE, "%s", hour_str);
+
+    // Format padded minute (MM)
+    memset(satioData.padded_local_minute, 0, sizeof(satioData.padded_local_minute));
+    snprintf(satioData.padded_local_minute, MAX_GLOBAL_ELEMENT_SIZE, "%s", min_str);
+
+    // Format padded second (SS)
+    memset(satioData.padded_local_second, 0, sizeof(satioData.padded_local_second));
+    snprintf(satioData.padded_local_second, MAX_GLOBAL_ELEMENT_SIZE, "%s", sec_str);
+
+    // Format padded day (DD)
+    memset(satioData.padded_local_day, 0, sizeof(satioData.padded_local_day));
+    snprintf(satioData.padded_local_day, MAX_GLOBAL_ELEMENT_SIZE, "%s", day_str);
+
+    // Format padded month (MM)
+    memset(satioData.padded_local_month, 0, sizeof(satioData.padded_local_month));
+    snprintf(satioData.padded_local_month, MAX_GLOBAL_ELEMENT_SIZE, "%s", month_str);
+
+    // Format padded year (YY)
+    memset(satioData.padded_local_year, 0, sizeof(satioData.padded_local_year));
+    snprintf(satioData.padded_local_year, MAX_GLOBAL_ELEMENT_SIZE, "%s", String(String(year_str[2]) + String(year_str[3])).c_str());
+  }
 
 // ----------------------------------------------------------------------------------------
 // storeRTCSYNCTime.
@@ -559,16 +601,14 @@ void storeRTCSYNCTime(void) {
     padDigitsZero(satioData.rtcsync_hour, hour_str, MAX_GLOBAL_ELEMENT_SIZE);
     padDigitsZero(satioData.rtcsync_minute, min_str, MAX_GLOBAL_ELEMENT_SIZE);
     padDigitsZero(satioData.rtcsync_second, sec_str, MAX_GLOBAL_ELEMENT_SIZE);
-
-    memset(satioData.formatted_rtc_sync_time, 0, sizeof(satioData.formatted_rtc_sync_time));
-    snprintf(satioData.formatted_rtc_sync_time, MAX_GLOBAL_ELEMENT_SIZE, "%s:%s:%s", hour_str, min_str, sec_str);
+    memset(satioData.formatted_rtc_time, 0, sizeof(satioData.formatted_rtc_time));
+    snprintf(satioData.formatted_rtc_time, MAX_GLOBAL_ELEMENT_SIZE, "%s:%s:%s", hour_str, min_str, sec_str);
 
     // Format sync date (DD/MM/YYYY)
     char day_str[MAX_GLOBAL_ELEMENT_SIZE], month_str[MAX_GLOBAL_ELEMENT_SIZE], year_str[MAX_GLOBAL_ELEMENT_SIZE];
     padDigitsZero(satioData.rtcsync_day, day_str, MAX_GLOBAL_ELEMENT_SIZE);
     padDigitsZero(satioData.rtcsync_month, month_str, MAX_GLOBAL_ELEMENT_SIZE);
     padDigitsZero(satioData.rtcsync_year, year_str, MAX_GLOBAL_ELEMENT_SIZE);
-
     memset(satioData.formatted_rtc_sync_date, 0, sizeof(satioData.formatted_rtc_sync_date));
     snprintf(satioData.formatted_rtc_sync_date, MAX_GLOBAL_ELEMENT_SIZE, "%s/%s/%s", day_str, month_str, year_str);
 
@@ -760,7 +800,211 @@ void initSystemTime(void) {
 TwoWire iic_0(0);
 
 void initRTC(void) {
-  iic_0.begin(2, 3, 400000UL);
+  iic_0.begin(2, 3, 200000UL);
   rtc.begin(&iic_0);
   // rtc.begin();
+}
+
+char TMP_BUFFER_0[MAX_IIC_BUFFER_SIZE];
+byte OUTPUT_BUFFER[MAX_IIC_BUFFER_SIZE];
+
+void writeI2C(int I2C_Address) {
+  // Serial.println("writeI2COutputPortController: " + String(TMP_BUFFER_0));
+  // Compile bytes array.
+  memset(OUTPUT_BUFFER, 0, sizeof(OUTPUT_BUFFER));
+  for (byte i=0;i<sizeof(OUTPUT_BUFFER);i++)
+  {OUTPUT_BUFFER[i]=(byte)TMP_BUFFER_0[i];}
+  iic_0.beginTransmission(I2C_Address);
+  // Write bytes array.
+  iic_0.write(OUTPUT_BUFFER, sizeof(OUTPUT_BUFFER));
+  iic_0.endTransmission();
+}
+
+/**  
+  @brief Writes data to I2C Multi Display Module(s).
+
+  @details Instruction Format:
+
+  Instruction Structure for 7 Segment Displays:
+  DisplayType,ValueIndex,Color
+
+  Instruction Structure for 7 Segment Displays:
+    DisplayType,ValueIndex,Dot/ColonControl,Value
+
+  Instruction Structure for SSDxxxx:
+    DisplayType,DisplayIndex,ValueIndex,Dx,Dy,Value
+  
+  Color:
+    0: Black
+    1: Red
+    2: Green
+    3: Blue
+  
+  Dx: Screen X coordinatres.
+  Dy: Screen X coordinatres.
+  
+  DisplayType:
+    0: Addressable LEDs
+    1: 7-segment single digit
+    2: 7-segment 2 digit
+    3: 7-segment 4 digit
+    4: 7-segment 6 digit
+    5: 7-segment 8 digit
+    6: SSD1306 128x64 OLED
+  
+  DisplayChannel:
+    - Should reflect multiplexer channel of connected display.
+    - If display is not connected to a multiplexer, DisplayChannel will be ignored.
+  
+  PadLedaingZeros: 0 false or 1 for true.
+
+  Dot/Colon Control:
+    4 Digit 7-segment display:
+      For displays with dots between each digit:
+        0: 0000     (0b00000000)
+        1: 0.000    (0b10000000)
+        2: 00.00    (0b01000000)
+        3: 000.0    (0b00100000)
+        4: 0.0.0.0  (0b11100000)
+        5: 00:00    (0b01000000)
+        6: 0.0:0.0  (0b11100000)
+    6 Digit 7-segment display:
+        0: 000000   (0b00000000)
+        1: 0.00000  (0b10000000)
+        2: 00.0000  (0b01000000)
+        3: 000.000  (0b00100000)
+        4: 0000.00  (0b00010000)
+        5: 00000.0  (0b00001000)
+        6: 000000.  (0b00000100)
+        7: 00.00.00 (0b01010000)
+        8: 00:00:00 (0b01010000)
+*/
+String TMPString;
+int i_token;
+char *token;
+bool update_multi_display_controller_0=true;
+
+void writeI2CMultiDisplay(void) {
+  /* EXPERIMENTAL while i2c multi display module is being created. actual values to be sent should be customized as required (general purpose platform). */
+
+  /* Write to I2C Multi Display Module(s). Adjust address as required for multiple I2C Multi Display modules */
+
+  if (ISR_Bool_MultiDisplayController_0==true) {
+    ISR_Bool_MultiDisplayController_0=false;
+    Serial.printf("[ISR] MultiDisplayController_0\n");
+    
+    // Send 301 instruction
+    memset(TMP_BUFFER_0, 0, sizeof(TMP_BUFFER_0));
+    strcpy(TMP_BUFFER_0, "301");
+    if (strlen(TMP_BUFFER_0) < 32) {writeI2C(12);}
+    
+    // read old value
+    memset(TMP_BUFFER_0, 0, sizeof(TMP_BUFFER_0));
+    if (iic_0.requestFrom(12, sizeof(TMP_BUFFER_0)) != sizeof(TMP_BUFFER_0)) {
+      // Serial.printf("[I2C] error requesting data %d\n");
+    }
+    else {
+      uint8_t len = iic_0.readBytes(TMP_BUFFER_0, sizeof(TMP_BUFFER_0));
+      // Serial.printf("[MASTER RX] %s (%d bytes)\n", TMP_BUFFER_0, len);
+    }
+    delay(1);
+    // read new value
+    memset(TMP_BUFFER_0, 0, sizeof(TMP_BUFFER_0));
+    if (iic_0.requestFrom(12, sizeof(TMP_BUFFER_0)) != sizeof(TMP_BUFFER_0)) {
+      Serial.printf("[I2C] error requesting data %d\n");
+    }
+    else {
+      uint8_t len = iic_0.readBytes(TMP_BUFFER_0, sizeof(TMP_BUFFER_0));
+      Serial.printf("[MASTER RX] %s (%d bytes)\n", TMP_BUFFER_0, len);
+      if (len < 1) return;
+      i_token = 0;
+      token = strtok(TMP_BUFFER_0, ",");
+      while (token != NULL) {
+        Serial.printf("[TKN] %d: %s\n", i_token, token);
+        switch (i_token) {
+            case 1: if (str_is_bool(token)) {update_multi_display_controller_0=atoi(token); break;}
+        }
+        token = strtok(NULL, ",");
+        i_token = i_token + 1;
+      }
+    }
+  }
+  
+  if (update_multi_display_controller_0) {
+
+    /* TEST INDICATORS */
+    memset(TMP_BUFFER_0, 0, sizeof(TMP_BUFFER_0));
+    strcpy(TMP_BUFFER_0, "0,0,255,0,0");
+    if (strlen(TMP_BUFFER_0)<32) {writeI2C(12);}
+    else {}
+
+    memset(TMP_BUFFER_0, 0, sizeof(TMP_BUFFER_0));
+    strcpy(TMP_BUFFER_0, "0,9,0,255,0");
+    if (strlen(TMP_BUFFER_0)<32) {writeI2C(12);}
+    else {}
+
+    /* TEST 7-SEGMENT 4 DIGIT DISPLAYS */
+    memset(TMP_BUFFER_0, 0, sizeof(TMP_BUFFER_0));
+    strcpy(TMP_BUFFER_0, "3,0,");
+    strcat(TMP_BUFFER_0, String(gnggaData.satellite_count).c_str());
+    if (strlen(TMP_BUFFER_0)<32) {writeI2C(12);}
+    else {}
+
+    memset(TMP_BUFFER_0, 0, sizeof(TMP_BUFFER_0));
+    strcpy(TMP_BUFFER_0, "3,1,");
+    strcat(TMP_BUFFER_0, String(gnggaData.gps_precision_factor).c_str());
+    if (strlen(TMP_BUFFER_0)<32) {writeI2C(12);}
+    else {}
+
+    /* TEST 7-SEGMENT 6 DIGIT DISPLAYS */
+    memset(TMP_BUFFER_0, 0, sizeof(TMP_BUFFER_0));
+    strcpy(TMP_BUFFER_0, "4,2,");
+    strcat(TMP_BUFFER_0, String(String(satioData.padded_local_hour) + "." + String(satioData.padded_local_minute) + "." + String(satioData.padded_local_second)).c_str());
+    if (strlen(TMP_BUFFER_0)<32) {writeI2C(12);}
+    else {}
+
+    memset(TMP_BUFFER_0, 0, sizeof(TMP_BUFFER_0));
+    strcpy(TMP_BUFFER_0, "4,3,");
+    strcat(TMP_BUFFER_0, String(String(satioData.padded_local_day) + "." + String(satioData.padded_local_month) + "." + String(satioData.padded_local_year)).c_str());
+    if (strlen(TMP_BUFFER_0)<32) {writeI2C(12);}
+    else {}
+
+    /* TEST SSD1306 128x32 DISPLAY */
+    memset(TMP_BUFFER_0, 0, sizeof(TMP_BUFFER_0));
+    strcpy(TMP_BUFFER_0, "6,0,0,1,1,");
+    strcat(TMP_BUFFER_0, String(gnggaData.satellite_count).c_str());
+    if (strlen(TMP_BUFFER_0)<32) {writeI2C(12);}
+    else {}
+
+    memset(TMP_BUFFER_0, 0, sizeof(TMP_BUFFER_0));
+    strcpy(TMP_BUFFER_0, "6,0,1,1,12,");
+    strcat(TMP_BUFFER_0, String(satioData.formatted_local_time_HHMMSS).c_str());
+    if (strlen(TMP_BUFFER_0)<32) {writeI2C(12);}
+    else {}
+
+    memset(TMP_BUFFER_0, 0, sizeof(TMP_BUFFER_0));
+    strcpy(TMP_BUFFER_0, "101,0");
+    if (strlen(TMP_BUFFER_0)<32) {writeI2C(12);}
+    else {}
+
+    /* TEST SSD1306 128x64 DISPLAY */
+    memset(TMP_BUFFER_0, 0, sizeof(TMP_BUFFER_0));
+    strcpy(TMP_BUFFER_0, "6,1,0,1,1,");
+    strcat(TMP_BUFFER_0, String(gnggaData.satellite_count).c_str());
+    if (strlen(TMP_BUFFER_0)<32) {writeI2C(12);}
+    else {}
+
+    memset(TMP_BUFFER_0, 0, sizeof(TMP_BUFFER_0));
+    strcpy(TMP_BUFFER_0, "6,1,1,1,16,");
+    strcat(TMP_BUFFER_0, String(satioData.formatted_local_time_HHMMSS).c_str());
+    if (strlen(TMP_BUFFER_0)<32) {writeI2C(12);}
+    else {}
+
+    memset(TMP_BUFFER_0, 0, sizeof(TMP_BUFFER_0));
+    strcpy(TMP_BUFFER_0, "101,1");
+    if (strlen(TMP_BUFFER_0)<32) {writeI2C(12);}
+    else {}
+  }
+
+  delay(10);
 }

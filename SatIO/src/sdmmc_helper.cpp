@@ -353,11 +353,15 @@ void getMountPoint() {memset(sdcardData.sdcard_mountpoint,
                              sizeof(sdcardData.sdcard_mountpoint));
                       strcpy(sdcardData.sdcard_mountpoint,
                              SD_MMC.mountpoint());}
-void getSDCardType() {sdcardData.sdcard_type = SD_MMC.cardType();}
-void getCardSize() {sdcardData.sdcard_card_size=SD_MMC.cardSize();}
-void getTotalBytes() {sdcardData.sdcard_total_bytes=SD_MMC.totalBytes();}
-void getUsedBytes() {sdcardData.sdcard_used_bytes=SD_MMC.usedBytes();}
-void getSectorSize() {sdcardData.sdcard_sector_size=SD_MMC.sectorSize();}
+
+void getSDCardType() {sdcardData.sdcard_type        = SD_MMC.cardType();}
+void getCardSize() {sdcardData.sdcard_card_size     = SD_MMC.cardSize();}
+void getTotalBytes() {sdcardData.sdcard_total_bytes = SD_MMC.totalBytes();}
+void getUsedBytes() {sdcardData.sdcard_used_bytes   = SD_MMC.usedBytes();}
+void getSectorSize() {sdcardData.sdcard_sector_size = SD_MMC.sectorSize();}
+// void getCardSize() {sdcardData.sdcard_card_size=SD_MMC.cardSize() / (1024 * 1024);}
+// void getTotalBytes() {sdcardData.sdcard_total_bytes=SD_MMC.totalBytes() / (1024 * 1024);}
+// void getUsedBytes() {sdcardData.sdcard_used_bytes=SD_MMC.usedBytes() / (1024 * 1024);}
 
 void statSDCardPins() {
   Serial.println("SD_DATA0_GPIO_NUM : " + String(digitalRead(SD_DATA0_GPIO_NUM))); // 39
@@ -367,4 +371,13 @@ void statSDCardPins() {
   Serial.println("SD_DATA4_GPIO_NUM : " + String(digitalRead(SD_DATA4_GPIO_NUM))); // 45
   Serial.println("SD_CLK_GPIO_NUM : " + String(digitalRead(SD_CLK_GPIO_NUM)));     // 43
   Serial.println("SD_CMD_GPIO_NUM : " + String(digitalRead(SD_CMD_GPIO_NUM)));     // 44
+}
+
+bool isDiskSpace(uint64_t bytes_required) {
+  Serial.println("[cardSize]                   " + String(SD_MMC.cardSize()));
+  Serial.println("[usedBytes]                  " + String(SD_MMC.usedBytes()));
+  Serial.println("[bytes_required]             " + String(bytes_required));
+  Serial.println("[usedBytes + bytes_required] " + String(SD_MMC.usedBytes() + bytes_required));
+  if (SD_MMC.usedBytes() + bytes_required < SD_MMC.cardSize()-1) {return true;}
+  return false;
 }

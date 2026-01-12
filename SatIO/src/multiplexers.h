@@ -1,5 +1,7 @@
 /*
   Multiplexers Library. Written by Benjamin Jack Cullen.
+
+  For TCA9548A & CD74HC4067.
 */
 
 #ifndef MULTIPLEXERS_H
@@ -10,45 +12,55 @@ extern "C" {
 #endif
 
 #include <stdint.h>
-#include "config.h"
+
+/* Do not modify */
+#define MAX_ANALOG_DIGITAL_MULTIPLEXER_PINS             5
+#define MAX_ANALOG_DIGITAL_MULTIPLEXER_CONTROL_PINS     4
+#define MAX_ANALOG_DIGITAL_MULTIPLEXER_CONTROL_CHANNELS 16
+#define INDEX_ANALOG_DIGITAL_MULTIPLEXER_S0             0
+#define INDEX_ANALOG_DIGITAL_MULTIPLEXER_S1             1
+#define INDEX_ANALOG_DIGITAL_MULTIPLEXER_S2             2
+#define INDEX_ANALOG_DIGITAL_MULTIPLEXER_S3             3
+#define INDEX_ANALOG_DIGITAL_MULTIPLEXER_SIG            4
+
+/* Customize pins as required */
+#define PIN_ANALOG_DIGITAL_MULTIPLEXER_0_SO  32
+#define PIN_ANALOG_DIGITAL_MULTIPLEXER_0_S1  33
+#define PIN_ANALOG_DIGITAL_MULTIPLEXER_0_S2  23
+#define PIN_ANALOG_DIGITAL_MULTIPLEXER_0_S3  5
+#define PIN_ANALOG_DIGITAL_MULTIPLEXER_0_SIG 2
+
+/* Customize pins as required */
+#define PIN_ANALOG_DIGITAL_MULTIPLEXER_1_SO  12
+#define PIN_ANALOG_DIGITAL_MULTIPLEXER_1_S1  14
+#define PIN_ANALOG_DIGITAL_MULTIPLEXER_1_S2  27
+#define PIN_ANALOG_DIGITAL_MULTIPLEXER_1_S3  16
+#define PIN_ANALOG_DIGITAL_MULTIPLEXER_1_SIG 4
+
+/* Do not modify */
+#define I2C_MULTIPLEXER_TCA9548A_ADDRESS_0    0x70 // Default I2C address for TCA9548A
+#define MAX_I2C_MULTIPLEXER_TCA9548A_CHANNELS 8
 
 /**
- * @struct I2CMultiplexer
+ * @struct I2C Multiplexer
+ * @brief Useful for creating multiple I2C multiplexer instances
  */
-struct I2CMultiplexer {
-  // addresses for IIC multiplexers
-    uint8_t address;
-};
+typedef struct {
+  int address;
+  double data[MAX_I2C_MULTIPLEXER_TCA9548A_CHANNELS];
+} I2CMultiplexer;
+extern I2CMultiplexer i2c_mux_0;
 
 /**
- * @struct ADMultiplexer
+ * @struct AnalogDigitalMultiplexer
+ * @brief Useful for creating multiple analog/digital multiplexer instances
  */
-struct ADMultiplexer {
-  // control pins of analog/digital multiplexers
-  int control_pins[MAX_AD_MUX_CONTROL_PINS];
-
-  // signal pin of analog/digital multiplexers
-  int signal_pin;
-};
-
-/**
- * @struct MultiplexerDataStruct
- */
-struct MultiplexerDataStruct {
-  // Results from analog/digital multiplexer 0.
-  double ADMPLEX_0_DATA[16]={};
-
-  // Results from IIC multiplexer 0.
-  float IICMPLEX_0_DATA_0[8]={};
-};
-extern struct MultiplexerDataStruct multiplexerData;
-
-/**
- * Initialize IIC multiplexer
- * @param mux_id Specify IIC multiplexer
- * @return None
- */
-void initMultiplexI2C(uint8_t mux_id);
+typedef struct {
+  int pins[MAX_ANALOG_DIGITAL_MULTIPLEXER_PINS];
+  double data[MAX_ANALOG_DIGITAL_MULTIPLEXER_CONTROL_CHANNELS];
+} AnalogDigitalMultiplexer;
+extern AnalogDigitalMultiplexer ad_mux_0;
+extern AnalogDigitalMultiplexer ad_mux_1;
 
 /**
  * Set IIC multiplexer channel
@@ -56,14 +68,14 @@ void initMultiplexI2C(uint8_t mux_id);
  * @param channel Specify IIC multiplexer channel
  * @return None
  */
-void setMultiplexChannel_I2C(uint8_t mux_id, uint8_t channel);
+void setI2CMultiplexChannel(I2CMultiplexer &mux_id, uint8_t channel);
 
 /**
  * Initialize analog/digital multiplexer
  * @param mux_id Specify analog/digital multiplexer
  * @return None
  */
-void initMultiplexAD(uint8_t mux_id);
+void initADMultiplexer(AnalogDigitalMultiplexer &mux_id);
 
 /**
  * Set analog/digital multiplexer channel
@@ -71,24 +83,36 @@ void initMultiplexAD(uint8_t mux_id);
  * @param channel Specify analog/digital multiplexer channel
  * @return None
  */
-void setMultiplexChannel_AD(uint8_t mux_id, int channel);
+void setADMultiplexerChannel(AnalogDigitalMultiplexer &mux_id, int channel);
 
 /**
- * Read analog/digital channel.
+ * Read from channel.
+ * @param mux_id Specify analog/digital multiplexer
  * @param channel Specify analog/digital multiplexer channel
  * @return None
  */
-void setADData(uint8_t channel);
+void readADMultiplexerAnalogChannel(AnalogDigitalMultiplexer &mux_id, uint8_t channel);
+void readADMultiplexerDigitalChannel(AnalogDigitalMultiplexer &mux_id, uint8_t channel);
 
 /**
- * NAN analog/digital multiplexer channel results
+ * Write to channel.
+ * @param mux_id Specify analog/digital multiplexer
+ * @param channel Specify analog/digital multiplexer channel
+ * @param data Data to be written to channel
+ * @return None
  */
-void setADMPLEX_0_NAN(void);
+void writeADMultiplexerAnalogChannel(AnalogDigitalMultiplexer &mux_id, uint8_t channel, int data);
+void writeADMultiplexerDigitalChannel(AnalogDigitalMultiplexer &mux_id, uint8_t channel, int data);
 
 /**
- * NAN IIC multiplexer channel results
+ * NAN stored analog/digital multiplexer channel data
  */
-void setIICMPLEX_0_NAN(void);
+void setADMultiplexerDataNAN(AnalogDigitalMultiplexer &mux_id);
+
+/**
+ * NAN stored IIC multiplexer channel data
+ */
+void setI2CMultiplexerDataNAN(I2CMultiplexer &mux_id);
 
 #ifdef __cplusplus
 }

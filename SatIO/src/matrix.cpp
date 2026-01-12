@@ -1376,7 +1376,7 @@ bool matrixSwitch(void) {
         handle_digit=true;
       }
       else if ((matrixData.matrix_function[0][Mi][Fi]==INDEX_MATRIX_SWITCH_FUNCTION_ADMPLEX0)) {
-        tmp_x = multiplexerData.ADMPLEX_0_DATA
+        tmp_x = ad_mux_0.data
                 [(int)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z]];
         tmp_y = 0;
         tmp_z = 0;
@@ -1650,6 +1650,7 @@ typedef struct {
   char TMP_BUFFER_0[MAX_IIC_BUFFER_SIZE];  // chars of bytes to be sent
   char TMP_BUFFER_1[MAX_IIC_BUFFER_SIZE];  // some space for type conversions
 } IICLink;
+IICLink IICLink0;
 IICLink IICLink1;
 IICLink IICLink2;
 
@@ -1670,7 +1671,16 @@ void initOutputPortController() {
   iic_1.setBufferSize(256);
   iic_1.setTimeOut(1000);
   iic_1.begin(4, 5);
-  iic_1.setClock(400000);
+  // iic_1.setClock(400000); // ATMEGA2560 no resistors     good
+  // iic_1.setClock(200000); // ESP32 no resistors          good
+  // iic_1.setClock(200000); // ESP32 2.2k resistor         good
+  // iic_1.setClock(250000); // ATMEGA2560 2.2k resistor    good
+  iic_1.setClock(800000); // ATMEGA2560 2.2k resistor       good (+-4ns rise time)
+
+  // iic_1.setClock(400000); // ESP32 no resistors          bad
+  // iic_1.setClock(400000); // ESP32 2.2k resistor         bad
+  // iic_1.setClock(400000); // ESP32 1k resistor           bad
+  // iic_1.setClock(250000); // ESP32 1k resistor           bad
 }
 
 void initInputPortController() {
@@ -1678,7 +1688,7 @@ void initInputPortController() {
   iic_2.setBufferSize(256);
   iic_2.setTimeOut(1000);
   iic_2.begin(7, 8);
-  iic_2.setClock(400000);
+  iic_2.setClock(400000); // current
 }
 
 void writeI2COutputPortController(int I2C_Address) {
@@ -1703,7 +1713,7 @@ void writeOutputPortControllerM0(void) {
 }
 
 // ------------------------------------------------------------
-// readInputPortControllerM1: binary
+// writeOutputPortControllerM1: binary
 // ------------------------------------------------------------
 void writeOutputPortControllerM1(void) {
   uint8_t packet[15];

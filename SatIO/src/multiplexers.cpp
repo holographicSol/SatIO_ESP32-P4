@@ -1,96 +1,120 @@
 /*
   Multiplexers Library. Written by Benjamin Jack Cullen.
+
+  For TCA9548A & CD74HC4067.
 */
 
-#include "multiplexers.h"
 #include <Arduino.h>
 #include <Wire.h>
+#include "./multiplexers.h"
 
-static struct I2CMultiplexer i2c_muxes[MAX_I2C_MUX] = {
-    { .address = 0x70 },  // Mux 0
+// ------------------------------------------------------------------------------------
+// Add/Remove Multiplexer Instances
+// ------------------------------------------------------------------------------------
+AnalogDigitalMultiplexer ad_mux_0 = {
+  .pins = {PIN_ANALOG_DIGITAL_MULTIPLEXER_0_SO,
+           PIN_ANALOG_DIGITAL_MULTIPLEXER_0_S1,
+           PIN_ANALOG_DIGITAL_MULTIPLEXER_0_S2,
+           PIN_ANALOG_DIGITAL_MULTIPLEXER_0_S3,
+           PIN_ANALOG_DIGITAL_MULTIPLEXER_0_SIG},
+  .data = {},
 };
 
-static struct ADMultiplexer ad_muxes[MAX_AD_MUX] = {
-    {
-      .control_pins={ADMPLEX_0_S0,
-                    ADMPLEX_0_S1,
-                    ADMPLEX_0_S2,
-                    ADMPLEX_0_S3},
-      .signal_pin = ADMPLEX_0_SIG
-    },
+AnalogDigitalMultiplexer ad_mux_1 = {
+  .pins = {PIN_ANALOG_DIGITAL_MULTIPLEXER_1_SO,
+           PIN_ANALOG_DIGITAL_MULTIPLEXER_1_S1,
+           PIN_ANALOG_DIGITAL_MULTIPLEXER_1_S2,
+           PIN_ANALOG_DIGITAL_MULTIPLEXER_1_S3,
+           PIN_ANALOG_DIGITAL_MULTIPLEXER_1_SIG},
+  .data = {},
 };
 
-struct MultiplexerDataStruct multiplexerData = {
-  .ADMPLEX_0_DATA={
-    0.0, 0.0, 0.0, 0.0,
-    0.0, 0.0, 0.0, 0.0,
-    0.0, 0.0, 0.0, 0.0,
-    0.0, 0.0, 0.0, 0.0,
-  },
-  .IICMPLEX_0_DATA_0={
-    0.0, 0.0, 0.0, 0.0,
-    0.0, 0.0, 0.0, 0.0,
-  },
+I2CMultiplexer i2c_mux_0 = {
+  .address = I2C_MULTIPLEXER_TCA9548A_ADDRESS_0,
+  .data = {},
 };
 
-static const int AD_MUX_CHANNEL_TABLE[MAX_AD_MUX_CHANNELS][MAX_AD_MUX_CONTROL_PINS] = {
-  {0,0,0,0}, //channel 0 
-  {1,0,0,0}, //channel 1 
-  {0,1,0,0}, //channel 2
-  {1,1,0,0}, //channel 3
-  {0,0,1,0}, //channel 4
-  {1,0,1,0}, //channel 5
-  {0,1,1,0}, //channel 6
-  {1,1,1,0}, //channel 7
-  {0,0,0,1}, //channel 8
-  {1,0,0,1}, //channel 9
-  {0,1,0,1}, //channel 10
-  {1,1,0,1}, //channel 11
-  {0,0,1,1}, //channel 12
-  {1,0,1,1}, //channel 13
-  {0,1,1,1}, //channel 14
-  {1,1,1,1}  //channel 15
+// ------------------------------------------------------------------------------------
+// IIC
+// ------------------------------------------------------------------------------------
+void setI2CMultiplexChannel(I2CMultiplexer &mux_id, uint8_t channel) {
+  /* Set the channel on specified I2C multiplexer */
+  Wire.beginTransmission(mux_id.address);
+  Wire.write(1 << channel);
+  Wire.endTransmission();
+}
+
+void setI2CMultiplexerDataNAN(I2CMultiplexer &mux_id) {
+  /* Set all I2C multiplexer channel data to NAN */
+  for (int i=0; i<MAX_I2C_MULTIPLEXER_TCA9548A_CHANNELS; i++)
+    {mux_id.data[i]=NAN;}
+}
+
+// ------------------------------------------------------------------------------------
+// Analog/Digital
+// ------------------------------------------------------------------------------------
+static const int AD_MUX_CHANNEL_TABLE[MAX_ANALOG_DIGITAL_MULTIPLEXER_CONTROL_CHANNELS][MAX_ANALOG_DIGITAL_MULTIPLEXER_CONTROL_PINS] = {
+  {0,0,0,0}, // channel 0 
+  {1,0,0,0}, // channel 1 
+  {0,1,0,0}, // channel 2
+  {1,1,0,0}, // channel 3
+  {0,0,1,0}, // channel 4
+  {1,0,1,0}, // channel 5
+  {0,1,1,0}, // channel 6
+  {1,1,1,0}, // channel 7
+  {0,0,0,1}, // channel 8
+  {1,0,0,1}, // channel 9
+  {0,1,0,1}, // channel 10
+  {1,1,0,1}, // channel 11
+  {0,0,1,1}, // channel 12
+  {1,0,1,1}, // channel 13
+  {0,1,1,1}, // channel 14
+  {1,1,1,1}  // channel 15
 };
 
-void initMultiplexI2C(uint8_t mux_id) {if (mux_id >= MAX_I2C_MUX) {return;}}
-
-void setMultiplexChannel_I2C(uint8_t mux_id, uint8_t channel) {
-    if (mux_id >= MAX_I2C_MUX || channel > 7) {return;}
-    Wire.beginTransmission(i2c_muxes[mux_id].address);
-    Wire.write(1 << channel);
-    Wire.endTransmission();
+void setADMultiplexerChannel(AnalogDigitalMultiplexer &mux_id, int channel) {
+  /* Set the channel on specified analog/digital multiplexer */
+  for (int i=0; i<MAX_ANALOG_DIGITAL_MULTIPLEXER_CONTROL_PINS; i++) {
+      digitalWrite(mux_id.pins[i], AD_MUX_CHANNEL_TABLE[channel][i]);
+  }
 }
 
-void initMultiplexAD(uint8_t mux_id) {
-    if (mux_id >= MAX_AD_MUX) {return;}
-    for (int i = 0; i < MAX_AD_MUX_CONTROL_PINS; i++) {
-        pinMode(ad_muxes[mux_id].control_pins[i], OUTPUT);
-        digitalWrite(ad_muxes[mux_id].control_pins[i], LOW);
-    }
-    pinMode(ad_muxes[mux_id].signal_pin, INPUT);
+void readADMultiplexerAnalogChannel(AnalogDigitalMultiplexer &mux_id, uint8_t channel) {
+  /* Default is to store raw data (customize as required). */
+  pinMode(mux_id.pins[INDEX_ANALOG_DIGITAL_MULTIPLEXER_SIG], INPUT);
+  mux_id.data[channel] = analogRead(mux_id.pins[PIN_ANALOG_DIGITAL_MULTIPLEXER_0_SIG]);
 }
 
-void setMultiplexChannel_AD(uint8_t mux_id, int channel) {
-    if (mux_id >= MAX_AD_MUX || channel >= MAX_AD_MUX_CHANNELS) {return;}
-    for (int i = 0; i < MAX_AD_MUX_CONTROL_PINS; i++) {
-        digitalWrite(ad_muxes[mux_id].control_pins[i], AD_MUX_CHANNEL_TABLE[channel][i]);
-    }
+void readADMultiplexerDigitalChannel(AnalogDigitalMultiplexer &mux_id, uint8_t channel) {
+  /* Default is to store raw data (customize as required). */
+  pinMode(mux_id.pins[INDEX_ANALOG_DIGITAL_MULTIPLEXER_SIG], INPUT);
+  mux_id.data[channel] = digitalRead(mux_id.pins[PIN_ANALOG_DIGITAL_MULTIPLEXER_0_SIG]);
 }
 
-void setADData(uint8_t channel) {
-  /*
-    Default is to store raw data.
-    Customize if decoding/non-raw data is required...
-  */
-  multiplexerData.ADMPLEX_0_DATA[channel] = analogRead(ADMPLEX_0_SIG);
+void writeADMultiplexerAnalogChannel(AnalogDigitalMultiplexer &mux_id, uint8_t channel, int data) {
+  /* Write analog data to channel */
+  pinMode(mux_id.pins[INDEX_ANALOG_DIGITAL_MULTIPLEXER_SIG], OUTPUT);
+  analogWrite(mux_id.pins[INDEX_ANALOG_DIGITAL_MULTIPLEXER_SIG], data);
 }
 
-void setADMPLEX_0_NAN(void) {
-  for (int i=0; i<MAX_AD_MUX_CHANNELS; i++)
-    {multiplexerData.ADMPLEX_0_DATA[i]=NAN;}
+void writeADMultiplexerDigitalChannel(AnalogDigitalMultiplexer &mux_id, uint8_t channel, int data) {
+  /* Write digital data to channel */
+  pinMode(mux_id.pins[INDEX_ANALOG_DIGITAL_MULTIPLEXER_SIG], OUTPUT);
+  digitalWrite(mux_id.pins[INDEX_ANALOG_DIGITAL_MULTIPLEXER_SIG], data);
 }
 
-void setIICMPLEX_0_NAN(void) {
-for (int i=0; i<MAX_IIC_MUX_CHANNELS; i++)
-  {multiplexerData.IICMPLEX_0_DATA_0[i]=NAN;}
+void setADMultiplexerDataNAN(AnalogDigitalMultiplexer &mux_id) {
+  /* Set all analog/digital multiplexer channel data to NAN */
+  for (int i=0; i<MAX_ANALOG_DIGITAL_MULTIPLEXER_CONTROL_CHANNELS; i++) {mux_id.data[i]=NAN;}
+}
+
+void initADMultiplexer(AnalogDigitalMultiplexer &mux_id) {
+  /* Initialize an analog/digital multiplexer instance */
+  for (int i=0; i<MAX_ANALOG_DIGITAL_MULTIPLEXER_CONTROL_PINS; i++) {
+    // control pins as outputs
+      pinMode(mux_id.pins[i], OUTPUT);
+      digitalWrite(mux_id.pins[i], LOW);
+  }
+  // signal pin as direction
+  pinMode(mux_id.pins[INDEX_ANALOG_DIGITAL_MULTIPLEXER_SIG], INPUT);
 }

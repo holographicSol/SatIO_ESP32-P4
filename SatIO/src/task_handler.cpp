@@ -25,6 +25,11 @@
 #include "./system_data.h"
 #include "./sdmmc_helper.h"
 #include "./task_handler.h"
+#include "./seven_seg.h"
+
+TaskHandle_t TaskDisplay;
+TickType_t   LastWakeTimeTaskDisplay;
+TickType_t   DelayTicksTaskDisplay;
 
 TaskHandle_t TaskSerialInfoCMD;
 TickType_t   LastWakeTimeTaskSerialInfoCMD;
@@ -91,6 +96,12 @@ bool isTaskDelayed(TaskHandle_t taskHandle) {
     eTaskState state = eTaskGetState(taskHandle);
     return (state == eBlocked) || (state == eSuspended);
 }
+
+/*
+  Todo:
+      Task States: Running, Ready, Blocked, Suspended, Deleted, Invalid.
+      Device States: Found, Not Found, Initializing.
+*/
 
 /** ----------------------------------------------------------------------------
  * Storage Task.
@@ -357,6 +368,47 @@ void createTaskSwitches() {
     esp_task_wdt_add(TaskSwitches);
 }
 
+
+/** ----------------------------------------------------------------------------
+ * 7 Segment Task.
+ * @brief Updates 7-segment display(s).
+ */
+long time_7seg = 0;
+long prev_time_7seg = 0;
+long date_7seg = 0;
+long prev_date_7seg = 0;
+
+void taskDisplay(void * pvParameters) {
+  // while (global_task_sync==false) {vTaskDelay(1);}
+  for (;;) {
+    esp_task_wdt_reset();
+
+    // ------------------------------------------------
+    // update I2C multi display module
+    // ------------------------------------------------
+    writeI2CMultiDisplay();
+
+    // ------------------------------------------------
+    // Delay next iteration of task.
+    // ------------------------------------------------
+    if (TICK_DELAY_TASK_7SEG==false)
+      {xTaskNotifyWait(0x00, 0x00, NULL, DELAY_TASK_7SEG / portTICK_PERIOD_MS);}
+    else {xTaskNotifyWait(0x00, 0x00, NULL, DELAY_TASK_7SEG);}
+  }
+}
+void createTaskDisplay() {
+    xTaskCreatePinnedToCore(
+    taskDisplay,   /* Function to implement the task */
+    "TaskDisplay", /* Name of the task */
+    4096,           /* Stack size in words */
+    NULL,           /* Task input parameter */
+    4,              /* Priority of the task */
+    &TaskDisplay,  /* Task handle. */
+    1);             /* Core where the task should run */
+    esp_task_wdt_add(TaskDisplay);
+}
+
+
 /** ----------------------------------------------------------------------------
  * Port Controller Input Task.
  * 
@@ -441,11 +493,11 @@ void taskMultiplexers(void * pvParameters) {
   for (;;) {
     esp_task_wdt_reset();
     // ------------------------------------------------
-    // read all muiltiplexer channels
+    // read muiltiplexer channels (customize as required).
     // ------------------------------------------------
     for (uint8_t i_chan = 0; i_chan < 16; i_chan++) {
-      setMultiplexChannel_AD(0, i_chan);
-      setADData(i_chan);
+      setADMultiplexerChannel(ad_mux_0, i_chan);
+      readADMultiplexerAnalogChannel(ad_mux_0, i_chan);
     }
     // ------------------------------------------------
     // Counters
@@ -485,16 +537,16 @@ void taskLogging(void * pvParameters) {
     esp_task_wdt_reset();
     // check disk space
     // delete old logs if required
-    // write new log 
+    // write new log
     // dt,x,y,z
     if (systemData.logging_enabled) {
       Serial.println("[log] setting write flag true");
       sdmmcFlagData.write_log=true;
     }
-    else {Serial.println("[log] not enabled");}
+    // else {Serial.println("[log] not enabled");}
     // ------------------------------------------------
     // Counters
-    // ------------------------------------------------
+    // ------------------------------------------------.
     systemData.i_count_logging++;
     systemData.interval_breach_logging = 1;
     if (systemData.i_count_logging >= UINT32_MAX - 2)

@@ -45,12 +45,12 @@
           ESP32: io20   -> CD74HC4067: S3
 
           ESP32: WTGPS300P (5v):
-          ESP32: io27 RXD -> WTGPS300P: TXD
+          ESP32: io36 RXD -> WTGPS300P: TXD
           ESP32: null TXD -> WTGPS300P: RXD
 
           ESP32: WT901 9-Axis Gyro:
-          ESP32: Serial2 RXD -> WT901 TXD
-          ESP32: Serial2 TXD -> WT901 RXD
+          ESP32: io33 RXD -> WT901 TXD
+          ESP32: io32 TXD -> WT901 RXD
 
 -----
 
@@ -96,6 +96,7 @@
 #include "./system_data.h"
 #include "./sdmmc_helper.h"
 #include "./task_handler.h"
+#include "./seven_seg.h"
 
 #include <sys/time.h>
 #include <rtc_wdt.h>
@@ -114,6 +115,13 @@
 #include "driver/uart.h"
 #include "SPIFFS.h"
 
+/*
+  Uncomment if using general multi display controller 0.
+  This interrupt informs us to request data from general multi display controller 0.
+*/
+#define ISR_PIN_MultiDisplayController_0 47
+void IRAM_ATTR ISR_MultiDisplayController_0(void * arg) {ISR_Bool_MultiDisplayController_0=true;}
+
 /**
  * @brief Setup
  */
@@ -131,20 +139,6 @@ void setup() {
   // Warmup delay: some devices require at least one second start.
   // --------------------------------------------------------------
   delay(1000);
-  // --------------------------------------------------------------
-  // Initialize Pins.
-  // --------------------------------------------------------------
-  pinMode(ADMPLEX_0_S0, OUTPUT); 
-  pinMode(ADMPLEX_0_S1, OUTPUT); 
-  pinMode(ADMPLEX_0_S2, OUTPUT); 
-  pinMode(ADMPLEX_0_S3, OUTPUT); 
-  pinMode(ADMPLEX_0_SIG, INPUT); 
-  analogReadResolution(16);
-  analogSetAttenuation(ADC_11db);   // 0–3.3 V range
-  digitalWrite(ADMPLEX_0_S0, LOW);
-  digitalWrite(ADMPLEX_0_S1, LOW);
-  digitalWrite(ADMPLEX_0_S2, LOW);
-  digitalWrite(ADMPLEX_0_S3, LOW);
   // --------------------------------------------------------------
   // Initialize Serial 0.
   // --------------------------------------------------------------
@@ -183,6 +177,12 @@ void setup() {
     String(getCpuFrequencyMhz()));
   Serial.println("[APB_CLK_FREQ] " +
     String(getApbFrequency()));
+  
+  // --------------------------------------------------------------
+  // 7 Segment Display(s).
+  // --------------------------------------------------------------
+  // setupTM(); // initialize 7-segment display(s)
+
   // --------------------------------------------------------------
   // Initialize NVS.
   // --------------------------------------------------------------
@@ -258,18 +258,26 @@ void setup() {
 	Serial.println("[SERIAL2] initializing Gyro0");
   initWT901();
   delay(1000);
+
+  // ------------------------------------------------------------
+  // Interrupts
+  // ------------------------------------------------------------
+  pinMode(ISR_PIN_MultiDisplayController_0, INPUT_PULLDOWN); // requires HIGH/LOW inversion from interrupting device
+  attachInterruptArg(digitalPinToInterrupt(ISR_PIN_MultiDisplayController_0), ISR_MultiDisplayController_0, NULL, FALLING);
+
   // --------------------------------------------------------------
   // Create Tasks.
   // --------------------------------------------------------------
-  createTaskLogging();
-  createTaskSerialInfoCMD();
-  createTaskStorage();
-  createTaskMultiplexers();
-  createTaskPortControllerInput();
-  createTaskGyro();
+  createTaskDisplay(); // optional
   createTaskGPS();
-  myAstroBegin();
-  createTaskUniverse();
+  createTaskGyro(); // optional
+  createTaskLogging(); // optional
+  createTaskSerialInfoCMD(); // optional
+  createTaskStorage(); // optional
+  // createTaskMultiplexers(); // optional
+  createTaskPortControllerInput(); // optional
+  myAstroBegin(); // optional
+  createTaskUniverse(); // optional
   createTaskSwitches();
   syncTasks();
 }
@@ -282,4 +290,5 @@ void loop() {
   systemIntervalCheck();
   intervalBreach1Second();
   systemData.loops_a_second++;
+  // delay(10);
 }

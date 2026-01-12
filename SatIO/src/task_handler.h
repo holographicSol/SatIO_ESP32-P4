@@ -13,6 +13,7 @@ extern "C" {
 #include <stdbool.h>
 #include "freertos/FreeRTOS.h"
 
+extern TaskHandle_t Task7Seg;
 extern TaskHandle_t TaskSerialInfoCMD;
 extern TaskHandle_t TaskStorage;
 extern TaskHandle_t TaskMultiplexers;
@@ -23,6 +24,7 @@ extern TaskHandle_t TaskUniverse;
 extern TaskHandle_t TaskSwitches;
 extern TaskHandle_t TaskLogging;
 
+void createTaskDisplay();
 void createTaskSerialInfoCMD();
 void createTaskStorage();
 void createTaskMultiplexers();
@@ -79,4 +81,4 @@ void setDelay(TaskHandle_t task_handle, long *task_delay, long time_delay);
 }
 #endif
 
-#endif // TASK_HANDLER_H 
+#endif // TASK_HANDLER_H

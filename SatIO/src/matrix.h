@@ -273,7 +273,7 @@ void writeOutputPortControllerM0(void);
  * @return Returns None
  */
 void writeOutputPortControllerM1(void);
-bool readInputPortControllerM1();
+bool readInputPortControllerM1(void);
 
 #ifdef __cplusplus
 }

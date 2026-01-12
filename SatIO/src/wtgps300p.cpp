@@ -12,6 +12,8 @@
 #include "wtgps300p.h"
 #include <Arduino.h>
 #include "hextodig.h"
+#include <rtc_wdt.h>
+#include <esp_task_wdt.h>
 
 struct Serial1DataStruct serial1Data = {
     .nbytes = 0,
@@ -1217,6 +1219,7 @@ void readGPS(void) {
     serial1Data.gnrmc_bool=false;
     serial1Data.gpatt_bool=false;
     while (1) {
+      esp_task_wdt_reset();
       // --------------------------------------------------------------------------
       // Read sentences coming from the WTGPS300P. (WTGPS300P outputs every 100ms).
       // --------------------------------------------------------------------------

@@ -74,10 +74,22 @@ struct SATIOStruct {
     uint8_t local_yday;                                 // Local day of year
     uint8_t local_wday;                                 // Local day of week
     char local_wday_name[MAX_GLOBAL_ELEMENT_SIZE];      // Local weekday name
-    char formatted_local_time[MAX_GLOBAL_ELEMENT_SIZE];  // Formatted local time
-    char formatted_local_date[MAX_GLOBAL_ELEMENT_SIZE];  // Formatted local date
+
+    char formatted_local_time_HHMMSS[MAX_GLOBAL_ELEMENT_SIZE];   // Formatted local time
+    char formatted_local_date_DDMMYYYY[MAX_GLOBAL_ELEMENT_SIZE]; // Formatted local date
+    char formatted_local_short_date_DDMMYY[MAX_GLOBAL_ELEMENT_SIZE]; // Formatted local date
+
     char padded_local_time_HHMMSS[MAX_GLOBAL_ELEMENT_SIZE]; // Padded local time (HHMMSS)
-    char padded_local_date_DDMMYYYY[MAX_GLOBAL_ELEMENT_SIZE]; // Padded local date
+    char padded_local_hour[MAX_GLOBAL_ELEMENT_SIZE];        // Padded local hour (HH)
+    char padded_local_minute[MAX_GLOBAL_ELEMENT_SIZE];      // Padded local hour (MM)
+    char padded_local_second[MAX_GLOBAL_ELEMENT_SIZE];      // Padded local hour (SS)
+
+    char padded_local_date_DDMMYYYY[MAX_GLOBAL_ELEMENT_SIZE];     // Padded local date
+    char padded_local_short_date_DDMMYY[MAX_GLOBAL_ELEMENT_SIZE]; // Padded local short date
+    char padded_local_day[MAX_GLOBAL_ELEMENT_SIZE];               // Padded local hour (HH)
+    char padded_local_month[MAX_GLOBAL_ELEMENT_SIZE];             // Padded local hour (MM)
+    char padded_local_year[MAX_GLOBAL_ELEMENT_SIZE];              // Padded local hour (SS)
+
     uint64_t local_unixtime_uS;                         // Local Unix time in microseconds
     uint8_t rtcsync_hour;                               // RTC sync hour
     uint8_t rtcsync_minute;                             // RTC sync minute
@@ -177,10 +189,8 @@ extern struct SpeedStruct speedData;
 // ----------------------------------------------------------------------------------------
 // Function Prototypes.
 // ----------------------------------------------------------------------------------------
-double convertSpeedUnits(double speed);
-void calculateLocation(void);
 void setGroundHeadingName(float num);
-char* padDigitsZero(int digits);
+void padDigitsZero(int digits, char* output, size_t output_size);
 void printAllTimes(void);
 void storeRTCTime(void);
 void storeLocalTime(void);
@@ -192,6 +202,7 @@ void syncRTC(void);
 void setSatIOData(void);
 void initRTC(void);
 void initSystemTime(void);
+void writeI2CMultiDisplay(void);
 
 /**
    * @brief Calculates the speed between two GPS points in any direction.

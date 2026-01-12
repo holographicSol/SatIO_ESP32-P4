@@ -211,52 +211,52 @@ void map_values(void) {
             break;
         // reduce the following using an index array
         case INDEX_MAPPABLE_VALUES_ADMPLEX0_0:
-            map_values_helper(map_slot, multiplexerData.ADMPLEX_0_DATA[0]);
+            map_values_helper(map_slot, ad_mux_0.data[0]);
             break;
         case INDEX_MAPPABLE_VALUES_ADMPLEX0_1:
-            map_values_helper(map_slot, multiplexerData.ADMPLEX_0_DATA[1]);
+            map_values_helper(map_slot, ad_mux_0.data[1]);
             break;
         case INDEX_MAPPABLE_VALUES_ADMPLEX0_2:
-            map_values_helper(map_slot, multiplexerData.ADMPLEX_0_DATA[2]);
+            map_values_helper(map_slot, ad_mux_0.data[2]);
             break;
         case INDEX_MAPPABLE_VALUES_ADMPLEX0_3:
-            map_values_helper(map_slot, multiplexerData.ADMPLEX_0_DATA[3]);
+            map_values_helper(map_slot, ad_mux_0.data[3]);
             break;
         case INDEX_MAPPABLE_VALUES_ADMPLEX0_4:
-            map_values_helper(map_slot, multiplexerData.ADMPLEX_0_DATA[4]);
+            map_values_helper(map_slot, ad_mux_0.data[4]);
             break;
         case INDEX_MAPPABLE_VALUES_ADMPLEX0_5:
-            map_values_helper(map_slot, multiplexerData.ADMPLEX_0_DATA[5]);
+            map_values_helper(map_slot, ad_mux_0.data[5]);
             break;
         case INDEX_MAPPABLE_VALUES_ADMPLEX0_6:
-            map_values_helper(map_slot, multiplexerData.ADMPLEX_0_DATA[6]);
+            map_values_helper(map_slot, ad_mux_0.data[6]);
             break;
         case INDEX_MAPPABLE_VALUES_ADMPLEX0_7:
-            map_values_helper(map_slot, multiplexerData.ADMPLEX_0_DATA[7]);
+            map_values_helper(map_slot, ad_mux_0.data[7]);
             break;
         case INDEX_MAPPABLE_VALUES_ADMPLEX0_8:
-            map_values_helper(map_slot, multiplexerData.ADMPLEX_0_DATA[8]);
+            map_values_helper(map_slot, ad_mux_0.data[8]);
             break;
         case INDEX_MAPPABLE_VALUES_ADMPLEX0_9:
-            map_values_helper(map_slot, multiplexerData.ADMPLEX_0_DATA[9]);
+            map_values_helper(map_slot, ad_mux_0.data[9]);
             break;
         case INDEX_MAPPABLE_VALUES_ADMPLEX0_10:
-            map_values_helper(map_slot, multiplexerData.ADMPLEX_0_DATA[10]);
+            map_values_helper(map_slot, ad_mux_0.data[10]);
             break;
         case INDEX_MAPPABLE_VALUES_ADMPLEX0_11:
-            map_values_helper(map_slot, multiplexerData.ADMPLEX_0_DATA[11]);
+            map_values_helper(map_slot, ad_mux_0.data[11]);
             break;
         case INDEX_MAPPABLE_VALUES_ADMPLEX0_12:
-            map_values_helper(map_slot, multiplexerData.ADMPLEX_0_DATA[12]);
+            map_values_helper(map_slot, ad_mux_0.data[12]);
             break;
         case INDEX_MAPPABLE_VALUES_ADMPLEX0_13:
-            map_values_helper(map_slot, multiplexerData.ADMPLEX_0_DATA[13]);
+            map_values_helper(map_slot, ad_mux_0.data[13]);
             break;
         case INDEX_MAPPABLE_VALUES_ADMPLEX0_14:
-            map_values_helper(map_slot, multiplexerData.ADMPLEX_0_DATA[14]);
+            map_values_helper(map_slot, ad_mux_0.data[14]);
             break;
         case INDEX_MAPPABLE_VALUES_ADMPLEX0_15:
-            map_values_helper(map_slot, multiplexerData.ADMPLEX_0_DATA[15]);
+            map_values_helper(map_slot, ad_mux_0.data[15]);
             break;
         default:
             mappingData.mapped_value[0][map_slot]=0;

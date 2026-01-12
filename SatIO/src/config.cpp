@@ -4,6 +4,9 @@
 // Power & Performance – Real mutable variables with default values
 // ----------------------------------------------------------------------------------------
 
+long  DELAY_TASK_7SEG       = POWER_CONFIG_ULTIMATE_PERFORMANCE_DELAY_TASK_7SEG;
+bool  TICK_DELAY_TASK_7SEG  = POWER_CONFIG_ULTIMATE_PERFORMANCE_TICK_DELAY_TASK_7SEG;
+
 long  DELAY_TASK_SERIAL_INFOCMD       = POWER_CONFIG_ULTIMATE_PERFORMANCE_DELAY_TASK_SERIAL_INFOCMD;
 bool  TICK_DELAY_TASK_SERIAL_INFOCMD  = POWER_CONFIG_ULTIMATE_PERFORMANCE_TICK_DELAY_TASK_SERIAL_INFOCMD;
 
@@ -34,3 +37,5 @@ bool  TICK_DELAY_TASK_LOGGING    = POWER_CONFIG_ULTIMATE_PERFORMANCE_TICK_DELAY_
 
 bool global_task_sync      = false;
 long system_sync_retry_max = 2000;
+
+bool ISR_Bool_MultiDisplayController_0 = false;
