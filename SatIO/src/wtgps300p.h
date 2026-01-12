@@ -12,10 +12,6 @@
 #ifndef WTGPS300P_H
 #define WTGPS300P_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include <stdbool.h>  // For bool
 #include <stdint.h>   // For uint8_t, uint32_t
 #include "strval.h"   // For string validation functions
@@ -539,9 +535,5 @@ void readGPS(void);
  * Validates all collected GPS sentence data, including checksums and element formats.
  */
 void validateGPSData(void);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif

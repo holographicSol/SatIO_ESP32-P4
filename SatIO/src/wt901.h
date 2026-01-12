@@ -5,10 +5,6 @@
 #ifndef WT901_H
 #define WT901_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include <stdint.h>
 #include "config.h"
 
@@ -92,9 +88,5 @@ void WT901CalMagStart(void);
  * Ends the magnetic field calibration process for the WT901 sensor.
  */
 void WT901CalMagEnd(void);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif

@@ -6,10 +6,6 @@
 #ifndef MATRIX_H
 #define MATRIX_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include <stdint.h>
 #include <stdbool.h>
 #include "config.h"
@@ -274,9 +270,5 @@ void writeOutputPortControllerM0(void);
  */
 void writeOutputPortControllerM1(void);
 bool readInputPortControllerM1(void);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif

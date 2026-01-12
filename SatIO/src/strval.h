@@ -1,10 +1,6 @@
 #ifndef STRVAL_H
 #define STRVAL_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /*
   strval - Written By Benjamin Jack Cullen
 */
@@ -108,9 +104,5 @@ bool str_is_int16(const char *str);
  * @return Return true if str is int8
  */
 bool str_is_int8(const char *str);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif

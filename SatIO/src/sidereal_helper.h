@@ -5,10 +5,6 @@
 #ifndef SIDEREAL_HELPER_H
 #define SIDEREAL_HELPER_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "config.h"
 
 // ----------------------------------------------------------------------------------------
@@ -186,8 +182,5 @@ void trackPlanets(double latitude, double longitude,
     double local_hour, double local_minute, double local_second,
     double altitude);
 void myAstroBegin(void);
-#ifdef __cplusplus
-}
-#endif
 
 #endif

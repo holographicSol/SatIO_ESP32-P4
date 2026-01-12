@@ -7,10 +7,6 @@
 #ifndef INS_H
 #define INS_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include <stdbool.h>
 #include <stdint.h>
 #include "config.h"
@@ -129,9 +125,5 @@ void set_ins(double gps_latitude,
              double ground_speed,
              double gps_precision_factor,
              double gyro_heading);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif

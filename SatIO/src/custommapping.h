@@ -5,10 +5,6 @@
 #ifndef CUSTOMMAPPING_H
 #define CUSTOMMAPPING_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include <stdint.h>
 #include <stdbool.h>
 #include "config.h"
@@ -99,9 +95,5 @@ void set_mapping_default(int map_slot);
  * @return No return
  */
 void set_all_mapping_default(void);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif

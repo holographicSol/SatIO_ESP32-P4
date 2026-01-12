@@ -1636,35 +1636,10 @@ void setOutputValues(void) {
         {matrixData.prev_output_value[0][Mi]=matrixData.output_value[0][Mi];
          matrixData.matrix_switch_write_required[0][Mi]=true;}
     }
-    // B : Just update & let matrix passthrough if required.
+    // B : Just update & let matrix determine if write required.
     else {matrixData.output_value[0][Mi];}
   }
 }
-
-typedef struct {
-  int  i_token=0;
-  long i_bytes;
-  byte OUTPUT_BUFFER[MAX_IIC_BUFFER_SIZE]; // bytes to be sent
-  char * token;
-  char INPUT_BUFFER[MAX_IIC_BUFFER_SIZE];  // chars received
-  char TMP_BUFFER_0[MAX_IIC_BUFFER_SIZE];  // chars of bytes to be sent
-  char TMP_BUFFER_1[MAX_IIC_BUFFER_SIZE];  // some space for type conversions
-} IICLink;
-IICLink IICLink0;
-IICLink IICLink1;
-IICLink IICLink2;
-
-/*
-   This allocates buffers automatically.
-   Note that naming 'I2C1' will trigger reset while I2C3/I2C2 is fine.
-   0 fine
-   1 fine
-   2 fine
-   3 null buffer pointer
-*/
-TwoWire iic_1 = TwoWire(1);
-TwoWire iic_2 = TwoWire(2);
-
 
 void initOutputPortController() {
   iic_1.setPins(4, 5);
@@ -1676,7 +1651,6 @@ void initOutputPortController() {
   // iic_1.setClock(200000); // ESP32 2.2k resistor         good
   // iic_1.setClock(250000); // ATMEGA2560 2.2k resistor    good
   iic_1.setClock(800000); // ATMEGA2560 2.2k resistor       good (+-4ns rise time)
-
   // iic_1.setClock(400000); // ESP32 no resistors          bad
   // iic_1.setClock(400000); // ESP32 2.2k resistor         bad
   // iic_1.setClock(400000); // ESP32 1k resistor           bad
@@ -1692,21 +1666,21 @@ void initInputPortController() {
 }
 
 void writeI2COutputPortController(int I2C_Address) {
-  // Serial.println("writeI2COutputPortController: " + String(IICLink1.TMP_BUFFER_0));
+  // Serial.println("writeI2COutputPortController: " + String(IICLink1.OUTPUT_BUFFER_CHARS));
   // Compile bytes array.
-  memset(IICLink1.OUTPUT_BUFFER, 0, sizeof(IICLink1.OUTPUT_BUFFER));
-  for (byte i=0;i<sizeof(IICLink1.OUTPUT_BUFFER);i++)
-  {IICLink1.OUTPUT_BUFFER[i]=(byte)IICLink1.TMP_BUFFER_0[i];}
+  memset(IICLink1.OUTPUT_BUFFER_BYTES, 0, sizeof(IICLink1.OUTPUT_BUFFER_BYTES));
+  for (byte i=0;i<sizeof(IICLink1.OUTPUT_BUFFER_BYTES);i++)
+  {IICLink1.OUTPUT_BUFFER_BYTES[i]=(byte)IICLink1.OUTPUT_BUFFER_CHARS[i];}
   iic_1.beginTransmission(I2C_Address);
   // Write bytes array.
-  iic_1.write(IICLink1.OUTPUT_BUFFER, sizeof(IICLink1.OUTPUT_BUFFER));
+  iic_1.write(IICLink1.OUTPUT_BUFFER_BYTES, sizeof(IICLink1.OUTPUT_BUFFER_BYTES));
   iic_1.endTransmission();
 }
 
 void writeOutputPortControllerM0(void) {
   // Tag.
-  memset(IICLink1.TMP_BUFFER_0, 0, sizeof(IICLink1.TMP_BUFFER_0));
-  strcpy(IICLink1.TMP_BUFFER_0, "M0");
+  memset(IICLink1.OUTPUT_BUFFER_CHARS, 0, sizeof(IICLink1.OUTPUT_BUFFER_CHARS));
+  strcpy(IICLink1.OUTPUT_BUFFER_CHARS, "M0");
   // Write instruction.
   writeI2COutputPortController(I2C_ADDR_OUTPUT_PORTCONTROLLER);
   systemData.i_count_port_controller++;

@@ -7,10 +7,6 @@
 
 #include <stdbool.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "config.h"
 
 /**
@@ -57,9 +53,5 @@ extern bool meteor_shower_warning_system[MAX_METEOR_SHOWERS][MAX_METEOR_RESULT_E
  * @param mday Current day of the month
  */
 void setMeteorShowerWarning(int month, int mday);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif

@@ -5,10 +5,6 @@
 #ifndef SYSTEM_DATA_H
 #define SYSTEM_DATA_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include <stdint.h>
 #include <stdbool.h>
 #include "esp_attr.h"
@@ -124,9 +120,5 @@ void intervalBreach1Second(void);
  * Restores the system to default configuration values.
  */
 void restore_system_defaults(void);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif

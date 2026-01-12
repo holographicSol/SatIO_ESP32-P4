@@ -5,10 +5,6 @@
 #ifndef SERIAL_INFOCMD_H
 #define SERIAL_INFOCMD_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include <stdint.h>
 #include <stdbool.h>
 #include "config.h"
@@ -51,9 +47,5 @@ void CmdProcess(void);
  * @brief Prints various infomation for debugging purposes only. 
  */
 void outputStat(void);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif

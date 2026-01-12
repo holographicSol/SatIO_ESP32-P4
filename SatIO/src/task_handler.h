@@ -5,10 +5,6 @@
 #ifndef TASK_HANDLER_H
 #define TASK_HANDLER_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include <stdint.h>
 #include <stdbool.h>
 #include "freertos/FreeRTOS.h"
@@ -76,9 +72,5 @@ void setTick(TaskHandle_t task_handle, bool *tick_delay, bool use_tick);
  * @brief Manually override delay timing.
  */
 void setDelay(TaskHandle_t task_handle, long *task_delay, long time_delay);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif // TASK_HANDLER_H

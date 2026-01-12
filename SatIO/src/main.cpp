@@ -96,7 +96,7 @@
 #include "./system_data.h"
 #include "./sdmmc_helper.h"
 #include "./task_handler.h"
-#include "./seven_seg.h"
+#include "./multi_display_controller.h"
 
 #include <sys/time.h>
 #include <rtc_wdt.h>
@@ -114,13 +114,6 @@
 #include "esp_system.h"
 #include "driver/uart.h"
 #include "SPIFFS.h"
-
-/*
-  Uncomment if using general multi display controller 0.
-  This interrupt informs us to request data from general multi display controller 0.
-*/
-#define ISR_PIN_MultiDisplayController_0 47
-void IRAM_ATTR ISR_MultiDisplayController_0(void * arg) {ISR_Bool_MultiDisplayController_0=true;}
 
 /**
  * @brief Setup
@@ -262,8 +255,8 @@ void setup() {
   // ------------------------------------------------------------
   // Interrupts
   // ------------------------------------------------------------
-  pinMode(ISR_PIN_MultiDisplayController_0, INPUT_PULLDOWN); // requires HIGH/LOW inversion from interrupting device
-  attachInterruptArg(digitalPinToInterrupt(ISR_PIN_MultiDisplayController_0), ISR_MultiDisplayController_0, NULL, FALLING);
+  pinMode(ISR_PIN_MULTIDISPLAY_CONTROLLER_0, INPUT_PULLDOWN); // requires HIGH/LOW inversion from interrupting device
+  attachInterruptArg(digitalPinToInterrupt(ISR_PIN_MULTIDISPLAY_CONTROLLER_0), ISR_MultiDisplayController_0, NULL, FALLING);
 
   // --------------------------------------------------------------
   // Create Tasks.

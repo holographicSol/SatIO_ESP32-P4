@@ -4,13 +4,46 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-
 #include <stdint.h>
 #include <stdbool.h>
+#include <Arduino.h>   // <<< REQUIRED FIRST
+#include <Wire.h>   // REQUIRED for TwoWire type
+#include "config.h"
+
+extern long  DELAY_TASK_7SEG;
+extern bool  TICK_DELAY_TASK_7SEG;
+
+extern long  DELAY_TASK_SERIAL_INFOCMD;
+extern bool  TICK_DELAY_TASK_SERIAL_INFOCMD;
+
+extern long  DELAY_TASK_MULTIPLEXERS;
+extern bool  TICK_DELAY_TASK_MULTIPLEXERS;
+
+extern long  DELAY_TASK_GYRO0;
+extern bool  TICK_DELAY_TASK_GYRO0;
+
+extern long  DELAY_TASK_UNIVERSE;
+extern bool  TICK_DELAY_TASK_UNIVERSE;
+
+extern long  DELAY_TASK_GPS;
+extern bool  TICK_DELAY_TASK_GPS;
+
+extern long  DELAY_TASK_SWITCHES;
+extern bool  TICK_DELAY_TASK_SWITCHES;
+
+extern long  DELAY_TASK_PORTCONTROLLER_INPUT;
+extern bool  TICK_DELAY_TASK_PORTCONTROLLER_INPUT;
+
+extern long  DELAY_TASK_STORAGE;
+extern bool  TICK_DELAY_TASK_STORAGE;
+
+extern long  DELAY_TASK_LOGGING;
+extern bool  TICK_DELAY_TASK_LOGGING;
+
+extern bool global_task_sync;
+extern long system_sync_retry_max;
+
+extern bool ISR_Bool_MultiDisplayController_0;
 
 #define EARTH_MEAN_RADIUS 6371000.0 // Mean Earth radius (meters)
 
@@ -83,41 +116,6 @@ extern "C" {
 
 #define POWER_CONFIG_ULTIMATE_PERFORMANCE_DELAY_TASK_LOGGING                     1000
 #define POWER_CONFIG_ULTIMATE_PERFORMANCE_TICK_DELAY_TASK_LOGGING                false
-
-extern long  DELAY_TASK_7SEG;
-extern bool  TICK_DELAY_TASK_7SEG;
-
-extern long  DELAY_TASK_SERIAL_INFOCMD;
-extern bool  TICK_DELAY_TASK_SERIAL_INFOCMD;
-
-extern long  DELAY_TASK_MULTIPLEXERS;
-extern bool  TICK_DELAY_TASK_MULTIPLEXERS;
-
-extern long  DELAY_TASK_GYRO0;
-extern bool  TICK_DELAY_TASK_GYRO0;
-
-extern long  DELAY_TASK_UNIVERSE;
-extern bool  TICK_DELAY_TASK_UNIVERSE;
-
-extern long  DELAY_TASK_GPS;
-extern bool  TICK_DELAY_TASK_GPS;
-
-extern long  DELAY_TASK_SWITCHES;
-extern bool  TICK_DELAY_TASK_SWITCHES;
-
-extern long  DELAY_TASK_PORTCONTROLLER_INPUT;
-extern bool  TICK_DELAY_TASK_PORTCONTROLLER_INPUT;
-
-extern long  DELAY_TASK_STORAGE;
-extern bool  TICK_DELAY_TASK_STORAGE;
-
-extern long  DELAY_TASK_LOGGING;
-extern bool  TICK_DELAY_TASK_LOGGING;
-
-extern bool global_task_sync;
-extern long system_sync_retry_max;
-
-extern bool ISR_Bool_MultiDisplayController_0;
 
 // ----------------------------------------------------------------------------------------
 // Buffers.
@@ -455,10 +453,24 @@ extern bool ISR_Bool_MultiDisplayController_0;
 #define INDEX_SIDEREAL_MESSIER_TABLE 3       
 #define INDEX_SIDEREAL_CALDWELL_TABLE 4      
 #define INDEX_SIDEREAL_HERSHEL400_TABLE 5    
-#define INDEX_SIDEREAL_OTHER_OBJECTS_TABLE 6 
+#define INDEX_SIDEREAL_OTHER_OBJECTS_TABLE 6
 
-#ifdef __cplusplus
-}
-#endif
+/**
+ * @brief Global IIC wire instances and data struictures for each wire channel.
+ */
+extern TwoWire iic_0;
+extern TwoWire iic_1;
+extern TwoWire iic_2;
+typedef struct {
+  int  i_token;
+  char * token;
+  long i_bytes;
+  char INPUT_BUFFER[MAX_IIC_BUFFER_SIZE];
+  char OUTPUT_BUFFER_CHARS[MAX_IIC_BUFFER_SIZE];
+  byte OUTPUT_BUFFER_BYTES[MAX_IIC_BUFFER_SIZE];
+} IICLink;
+extern IICLink IICLink0;
+extern IICLink IICLink1;
+extern IICLink IICLink2;
 
 #endif // CONFIG_H

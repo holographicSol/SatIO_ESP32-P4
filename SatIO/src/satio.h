@@ -10,9 +10,9 @@
 #ifndef SATIO_H
 #define SATIO_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+// #ifdef __cplusplus
+// extern "C" {
+// #endif
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -202,7 +202,6 @@ void syncRTC(void);
 void setSatIOData(void);
 void initRTC(void);
 void initSystemTime(void);
-void writeI2CMultiDisplay(void);
 
 /**
    * @brief Calculates the speed between two GPS points in any direction.
@@ -220,8 +219,8 @@ void writeI2CMultiDisplay(void);
  */
  double calculateSpeedFromLocationData(LocPoint p1, LocPoint p2);
 
-#ifdef __cplusplus
-}
-#endif
+// #ifdef __cplusplus
+// }
+// #endif
 
 #endif

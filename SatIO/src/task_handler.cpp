@@ -25,7 +25,7 @@
 #include "./system_data.h"
 #include "./sdmmc_helper.h"
 #include "./task_handler.h"
-#include "./seven_seg.h"
+#include "./multi_display_controller.h"
 
 TaskHandle_t TaskDisplay;
 TickType_t   LastWakeTimeTaskDisplay;
@@ -370,8 +370,8 @@ void createTaskSwitches() {
 
 
 /** ----------------------------------------------------------------------------
- * 7 Segment Task.
- * @brief Updates 7-segment display(s).
+ * Multi Display Controller.
+ * @brief Sends instructions to multi display controller.
  */
 long time_7seg = 0;
 long prev_time_7seg = 0;
@@ -383,10 +383,74 @@ void taskDisplay(void * pvParameters) {
   for (;;) {
     esp_task_wdt_reset();
 
-    // ------------------------------------------------
-    // update I2C multi display module
-    // ------------------------------------------------
-    writeI2CMultiDisplay();
+    /* test multi display module and library  */
+
+    // test request interrupt
+    requestMultiDisplayControllerData(I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0,
+    ISR_MULTI_DISPLAY_CONTROLLER_0);
+    
+    if (ALLOW_UPDATE_MULTIDISPLAY_CONTROLLER_0) {
+
+      // test indiocators
+      updateIndicator(I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0,
+                      0,
+                      255, 0, 0);
+      updateIndicator(I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0,
+                      9,
+                      0, 0, 255);
+      
+      // test 7 segment 4 digit display 0
+      update7Segment4Digit(I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0,
+      0,
+      gnggaData.satellite_count);
+      
+      // test 7 segment 4 digit display 1
+      update7Segment4Digit(I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0,
+      1,
+      gnggaData.gps_precision_factor);
+
+      // test 7 segment 6 digit display 0
+      update7Segment6Digit(I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0,
+      2,
+      satioData.padded_local_time_HHMMSS
+      );
+
+      // test 7 segment 6 digit display 1
+      update7Segment6Digit(I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0,
+      3,
+      satioData.padded_local_short_date_DDMMYY
+      );
+
+      // test SSD1306 0
+      updateSSD1306(I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0,
+      0,
+      0,
+      1, 1,
+      gnggaData.satellite_count
+      );
+      updateSSD1306(I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0,
+        0,
+        1,
+        1, 12,
+        satioData.formatted_local_time_HHMMSS
+      );
+      drawSSD1306Canvas(I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0, 0);
+      
+      // test SSD1306 1
+      updateSSD1306(I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0,
+      1,
+      0,
+      1, 1,
+      gnggaData.satellite_count
+      );
+      updateSSD1306(I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0,
+      1,
+      1,
+      1, 16,
+      satioData.formatted_local_time_HHMMSS
+      );
+      drawSSD1306Canvas(I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0, 1);
+    }
 
     // ------------------------------------------------
     // Delay next iteration of task.

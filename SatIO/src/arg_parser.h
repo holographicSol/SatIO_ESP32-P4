@@ -25,13 +25,9 @@
 #define ARG_PARSER_H
 
 #include <stdint.h>
-#include <stddef.h> // for size_t
+#include <stddef.h>
 #include <stdbool.h>
 #include <config.h>
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 #define MAX_INPUT_LEN 512
 #define MAX_FLAG_LEN 256
@@ -240,9 +236,5 @@ size_t argparser_positional_count(const ArgParser* p);
  * @return Path chars
  */
 const char* argparser_get_path(const ArgParser* p, const char* default_val);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif // ARG_PARSER_H

@@ -7,10 +7,6 @@
 #ifndef ESP32_HELPER_H
 #define ESP32_HELPER_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "config.h"
 
 /**
@@ -38,9 +34,5 @@ void print_partition_table(void);
  * @return Returns None
  */
 void print_ram_info(void);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif
