@@ -38,11 +38,11 @@
           ESP32: IIC 0 SCL as io3 -> TCA9548A: SCL
 
           ESP32: Analog/Digital Multiplexing (3.3v):
-          ESP32: io53   -> CD74HC4067: SIG
           ESP32: io23   -> CD74HC4067: S0
           ESP32: io22   -> CD74HC4067: S1
           ESP32: io21   -> CD74HC4067: S2
           ESP32: io20   -> CD74HC4067: S3
+          ESP32: io53   -> CD74HC4067: SIG
 
           ESP32: WTGPS300P (5v):
           ESP32: io36 RXD -> WTGPS300P: TXD

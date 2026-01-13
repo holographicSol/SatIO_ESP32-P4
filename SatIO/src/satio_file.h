@@ -52,6 +52,7 @@ struct satioFileStruct {
 extern struct satioFileStruct satioFileData;
 
 // system -log -e
+// system -log -d
 
 // ----------------------------------------------------------------------------------------
 // Function Prototypes.

@@ -81,24 +81,40 @@ void setADMultiplexerChannel(AnalogDigitalMultiplexer &mux_id, int channel) {
 
 void readADMultiplexerAnalogChannel(AnalogDigitalMultiplexer &mux_id, uint8_t channel) {
   /* Default is to store raw data (customize as required). */
+  setADMultiplexerChannel(mux_id, channel);
   pinMode(mux_id.pins[INDEX_ANALOG_DIGITAL_MULTIPLEXER_SIG], INPUT);
   mux_id.data[channel] = analogRead(mux_id.pins[INDEX_ANALOG_DIGITAL_MULTIPLEXER_SIG]);
 }
 
+void readAllADMultiplexerAnalogChannels(AnalogDigitalMultiplexer &mux_id) {
+  for (int i=0; i<MAX_ANALOG_DIGITAL_MULTIPLEXER_CONTROL_PINS; i++) {
+    readADMultiplexerAnalogChannel(mux_id, i);
+  }
+}
+
 void readADMultiplexerDigitalChannel(AnalogDigitalMultiplexer &mux_id, uint8_t channel) {
   /* Default is to store raw data (customize as required). */
+  setADMultiplexerChannel(mux_id, channel);
   pinMode(mux_id.pins[INDEX_ANALOG_DIGITAL_MULTIPLEXER_SIG], INPUT);
   mux_id.data[channel] = digitalRead(mux_id.pins[INDEX_ANALOG_DIGITAL_MULTIPLEXER_SIG]);
 }
 
+void readAllADMultiplexerDigitalChannels(AnalogDigitalMultiplexer &mux_id) {
+  for (int i=0; i<MAX_ANALOG_DIGITAL_MULTIPLEXER_CONTROL_PINS; i++) {
+    readADMultiplexerDigitalChannel(mux_id, i);
+  }
+}
+
 void writeADMultiplexerAnalogChannel(AnalogDigitalMultiplexer &mux_id, uint8_t channel, int data) {
   /* Write analog data to channel */
+  setADMultiplexerChannel(mux_id, channel);
   pinMode(mux_id.pins[INDEX_ANALOG_DIGITAL_MULTIPLEXER_SIG], OUTPUT);
   analogWrite(mux_id.pins[INDEX_ANALOG_DIGITAL_MULTIPLEXER_SIG], data);
 }
 
 void writeADMultiplexerDigitalChannel(AnalogDigitalMultiplexer &mux_id, uint8_t channel, int data) {
   /* Write digital data to channel */
+  setADMultiplexerChannel(mux_id, channel);
   pinMode(mux_id.pins[INDEX_ANALOG_DIGITAL_MULTIPLEXER_SIG], OUTPUT);
   digitalWrite(mux_id.pins[INDEX_ANALOG_DIGITAL_MULTIPLEXER_SIG], data);
 }

@@ -560,10 +560,9 @@ void taskMultiplexers(void * pvParameters) {
     // ------------------------------------------------
     // read muiltiplexer channels (customize as required).
     // ------------------------------------------------
-    for (uint8_t i_chan = 0; i_chan < 16; i_chan++) {
-      setADMultiplexerChannel(ad_mux_0, i_chan);
-      readADMultiplexerAnalogChannel(ad_mux_0, i_chan);
-    }
+    readAllADMultiplexerAnalogChannels(ad_mux_0);
+    // Serial.println("[ad] " + String(i_chan) + ": " + String(ad_mux_0.data[i_chan]));
+
     // ------------------------------------------------
     // Counters
     // ------------------------------------------------
