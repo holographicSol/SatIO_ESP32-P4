@@ -77,9 +77,6 @@ public:
   int numSectors();
   bool readRAW(uint8_t *buffer, uint32_t sector);
   bool writeRAW(uint8_t *buffer, uint32_t sector);
-  /*
-    New: modified by Benjamin Jack Cullen.
-  */
   sdmmc_card_t *returnCard();
   sdmmc_host_t returnHost();
   sdmmc_slot_config_t returnSlotConfig();

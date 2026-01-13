@@ -41,22 +41,15 @@ using namespace fs;
 // --------------------------------------------
 // 
 /*
-  New: modified by Benjamin Jack Cullen.
-
-  The following provides much more functionality when calling
-  begin(), by making host, slot_config, card and ldo_config etc
-  available if begin() is called, where host, slot_config, card
-  and ldo_config etc. would usually only be available at a higher
-  level if created manually before calling esp_vfs_fat_sdmmc_mount()
-  instead of begin().
-  
-  Many functions require host, slot_config, card and ldo_config
-  arguments, now they are available by simply calling begin() rather
-  than creating them manually when calling esp_vfs_fat_sdmmc_mount().
-
-  Other modifications include releasing on chip LDO on end() so
-  that cards can be remounted without causing LDO channel aquisition
-  errors due to SD_MMC not releasing LDO channel on end().
+  New: globals.
+  Set certain variables globally so we can expose
+  them when/if required.
+  This is useful if calling begin() where
+  configuration of host, slot_config, card,
+  ldo_config, etc. are not required, rendering
+  no handle to host, slot_config, card and
+  ldo_config etc. that could otherwise be used
+  to provide more practical functionality.
 */
 // --------------------------------------------
 sdmmc_host_t host = SDMMC_HOST_DEFAULT();
@@ -106,8 +99,7 @@ sd_pwr_ctrl_ldo_config_t SDMMCFS::returnLDOConfig() {
 // --------------------------------------------
 
 SDMMCFS::SDMMCFS(FSImplPtr impl) : FS(impl), _card(nullptr) {
-#if defined(SOC_SDMMC_USE_GPIO_MATRIX) && defined(BOARD_HAS_SDMMC) && \
-!defined(CONFIG_IDF_TARGET_ESP32P4)
+#if defined(SOC_SDMMC_USE_GPIO_MATRIX) && defined(BOARD_HAS_SDMMC) && !defined(CONFIG_IDF_TARGET_ESP32P4)
   _pin_clk = SDMMC_CLK;
   _pin_cmd = SDMMC_CMD;
   _pin_d0 = SDMMC_D0;
@@ -181,8 +173,7 @@ bool SDMMCFS::setPins(int clk, int cmd, int d0, int d1, int d2, int d3) {
   d3 = digitalPinToGPIONumber(d3);
 
 #if defined(SOC_SDMMC_USE_GPIO_MATRIX) && !defined(CONFIG_IDF_TARGET_ESP32P4)
-  // SoC supports SDMMC pin configuration via GPIO matrix. Save the pins for later
-  // use in SDMMCFS::begin.
+  // SoC supports SDMMC pin configuration via GPIO matrix. Save the pins for later use in SDMMCFS::begin.
   _pin_clk = (int8_t)clk;
   _pin_cmd = (int8_t)cmd;
   _pin_d0 = (int8_t)d0;
@@ -195,10 +186,8 @@ bool SDMMCFS::setPins(int clk, int cmd, int d0, int d1, int d2, int d3) {
   // Since SDMMCFS::begin hardcodes the usage of slot 1, only check if
   // the pins match slot 1 pins.
   bool pins_ok =
-    (clk == (int)SDMMC_SLOT1_IOMUX_PIN_NUM_CLK) && (cmd == (int)SDMMC_SLOT1_IOMUX_PIN_NUM_CMD)\
-    && (d0 == (int)SDMMC_SLOT1_IOMUX_PIN_NUM_D0)
-    && (((d1 == -1) && (d2 == -1) && (d3 == -1)) || ((d1 == (int)SDMMC_SLOT1_IOMUX_PIN_NUM_D1)\
-    && (d2 == (int)SDMMC_SLOT1_IOMUX_PIN_NUM_D2)\
+    (clk == (int)SDMMC_SLOT1_IOMUX_PIN_NUM_CLK) && (cmd == (int)SDMMC_SLOT1_IOMUX_PIN_NUM_CMD) && (d0 == (int)SDMMC_SLOT1_IOMUX_PIN_NUM_D0)
+    && (((d1 == -1) && (d2 == -1) && (d3 == -1)) || ((d1 == (int)SDMMC_SLOT1_IOMUX_PIN_NUM_D1) && (d2 == (int)SDMMC_SLOT1_IOMUX_PIN_NUM_D2)
     && (d3 == (int)SDMMC_SLOT1_IOMUX_PIN_NUM_D3)));
   if (!pins_ok) {
     log_e("SDMMCFS: specified pins are not supported by this chip.");
@@ -209,10 +198,8 @@ bool SDMMCFS::setPins(int clk, int cmd, int d0, int d1, int d2, int d3) {
 #if defined(BOARD_SDMMC_SLOT) && (BOARD_SDMMC_SLOT == 0)
   // ESP32-P4 can use either IOMUX or GPIO matrix
   bool pins_ok =
-    (clk == (int)SDMMC_SLOT0_IOMUX_PIN_NUM_CLK) && (cmd == (int)SDMMC_SLOT0_IOMUX_PIN_NUM_CMD)\
-    && (d0 == (int)SDMMC_SLOT0_IOMUX_PIN_NUM_D0)
-    && (((d1 == -1) && (d2 == -1) && (d3 == -1)) || ((d1 == (int)SDMMC_SLOT0_IOMUX_PIN_NUM_D1)\
-    && (d2 == (int)SDMMC_SLOT0_IOMUX_PIN_NUM_D2) && (d3 == (int)SDMMC_SLOT0_IOMUX_PIN_NUM_D3)));
+    (clk == (int)SDMMC_SLOT0_IOMUX_PIN_NUM_CLK) && (cmd == (int)SDMMC_SLOT0_IOMUX_PIN_NUM_CMD) && (d0 == (int)SDMMC_SLOT0_IOMUX_PIN_NUM_D0)
+    && (((d1 == -1) && (d2 == -1) && (d3 == -1)) || ((d1 == (int)SDMMC_SLOT0_IOMUX_PIN_NUM_D1) && (d2 == (int)SDMMC_SLOT0_IOMUX_PIN_NUM_D2) && (d3 == (int)SDMMC_SLOT0_IOMUX_PIN_NUM_D3)));
   if (!pins_ok) {
     log_e("SDMMCFS: specified pins are not supported when using IOMUX (SDMMC SLOT 0).");
     return false;
@@ -243,8 +230,7 @@ bool SDMMCFS::setPowerChannel(int power_channel) {
 }
 #endif
 
-bool SDMMCFS::begin(const char *mountpoint, bool mode1bit, bool format_if_mount_failed,
-  int sdmmc_frequency, uint8_t maxOpenFiles, bool disk_status_check_enable) {
+bool SDMMCFS::begin(const char *mountpoint, bool mode1bit, bool format_if_mount_failed, int sdmmc_frequency, uint8_t maxOpenFiles, bool disk_status_check_enable) {
   if (_card) {
     return true;
   }
@@ -259,14 +245,11 @@ bool SDMMCFS::begin(const char *mountpoint, bool mode1bit, bool format_if_mount_
   //mount
   slot_config = SDMMC_SLOT_CONFIG_DEFAULT();
 #if (defined(SOC_SDMMC_USE_GPIO_MATRIX) && !defined(CONFIG_IDF_TARGET_ESP32P4)) \
-  || (defined(CONFIG_IDF_TARGET_ESP32P4) && ((defined(BOARD_SDMMC_SLOT) && (BOARD_SDMMC_SLOT == 1))\
-  || !defined(BOARD_HAS_SDMMC)))
-  log_d("pin_cmd: %d, pin_clk: %d, pin_d0: %d, pin_d1: %d, pin_d2: %d, pin_d3: %d",
-    _pin_cmd, _pin_clk, _pin_d0, _pin_d1, _pin_d2, _pin_d3);
+  || (defined(CONFIG_IDF_TARGET_ESP32P4) && ((defined(BOARD_SDMMC_SLOT) && (BOARD_SDMMC_SLOT == 1)) || !defined(BOARD_HAS_SDMMC)))
+  log_d("pin_cmd: %d, pin_clk: %d, pin_d0: %d, pin_d1: %d, pin_d2: %d, pin_d3: %d", _pin_cmd, _pin_clk, _pin_d0, _pin_d1, _pin_d2, _pin_d3);
   // SoC supports SDMMC pin configuration via GPIO matrix.
   // Check that the pins have been set either in the constructor or setPins function.
-  if (_pin_cmd == -1 || _pin_clk == -1 || _pin_d0 == -1 || (!mode1bit && (_pin_d1 == -1\
-    || _pin_d2 == -1 || _pin_d3 == -1))) {
+  if (_pin_cmd == -1 || _pin_clk == -1 || _pin_d0 == -1 || (!mode1bit && (_pin_d1 == -1 || _pin_d2 == -1 || _pin_d3 == -1))) {
     log_e("SDMMCFS: some SD pins are not set");
     return false;
   }
@@ -371,13 +354,13 @@ bool SDMMCFS::begin(const char *mountpoint, bool mode1bit, bool format_if_mount_
   esp_err_t ret = esp_vfs_fat_sdmmc_mount(mountpoint, &host, &slot_config, &mount_config, &_card);
   if (ret != ESP_OK) {
     if (ret == ESP_FAIL) {
-      log_e("Failed to mount filesystem. If formatted required, set format_if_mount_failed=true.");
+      log_e("Failed to mount filesystem. If you want the card to be formatted, set format_if_mount_failed = true.");
     } else if (ret == ESP_ERR_INVALID_STATE) {
       _impl->mountpoint(mountpoint);
       log_w("SD Already mounted");
       return true;
     } else {
-      log_e("Failed card initialization (0x%x). Ensure SD card lines have pull-up resistors.", ret);
+      log_e("Failed to initialize the card (0x%x). Make sure SD card lines have pull-up resistors in place.", ret);
       deleteLDOPowerHandle();
     }
     _card = NULL;
@@ -446,6 +429,11 @@ uint64_t SDMMCFS::cardSize() {
   if (!_card) {
     return 0;
   }
+  // Serial.printf("[cardSize] ( capacity=%d * sector_size=%d ) = size=%d\n",
+  //               _card->csd.capacity,
+  //               _card->csd.sector_size,
+  //               _card->csd.capacity*_card->csd.sector_size
+  //             );
   return (uint64_t)_card->csd.capacity * _card->csd.sector_size;
 }
 
@@ -456,11 +444,16 @@ uint64_t SDMMCFS::totalBytes() {
     return 0;
   }
   uint64_t size = ((uint64_t)(fsinfo->csize)) * (fsinfo->n_fatent - 2)
-#if _MAX_SS != 512
-                  * (fsinfo->ssize);
-#else
-                  * 512;
-#endif
+  #if _MAX_SS != 512
+  * (fsinfo->ssize);
+  #else
+  * 512;
+  #endif
+  // Serial.printf("[totalBytes] ( csize=%d * ( n_fatent=%d - 2 ) ) = size=%d\n",
+  //               fsinfo->csize,
+  //               fsinfo->n_fatent,
+  //               size
+  //             );
   return size;
 }
 
@@ -471,11 +464,16 @@ uint64_t SDMMCFS::usedBytes() {
     return 0;
   }
   uint64_t size = ((uint64_t)(fsinfo->csize)) * ((fsinfo->n_fatent - 2) - (fsinfo->free_clst))
-#if _MAX_SS != 512
-                  * (fsinfo->ssize);
-#else
-                  * 512;
-#endif
+  #if _MAX_SS != 512
+  * (fsinfo->ssize);
+  #else
+  * 512;
+  #endif
+  // Serial.printf("[usedBytes] ( csize=%d * (( n_fatent=%d -2 ) - ( free_clst=%d ) ) = size=%d\n",
+  //               fsinfo->csize,
+  //               fsinfo->n_fatent,
+  //               size
+  //             );
   return size;
 }
 
