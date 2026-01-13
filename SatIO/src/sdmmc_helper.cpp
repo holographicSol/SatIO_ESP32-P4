@@ -21,6 +21,8 @@
 #include "satio_file.h"
 #include "matrix.h"
 #include "custommapping.h"
+#include "ff.h"
+// #include <SdFat.h>
 
 void getMountPoint();
 void getSDCardType();
@@ -364,6 +366,7 @@ void getSectorSize() {sdcardData.sdcard_sector_size = SD_MMC.sectorSize();}
 // void getUsedBytes() {sdcardData.sdcard_used_bytes=SD_MMC.usedBytes() / (1024 * 1024);}
 
 void statSDCardPins() {
+  // system -log -e
   Serial.println("SD_DATA0_GPIO_NUM : " + String(digitalRead(SD_DATA0_GPIO_NUM))); // 39
   Serial.println("SD_DATA1_GPIO_NUM : " + String(digitalRead(SD_DATA1_GPIO_NUM))); // 40
   Serial.println("SD_DATA2_GPIO_NUM : " + String(digitalRead(SD_DATA2_GPIO_NUM))); // 41
@@ -373,11 +376,41 @@ void statSDCardPins() {
   Serial.println("SD_CMD_GPIO_NUM : " + String(digitalRead(SD_CMD_GPIO_NUM)));     // 44
 }
 
-bool isDiskSpace(uint64_t bytes_required) {
-  Serial.println("[cardSize]                   " + String(SD_MMC.cardSize()));
-  Serial.println("[usedBytes]                  " + String(SD_MMC.usedBytes()));
-  Serial.println("[bytes_required]             " + String(bytes_required));
-  Serial.println("[usedBytes + bytes_required] " + String(SD_MMC.usedBytes() + bytes_required));
-  if (SD_MMC.usedBytes() + bytes_required < SD_MMC.cardSize()-1) {return true;}
+void statSDCard() {
+  FATFS *fs;
+  DWORD fre_clust;
+  FRESULT res = f_getfree("0:", &fre_clust, &fs);  // or "/sdcard:" if using that mount point
+  if (res != FR_OK) {
+    Serial.printf("f_getfree failed: %d\n", res);
+    return;
+  }
+
+  uint64_t total_clusters = (uint64_t)fs->n_fatent - 2;
+  uint64_t used_clusters  = total_clusters - fre_clust;
+  uint64_t cluster_size   = (uint64_t)fs->csize * 512ULL;  // sector size usually 512
+
+  Serial.printf("Total clusters: %llu\n", total_clusters);
+  Serial.printf("Free clusters : %lu  (unsigned DWORD)\n", fre_clust);
+  Serial.printf("Used clusters : %llu\n", used_clusters);
+  Serial.printf("Cluster size  : %llu bytes\n", cluster_size);
+  Serial.printf("Free space    : %llu bytes (~%.1f MB)\n", 
+                fre_clust * cluster_size, 
+                (fre_clust * cluster_size) / (1024.0 * 1024));
+}
+
+uint64_t getFreeBytes() {
+  FATFS *fs;
+  DWORD fre_clust;
+  FRESULT res = f_getfree("0:", &fre_clust, &fs);  // or "/sdcard:" if using that mount point
+  if (res != FR_OK) {
+    Serial.printf("f_getfree failed: %d\n", res);
+    return 0;
+  }
+  uint64_t cluster_size   = (uint64_t)fs->csize * 512ULL;  // sector size usually 512
+  return fre_clust * cluster_size;
+}
+
+bool isAvailableBytes(uint64_t num_bytes) {
+  if (num_bytes < getFreeBytes()) {return true;}
   return false;
 }

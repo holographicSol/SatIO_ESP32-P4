@@ -107,4 +107,21 @@ bool deleteSystemFile(FS &fs, const char *filepath);
  */
 bool writeLog(FS &fs, const char *filepath);
 
+/**
+ * @brief Print SD some information.
+ */
+void statSDCard();
+
+/**
+ * @brief Get free disk space.
+ * @return Free space in bytes.
+ */
+uint64_t getFreeBytes();
+
+/**
+ * @brief Check if bytes available on disk.
+ * @return Bool true if space available.
+ */
+bool isAvailableBytes(uint64_t num_bytes);
+
 #endif

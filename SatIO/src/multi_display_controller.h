@@ -14,7 +14,7 @@
 #define I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0 12 // change and add more as required.
 
 // #define ISR_PIN_MultiDisplayController_1      46 // example add second controller.
-// #define I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_1 13 // example add second controller address.
+// #define I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_1 13 // example add second controller.
 
 extern bool ISR_FLAG_MULTI_DISPLAY_CONTROLLER_0;
 extern bool ALLOW_UPDATE_MULTIDISPLAY_CONTROLLER_0;

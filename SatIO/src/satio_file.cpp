@@ -140,12 +140,12 @@ void printLine(File f, String line) {
     line = line+"\n";
     // Serial.print(line);  // uncomment to debug
 
-    // check diskspace (requires sdcard compatible with SD_MMC)
-    // if (isDiskSpace(strlen(line.c_str()))) {f.print(line);}
-    // else {Serial.println("No more diskspace available!");}
+    // Check if diskspace available before writing!
+    if (isAvailableBytes(strlen(line.c_str()))) {f.print(line);}
+    else {Serial.println("No more diskspace available!");}
 
-    // WARNING! THERE IS NO DISK SPACE CHECK!
-    f.print(line);
+    // WARNING! uncomment to skip disk space checks
+    // f.print(line);
 }
 
 char *endptr;

@@ -255,8 +255,12 @@ void setup() {
   // ------------------------------------------------------------
   // Interrupts
   // ------------------------------------------------------------
-  pinMode(ISR_PIN_MULTIDISPLAY_CONTROLLER_0, INPUT_PULLDOWN); // requires HIGH/LOW inversion from interrupting device
-  attachInterruptArg(digitalPinToInterrupt(ISR_PIN_MULTIDISPLAY_CONTROLLER_0), ISR_MultiDisplayController_0, NULL, FALLING);
+  // requires HIGH/LOW inversion from interrupting device
+  pinMode(ISR_PIN_MULTIDISPLAY_CONTROLLER_0, INPUT_PULLDOWN);
+  attachInterruptArg(digitalPinToInterrupt(ISR_PIN_MULTIDISPLAY_CONTROLLER_0),
+                                           ISR_MultiDisplayController_0,
+                                           NULL,
+                                           FALLING);
 
   // --------------------------------------------------------------
   // Create Tasks.

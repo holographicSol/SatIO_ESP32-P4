@@ -19,6 +19,7 @@
 #include "./hextodig.h"
 #include "./ins.h"
 #include "./satio.h"
+#include "./satio_file.h"
 #include "./custommapping.h"
 #include "./matrix.h"
 #include "./serial_infocmd.h"
@@ -387,8 +388,8 @@ void taskDisplay(void * pvParameters) {
 
     // test request interrupt
     requestMultiDisplayControllerData(I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0,
-    ISR_MULTI_DISPLAY_CONTROLLER_0);
-    
+    ISR_FLAG_MULTI_DISPLAY_CONTROLLER_0);
+
     if (ALLOW_UPDATE_MULTIDISPLAY_CONTROLLER_0) {
 
       // test indiocators
@@ -603,8 +604,9 @@ void taskLogging(void * pvParameters) {
     // delete old logs if required
     // write new log
     // dt,x,y,z
+    Serial.printf("[log] flag: %d\n", systemData.logging_enabled);
     if (systemData.logging_enabled) {
-      Serial.println("[log] setting write flag true");
+      Serial.printf("[log] setting write flag true\n");
       sdmmcFlagData.write_log=true;
     }
     // else {Serial.println("[log] not enabled");}
