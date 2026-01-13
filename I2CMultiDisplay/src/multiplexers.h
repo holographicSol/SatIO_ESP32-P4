@@ -12,7 +12,7 @@
 /* Do not modify */
 #define MAX_ANALOG_DIGITAL_MULTIPLEXER_PINS             5
 #define MAX_ANALOG_DIGITAL_MULTIPLEXER_CONTROL_PINS     4
-#define MAX_ANALOG_DIGITAL_MULTIPLEXER_CONTROL_CHANNELS 16
+#define MAX_ANALOG_DIGITAL_MULTIPLEXER_CHANNELS         16
 #define INDEX_ANALOG_DIGITAL_MULTIPLEXER_S0             0
 #define INDEX_ANALOG_DIGITAL_MULTIPLEXER_S1             1
 #define INDEX_ANALOG_DIGITAL_MULTIPLEXER_S2             2
@@ -53,7 +53,7 @@ extern I2CMultiplexer i2c_mux_0;
  */
 typedef struct {
   int pins[MAX_ANALOG_DIGITAL_MULTIPLEXER_PINS];
-  double data[MAX_ANALOG_DIGITAL_MULTIPLEXER_CONTROL_CHANNELS];
+  double data[MAX_ANALOG_DIGITAL_MULTIPLEXER_CHANNELS];
 } AnalogDigitalMultiplexer;
 extern AnalogDigitalMultiplexer ad_mux_0;
 extern AnalogDigitalMultiplexer ad_mux_1;
