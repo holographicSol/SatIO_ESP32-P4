@@ -53,7 +53,7 @@ void setI2CMultiplexerDataNAN(I2CMultiplexer &mux_id) {
 // ------------------------------------------------------------------------------------
 // Analog/Digital
 // ------------------------------------------------------------------------------------
-static const int AD_MUX_CHANNEL_TABLE[MAX_ANALOG_DIGITAL_MULTIPLEXER_CONTROL_CHANNELS][MAX_ANALOG_DIGITAL_MULTIPLEXER_CONTROL_PINS] = {
+static const int AD_MUX_CHANNEL_TABLE[MAX_ANALOG_DIGITAL_MULTIPLEXER_CHANNELS][MAX_ANALOG_DIGITAL_MULTIPLEXER_CONTROL_PINS] = {
   {0,0,0,0}, // channel 0 
   {1,0,0,0}, // channel 1 
   {0,1,0,0}, // channel 2
@@ -87,7 +87,7 @@ void readADMultiplexerAnalogChannel(AnalogDigitalMultiplexer &mux_id, uint8_t ch
 }
 
 void readAllADMultiplexerAnalogChannels(AnalogDigitalMultiplexer &mux_id) {
-  for (int i=0; i<MAX_ANALOG_DIGITAL_MULTIPLEXER_CONTROL_PINS; i++) {
+  for (int i=0; i<MAX_ANALOG_DIGITAL_MULTIPLEXER_CHANNELS; i++) {
     readADMultiplexerAnalogChannel(mux_id, i);
   }
 }
@@ -100,7 +100,7 @@ void readADMultiplexerDigitalChannel(AnalogDigitalMultiplexer &mux_id, uint8_t c
 }
 
 void readAllADMultiplexerDigitalChannels(AnalogDigitalMultiplexer &mux_id) {
-  for (int i=0; i<MAX_ANALOG_DIGITAL_MULTIPLEXER_CONTROL_PINS; i++) {
+  for (int i=0; i<MAX_ANALOG_DIGITAL_MULTIPLEXER_CHANNELS; i++) {
     readADMultiplexerDigitalChannel(mux_id, i);
   }
 }
@@ -121,7 +121,7 @@ void writeADMultiplexerDigitalChannel(AnalogDigitalMultiplexer &mux_id, uint8_t 
 
 void setADMultiplexerDataNAN(AnalogDigitalMultiplexer &mux_id) {
   /* Set all analog/digital multiplexer channel data to NAN */
-  for (int i=0; i<MAX_ANALOG_DIGITAL_MULTIPLEXER_CONTROL_CHANNELS; i++) {mux_id.data[i]=NAN;}
+  for (int i=0; i<MAX_ANALOG_DIGITAL_MULTIPLEXER_CHANNELS; i++) {mux_id.data[i]=NAN;}
 }
 
 void initADMultiplexer(AnalogDigitalMultiplexer &mux_id) {
