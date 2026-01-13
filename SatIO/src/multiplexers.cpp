@@ -20,14 +20,14 @@ AnalogDigitalMultiplexer ad_mux_0 = {
   .data = {},
 };
 
-AnalogDigitalMultiplexer ad_mux_1 = {
-  .pins = {PIN_ANALOG_DIGITAL_MULTIPLEXER_1_SO,
-           PIN_ANALOG_DIGITAL_MULTIPLEXER_1_S1,
-           PIN_ANALOG_DIGITAL_MULTIPLEXER_1_S2,
-           PIN_ANALOG_DIGITAL_MULTIPLEXER_1_S3,
-           PIN_ANALOG_DIGITAL_MULTIPLEXER_1_SIG},
-  .data = {},
-};
+// AnalogDigitalMultiplexer ad_mux_1 = {
+//   .pins = {PIN_ANALOG_DIGITAL_MULTIPLEXER_1_SO,
+//            PIN_ANALOG_DIGITAL_MULTIPLEXER_1_S1,
+//            PIN_ANALOG_DIGITAL_MULTIPLEXER_1_S2,
+//            PIN_ANALOG_DIGITAL_MULTIPLEXER_1_S3,
+//            PIN_ANALOG_DIGITAL_MULTIPLEXER_1_SIG},
+//   .data = {},
+// };
 
 I2CMultiplexer i2c_mux_0 = {
   .address = I2C_MULTIPLEXER_TCA9548A_ADDRESS_0,
@@ -82,13 +82,13 @@ void setADMultiplexerChannel(AnalogDigitalMultiplexer &mux_id, int channel) {
 void readADMultiplexerAnalogChannel(AnalogDigitalMultiplexer &mux_id, uint8_t channel) {
   /* Default is to store raw data (customize as required). */
   pinMode(mux_id.pins[INDEX_ANALOG_DIGITAL_MULTIPLEXER_SIG], INPUT);
-  mux_id.data[channel] = analogRead(mux_id.pins[PIN_ANALOG_DIGITAL_MULTIPLEXER_0_SIG]);
+  mux_id.data[channel] = analogRead(mux_id.pins[INDEX_ANALOG_DIGITAL_MULTIPLEXER_SIG]);
 }
 
 void readADMultiplexerDigitalChannel(AnalogDigitalMultiplexer &mux_id, uint8_t channel) {
   /* Default is to store raw data (customize as required). */
   pinMode(mux_id.pins[INDEX_ANALOG_DIGITAL_MULTIPLEXER_SIG], INPUT);
-  mux_id.data[channel] = digitalRead(mux_id.pins[PIN_ANALOG_DIGITAL_MULTIPLEXER_0_SIG]);
+  mux_id.data[channel] = digitalRead(mux_id.pins[INDEX_ANALOG_DIGITAL_MULTIPLEXER_SIG]);
 }
 
 void writeADMultiplexerAnalogChannel(AnalogDigitalMultiplexer &mux_id, uint8_t channel, int data) {
