@@ -560,9 +560,10 @@ void taskMultiplexers(void * pvParameters) {
     // ------------------------------------------------
     // read muiltiplexer channels (customize as required).
     // ------------------------------------------------
-    readAllADMultiplexerAnalogChannels(ad_mux_0);
-    // Serial.println("[ad] " + String(i_chan) + ": " + String(ad_mux_0.data[i_chan]));
-
+    for (uint8_t i_chan = 0; i_chan < 16; i_chan++) {
+      readADMultiplexerAnalogChannel(ad_mux_0, i_chan);
+      // Serial.println("[ad] " + String(i_chan) + ": " + String(ad_mux_0.data[i_chan]));
+    }
     // ------------------------------------------------
     // Counters
     // ------------------------------------------------
@@ -584,9 +585,9 @@ void createTaskMultiplexers() {
     "TaskMultiplexers", /* Name of the task */
     4096,               /* Stack size in words */
     NULL,               /* Task input parameter */
-    4,                  /* Priority of the task */
+    3,                  /* Priority of the task */
     &TaskMultiplexers,  /* Task handle. */
-    1);                 /* Core where the task should run */
+    0);                 /* Core where the task should run */
     esp_task_wdt_add(TaskMultiplexers);
 }
 
@@ -630,7 +631,7 @@ void createTaskLogging() {
     "TaskLogging", /* Name of the task */
     4096,               /* Stack size in words */
     NULL,               /* Task input parameter */
-    4,                  /* Priority of the task */
+    3,                  /* Priority of the task */
     &TaskLogging,  /* Task handle. */
     1);                 /* Core where the task should run */
     esp_task_wdt_add(TaskLogging);
