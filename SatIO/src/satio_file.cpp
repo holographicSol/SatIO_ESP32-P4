@@ -220,6 +220,7 @@ bool getLogFile(int mode) {
 void createNewLogFilename() {
   memset(satioFileData.log_filepath, 0, sizeof(satioFileData.log_filepath));
   strcpy(satioFileData.log_filepath, satioFileData.log_dir);
+//   strcat(satioFileData.log_filepath, String(String(satioData.rtc_unixtime) + ".csv").c_str()); // use UTC.
   strcat(satioFileData.log_filepath, String(String(satioData.local_unixtime_uS) + ".csv").c_str());
 //   Serial.printf("[createNewLogFilename] current log file: %s\n", satioFileData.log_filepath);
 }
@@ -231,7 +232,7 @@ void deleteOldestLogFile(FS &fs) {
     if (!fs.exists(satioFileData.log_filepath)) {
         Serial.printf("[deleteOldestLogFile] log file deleted successfully.\n");
     }
-    else {Serial.printf("[deleteOldestLogFile] log failed to delete file.\n");}
+    else {Serial.printf("[deleteOldestLogFile] failed to delete log file.\n");}
   }
 }
 
@@ -264,7 +265,7 @@ void printLogLine(FS &fs, String line) {
         f = fs.open(satioFileData.log_filepath, "a", true);
         f.close();
       }
-      Serial.printf("[printLogLine] writing to log file: %s\n", satioFileData.log_filepath);
+    //   Serial.printf("[printLogLine] writing to log file: %s\n", satioFileData.log_filepath);
       f = fs.open(satioFileData.log_filepath, "a", true);
       f.print(line);
     }
@@ -274,7 +275,7 @@ void printLogLine(FS &fs, String line) {
 
 bool writeLog(FS &fs) {
     // Serial.println("--------------------------------------");
-    // Serial.println("Writing log...");
+    Serial.println("[writeLog] writing log");
 
     // --------------------------------
     // Log Line: Timestamp & Basic Stat
