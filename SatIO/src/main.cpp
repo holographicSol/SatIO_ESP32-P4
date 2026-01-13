@@ -215,9 +215,9 @@ void setup() {
   // Wire.setClock(100000L);
   writeOutputPortControllerM0();
   // --------------------------------------------------------------
-  // Initialize I2C Multiplexer(s).
+  // Initialize Multiplexer(s).
   // --------------------------------------------------------------
-  Serial.println("[IIC] setting IIC multiplexer channel: 0");
+  initADMultiplexer(ad_mux_0);
   // setMultiplexChannel_I2C(0, 0);
   // --------------------------------------------------------------
   // Initialize RTC (for UTC).
@@ -271,7 +271,7 @@ void setup() {
   createTaskLogging(); // optional
   createTaskSerialInfoCMD(); // optional
   createTaskStorage(); // optional
-  // createTaskMultiplexers(); // optional
+  createTaskMultiplexers(); // optional
   createTaskPortControllerInput(); // optional
   myAstroBegin(); // optional
   createTaskUniverse(); // optional
