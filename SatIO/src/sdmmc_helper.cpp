@@ -340,7 +340,7 @@ void sdcardFlagHandler(bool test_rw, bool set_pins, bool bit1_mode, bool format_
       sdmmcFlagData.delete_system=false;
     }
     else if (sdmmcFlagData.write_log) {
-      if (writeLog(SD_MMC, satioFileData.log_filepath))
+      if (writeLog(SD_MMC))
         {Serial.println("[log] successfull.");}
       else {Serial.println("[log] failed.");}
       sdmmcFlagData.no_delay_flag=false;

@@ -22,6 +22,10 @@
 #include "sdmmc_helper.h"
 
 struct satioFileStruct satioFileData = {
+    .i_token=0,
+    .token={},
+    .tmp_chars="",
+
     .matrix_tags=
     {
         "SWITCH_PORT",        // 0
@@ -132,20 +136,223 @@ struct satioFileStruct satioFileData = {
         "LOGGING",          // 59
     },
     .system_filepath="/SYSTEM/system_conf.csv",
-    .log_filepath="/LOG/log.csv",
-
+    .log_dir="/LOG/",
+    .log_files = {},
+    .log_filepath = "",
+    .unixtimestamp=0,
+    .tmp_unixtimestamp=0,
+    .number_of_log_files=0,
 };
+
+bool isOpen(File root) {
+ if (!root) {
+    Serial.println("[getLogFiles] Failed to open directory");
+    return false;
+  }
+  if (!root.isDirectory()) {
+    Serial.println("[getLogFiles] Not a directory");
+    root.close();
+    return false;
+  }
+  return true;
+}
+
+/**
+ * @brief Get a log filename.
+ * @param mode Specify mode: 0=oldest 1=latest.
+ */
+bool getLogFile(int mode) {
+//   Serial.printf("[getLogFiles] Listing directory: %s\n", satioFileData.log_dir);
+
+  // Open dir (and create dir if not exist)
+  File root = SD_MMC.open(satioFileData.log_dir, "r", true);
+  if (!isOpen) {return false;}
+
+  // Set target
+  if (mode==0) {satioFileData.unixtimestamp=INT64_MAX;} // for finding oldest
+  else {satioFileData.unixtimestamp=0;} // for finding latest
+  
+  // Iterate through files in directory
+  satioFileData.number_of_log_files=0;
+  File file = root.openNextFile();
+  while (file) {
+    if (!file.isDirectory()) {
+    //   Serial.printf("  FILE : %s (%llu bytes)\n", file.name(), file.size());
+
+      // Create a copy of filename
+      memset(satioFileData.tmp_chars, 0, sizeof(satioFileData.tmp_chars));
+      strncpy(satioFileData.tmp_chars, file.name(), sizeof(satioFileData.tmp_chars));
+
+      // Tokenize
+      int i_san=0;
+      satioFileData.tmp_unixtimestamp=0;
+      satioFileData.i_token = 0;
+      satioFileData.token = strtok(satioFileData.tmp_chars, ".");
+      while (satioFileData.token != NULL) {
+        switch (satioFileData.i_token) {
+            case 0: if (satioFileData.token != NULL && str_is_int64(satioFileData.token)) {
+                i_san++; char *endptr; satioFileData.tmp_unixtimestamp = strtoll(satioFileData.token, &endptr, 10);} break;
+            case 1: if (strcmp(satioFileData.token, "csv")==0) {i_san++;} break;
+        }
+        satioFileData.token = strtok(NULL, ".");
+        satioFileData.i_token++;
+      }
+      // Update unixtimestamp
+      if (i_san==2) {
+        satioFileData.number_of_log_files++;
+        if      (mode==0 && satioFileData.tmp_unixtimestamp<satioFileData.unixtimestamp) {satioFileData.unixtimestamp=satioFileData.tmp_unixtimestamp;}
+        else if (mode==1 && satioFileData.tmp_unixtimestamp>satioFileData.unixtimestamp) {satioFileData.unixtimestamp=satioFileData.tmp_unixtimestamp;}
+      }
+    }
+    file = root.openNextFile();
+  }
+  root.close();
+//   Serial.printf("[getLogFiles] number_of_log_files: %llu\n", satioFileData.number_of_log_files);
+  if (satioFileData.unixtimestamp==0 || satioFileData.unixtimestamp==INT64_MIN) {return false;} 
+
+  // Store filename of interest
+  memset(satioFileData.log_filepath, 0, sizeof(satioFileData.log_filepath));
+  strcpy(satioFileData.log_filepath, String(String(satioFileData.log_dir) + String(satioFileData.unixtimestamp) + ".csv").c_str());
+//   Serial.printf("[getLogFiles] current log file: %s\n", satioFileData.log_filepath);
+  return true;
+}
+
+void createNewLogFilename() {
+  memset(satioFileData.log_filepath, 0, sizeof(satioFileData.log_filepath));
+  strcpy(satioFileData.log_filepath, satioFileData.log_dir);
+  strcat(satioFileData.log_filepath, String(String(satioData.local_unixtime_uS) + ".csv").c_str());
+//   Serial.printf("[createNewLogFilename] current log file: %s\n", satioFileData.log_filepath);
+}
+
+void deleteOldestLogFile(FS &fs) {
+  if (getLogFile(0)==true && satioFileData.number_of_log_files>MAX_LOG_FILES) {
+    // Serial.printf("[deleteOldestLogFile] attempting to delete log file: %s\n", satioFileData.log_filepath);
+    fs.remove(satioFileData.log_filepath);
+    if (!fs.exists(satioFileData.log_filepath)) {
+        Serial.printf("[deleteOldestLogFile] log file deleted successfully.\n");
+    }
+    else {Serial.printf("[deleteOldestLogFile] log failed to delete file.\n");}
+  }
+}
+
+void printLogLine(FS &fs, String line) {
+    // Serial.printf("[printLogLine]\n");
+    line = line+"\n";
+    // Serial.print(line);  // uncomment to debug
+
+    // Check disk space
+    if (!isAvailableBytes(strlen(line.c_str()))) {Serial.println("No more diskspace available!"); return;}
+
+    // Selct log filename
+    deleteOldestLogFile(fs);
+    if (getLogFile(1)==false) {createNewLogFilename();}
+    File f = fs.open(satioFileData.log_filepath, "a", true);
+    f.close();
+
+    f = fs.open(satioFileData.log_filepath, "r", true);
+    if (fs.exists(satioFileData.log_filepath)) {
+
+      // Check file size
+      uint64_t line_size = strlen(line.c_str());
+      uint64_t file_size = f.size();
+    //   Serial.printf("[printLogLine] line_size=%llu, file_size=%llu\n", line_size, file_size);
+      if (file_size+line_size>MAX_LOG_FILE_SIZE) {
+        Serial.printf("[printLogLine] creating new log file..\n");
+        f.close();
+        deleteOldestLogFile(fs);
+        createNewLogFilename();
+        f = fs.open(satioFileData.log_filepath, "a", true);
+        f.close();
+      }
+      Serial.printf("[printLogLine] writing to log file: %s\n", satioFileData.log_filepath);
+      f = fs.open(satioFileData.log_filepath, "a", true);
+      f.print(line);
+    }
+    else {Serial.printf("[printLogLine] file does not exist: %s\n", satioFileData.log_filepath);}
+    f.close();
+}
+
+bool writeLog(FS &fs) {
+    // Serial.println("--------------------------------------");
+    // Serial.println("Writing log...");
+
+    // --------------------------------
+    // Log Line: Timestamp & Basic Stat
+    // --------------------------------
+    String line="";
+    // --------------------------------
+    // Log Line: Satio
+    // --------------------------------
+    line = "$SATIO,";
+    line=line+ String(satioData.padded_rtc_time_HHMMSS) + ",";
+    line=line+ String(satioData.padded_rtc_date_DDMMYYYY) + ",";
+    line=line+ String(satioData.padded_rtc_sync_time_HHMMSS) + ",";
+    line=line+ String(satioData.padded_rtc_sync_date_DDMMYYYY) + ",";
+    line=line+ String(satioData.padded_local_time_HHMMSS) + ",";
+    line=line+ String(satioData.padded_local_date_DDMMYYYY) + ",";
+    line=line+ String(systemData.uptime_seconds) + ",";
+    line=line+ String(satioData.char_coordinate_conversion_mode[satioData.coordinate_conversion_mode]) + ",";
+    line=line+ String(satioData.degrees_latitude) + ",";
+    line=line+ String(satioData.degrees_longitude) + ",";
+    line=line+ String(satioData.char_altitude_conversion_mode[satioData.altitude_conversion_mode]) + ",";
+    line=line+ String(satioData.altitude_converted) + ",";
+    line=line+ String(satioData.char_altitude_unit_mode[satioData.altitude_unit_mode]) + ",";
+    line=line+ String(satioData.char_speed_conversion_mode[satioData.speed_conversion_mode]) + ",";
+    line=line+ String(satioData.speed_converted, 7) + ",";
+    line=line+ String(satioData.char_speed_unit_mode[satioData.speed_unit_mode]) + ",";
+    line=line+ String(satioData.char_ground_heading_mode[satioData.ground_heading_mode]) + ",";
+    line=line+ String(satioData.ground_heading, 7) + ",";
+    line=line+ String(insData.ins_latitude, 7) + ",";
+    line=line+ String(insData.ins_longitude, 7) + ",";
+    line=line+ String(insData.ins_altitude) + ",";
+    line=line+ String(insData.ins_heading) + ",";
+    line=line+ String(insData.INS_INITIALIZATION_FLAG) + ",";
+    line=line+ String(insData.INS_MODE) + ",";
+    line=line+ String(insData.INS_FORCED_ON_FLAG) + ",";
+    line=line+ String(insData.INS_REQ_GPS_PRECISION) + ",";
+    line=line+ String(insData.INS_REQ_HEADING_RANGE_DIFF) + ",";
+    line=line+ String(insData.INS_REQ_MIN_SPEED) + ",";
+    line=line+ String(insData.INS_USE_GYRO_HEADING) + ",";
+    line=line+ String(insData.INS_ENABLED) + ",";
+    printLogLine(fs, line);
+    // --------------------------------
+    // Log Line: Analog/Digital
+    // --------------------------------
+    line="$MPLEX0,";
+    for (int i=0; i<MAX_AD_MUX_CHANNELS; i++) {line=line+String(ad_mux_0.data[i])+",";}
+    printLogLine(fs, line);
+    // --------------------------------
+    // Log Line: Port Controller Input
+    // --------------------------------
+    line="$PCINPT,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(matrixData.input_value[0][i])+",";}
+    printLogLine(fs, line);
+    // --------------------------------
+    // Log Line: Gyro0
+    // --------------------------------
+    line="$GYRO0,";
+    line=line+ String(gyroData.gyro_0_acc_x) + ",";
+    line=line+ String(gyroData.gyro_0_acc_y) + ",";
+    line=line+ String(gyroData.gyro_0_acc_z) + ",";
+    line=line+ String(gyroData.gyro_0_ang_x) + ",";
+    line=line+ String(gyroData.gyro_0_ang_y) + ",";
+    line=line+ String(gyroData.gyro_0_ang_z) + ",";
+    line=line+ String(gyroData.gyro_0_gyr_x) + ",";
+    line=line+ String(gyroData.gyro_0_gyr_y) + ",";
+    line=line+ String(gyroData.gyro_0_gyr_z) + ",";
+    line=line+ String(gyroData.gyro_0_mag_x) + ",";
+    line=line+ String(gyroData.gyro_0_mag_y) + ",";
+    line=line+ String(gyroData.gyro_0_mag_z) + ",";
+    printLogLine(fs, line);
+
+    return true;
+}
 
 void printLine(File f, String line) {
     line = line+"\n";
     // Serial.print(line);  // uncomment to debug
-
-    // Check if diskspace available before writing!
-    if (isAvailableBytes(strlen(line.c_str()))) {f.print(line);}
-    else {Serial.println("No more diskspace available!");}
-
-    // WARNING! uncomment to skip disk space checks
-    // f.print(line);
+    if (!isAvailableBytes(strlen(line.c_str()))) {Serial.println("No more diskspace available!"); return;}
+    f.print(line);
 }
 
 char *endptr;
@@ -478,84 +685,4 @@ bool deleteSystemFile(FS &fs, const char *filepath) {
     if (fs.exists(filepath)) {if (fs.remove(filepath)) {Serial.println("$SYSTEMDELETED"); return true;}}
     Serial.println("$SYSTEMDELETEFAILED");
     return false;
-}
-
-bool writeLog(FS &fs, const char *filepath) {
-    // Serial.println("Writing log...");
-    File f = fs.open(filepath, "a", true);
-    if (!f) return false;
-    if (fs.exists(filepath)) {
-        // --------------------------------
-        // Log Line: Timestamp & Basic Stat
-        // --------------------------------
-        String line="[" + String(satioData.local_unixtime_uS) + "]";
-        printLine(f, line);
-        // --------------------------------
-        // Log Line: Satio
-        // --------------------------------
-        line = "$SATIO,";
-        line=line+ String(satioData.padded_rtc_time_HHMMSS) + ",";
-        line=line+ String(satioData.padded_rtc_date_DDMMYYYY) + ",";
-        line=line+ String(satioData.padded_rtc_sync_time_HHMMSS) + ",";
-        line=line+ String(satioData.padded_rtc_sync_date_DDMMYYYY) + ",";
-        line=line+ String(satioData.padded_local_time_HHMMSS) + ",";
-        line=line+ String(satioData.padded_local_date_DDMMYYYY) + ",";
-        line=line+ String(systemData.uptime_seconds) + ",";
-        line=line+ String(satioData.char_coordinate_conversion_mode[satioData.coordinate_conversion_mode]) + ",";
-        line=line+ String(satioData.degrees_latitude) + ",";
-        line=line+ String(satioData.degrees_longitude) + ",";
-        line=line+ String(satioData.char_altitude_conversion_mode[satioData.altitude_conversion_mode]) + ",";
-        line=line+ String(satioData.altitude_converted) + ",";
-        line=line+ String(satioData.char_altitude_unit_mode[satioData.altitude_unit_mode]) + ",";
-        line=line+ String(satioData.char_speed_conversion_mode[satioData.speed_conversion_mode]) + ",";
-        line=line+ String(satioData.speed_converted, 7) + ",";
-        line=line+ String(satioData.char_speed_unit_mode[satioData.speed_unit_mode]) + ",";
-        line=line+ String(satioData.char_ground_heading_mode[satioData.ground_heading_mode]) + ",";
-        line=line+ String(satioData.ground_heading, 7) + ",";
-        line=line+ String(insData.ins_latitude, 7) + ",";
-        line=line+ String(insData.ins_longitude, 7) + ",";
-        line=line+ String(insData.ins_altitude) + ",";
-        line=line+ String(insData.ins_heading) + ",";
-        line=line+ String(insData.INS_INITIALIZATION_FLAG) + ",";
-        line=line+ String(insData.INS_MODE) + ",";
-        line=line+ String(insData.INS_FORCED_ON_FLAG) + ",";
-        line=line+ String(insData.INS_REQ_GPS_PRECISION) + ",";
-        line=line+ String(insData.INS_REQ_HEADING_RANGE_DIFF) + ",";
-        line=line+ String(insData.INS_REQ_MIN_SPEED) + ",";
-        line=line+ String(insData.INS_USE_GYRO_HEADING) + ",";
-        line=line+ String(insData.INS_ENABLED) + ",";
-        printLine(f, line);
-        // --------------------------------
-        // Log Line: Analog/Digital
-        // --------------------------------
-        line="$MPLEX0,";
-        for (int i=0; i<MAX_AD_MUX_CHANNELS; i++) {line=line+String(ad_mux_0.data[i])+",";}
-        printLine(f, line);
-        // --------------------------------
-        // Log Line: Port Controller Input
-        // --------------------------------
-        line="$PCINPT,";
-        for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(matrixData.input_value[0][i])+",";}
-        printLine(f, line);
-        // --------------------------------
-        // Log Line: Gyro0
-        // --------------------------------
-        line="$GYRO0,";
-        line=line+ String(gyroData.gyro_0_acc_x) + ",";
-        line=line+ String(gyroData.gyro_0_acc_y) + ",";
-        line=line+ String(gyroData.gyro_0_acc_z) + ",";
-        line=line+ String(gyroData.gyro_0_ang_x) + ",";
-        line=line+ String(gyroData.gyro_0_ang_y) + ",";
-        line=line+ String(gyroData.gyro_0_ang_z) + ",";
-        line=line+ String(gyroData.gyro_0_gyr_x) + ",";
-        line=line+ String(gyroData.gyro_0_gyr_y) + ",";
-        line=line+ String(gyroData.gyro_0_gyr_z) + ",";
-        line=line+ String(gyroData.gyro_0_mag_x) + ",";
-        line=line+ String(gyroData.gyro_0_mag_y) + ",";
-        line=line+ String(gyroData.gyro_0_mag_z) + ",";
-        printLine(f, line);
-    }
-    else {return false;}
-    f.close();
-    return true;
 }

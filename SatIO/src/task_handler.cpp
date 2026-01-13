@@ -604,7 +604,7 @@ void taskLogging(void * pvParameters) {
     // delete old logs if required
     // write new log
     // dt,x,y,z
-    Serial.printf("[log] flag: %d\n", systemData.logging_enabled);
+    // Serial.printf("[log] flag: %d\n", systemData.logging_enabled);
     if (systemData.logging_enabled) {
       Serial.printf("[log] setting write flag true\n");
       sdmmcFlagData.write_log=true;

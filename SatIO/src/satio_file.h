@@ -11,12 +11,25 @@
 #include "SPIFFS.h"
 #include "config.h"
 
-#define MAX_MATRIX_TAGS  12
-#define MAX_MATRIX_SLOTS 10
-#define MAX_MAPPING_TAGS 8
-#define MAX_SYSTEM_TAGS  60
+#define MAX_MATRIX_TAGS   12
+#define MAX_MATRIX_SLOTS  10
+#define MAX_MAPPING_TAGS  8
+#define MAX_SYSTEM_TAGS   60
+#define MAX_LOG_FILES     3     // maximum number of log files to be kept.
+/*
+  Maximum log file size in bytes.
+  Each record is approximately 1KB in size.
+  1KB * Seconds in a day = 3686400 bytes = approx. 3MB daily.
+  1KB * Milliseconds in a day = 3686400000 bytes = approx. 3GB daily.
+*/
+#define DEAFAULT_MAX_LOG_FILE_SIZE 3686400
+#define MAX_LOG_FILE_SIZE DEAFAULT_MAX_LOG_FILE_SIZE
 
 struct satioFileStruct {
+
+    long i_token;
+    char* token;
+    char tmp_chars[MAX_GLOBAL_ELEMENT_SIZE];
 
     char matrix_tags[MAX_MATRIX_TAGS][MAX_GLOBAL_ELEMENT_SIZE];
     char matix_filepaths[MAX_MATRIX_SLOTS][MAX_GLOBAL_ELEMENT_SIZE];
@@ -29,9 +42,16 @@ struct satioFileStruct {
     char system_tags[MAX_SYSTEM_TAGS][MAX_GLOBAL_ELEMENT_SIZE];
     char system_filepath[MAX_GLOBAL_ELEMENT_SIZE];
 
+    char log_dir[MAX_GLOBAL_ELEMENT_SIZE];
+    char log_files[MAX_LOG_FILES][MAX_GLOBAL_ELEMENT_SIZE];
     char log_filepath[MAX_GLOBAL_ELEMENT_SIZE];
+    int64_t unixtimestamp;
+    int64_t tmp_unixtimestamp;
+    int64_t number_of_log_files;
 };
 extern struct satioFileStruct satioFileData;
+
+// system -log -e
 
 // ----------------------------------------------------------------------------------------
 // Function Prototypes.
@@ -105,7 +125,7 @@ bool deleteSystemFile(FS &fs, const char *filepath);
  * @param fs Filesystem. Example SD_MMC
  * @param filepath Specify path to file
  */
-bool writeLog(FS &fs, const char *filepath);
+bool writeLog(FS &fs);
 
 /**
  * @brief Print SD some information.
@@ -123,5 +143,7 @@ uint64_t getFreeBytes();
  * @return Bool true if space available.
  */
 bool isAvailableBytes(uint64_t num_bytes);
+
+void getLogFiles();
 
 #endif
