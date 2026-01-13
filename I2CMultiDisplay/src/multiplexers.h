@@ -89,6 +89,8 @@ void setADMultiplexerChannel(AnalogDigitalMultiplexer &mux_id, int channel);
  */
 void readADMultiplexerAnalogChannel(AnalogDigitalMultiplexer &mux_id, uint8_t channel);
 void readADMultiplexerDigitalChannel(AnalogDigitalMultiplexer &mux_id, uint8_t channel);
+void readAllADMultiplexerAnalogChannels(AnalogDigitalMultiplexer &mux_id);
+void readAllADMultiplexerDigitalChannels(AnalogDigitalMultiplexer &mux_id);
 
 /**
  * Write to channel.
