@@ -290,7 +290,7 @@ void setup() {
   // --------------------------------------------------------------
   // Targets are determined for ESP32-P4, adjust as required.
 
-  createTaskDisplay();          // (target: n/ps)
+  createTaskDisplay();             // (target: n/ps)
   
   createTaskGPS();                 // (target: 10/ps)   // Time & location
   createTaskSerialInfoCMD();       // (target: cmds/ps) // Serial I/O

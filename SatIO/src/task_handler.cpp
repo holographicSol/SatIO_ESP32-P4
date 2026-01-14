@@ -86,7 +86,7 @@ TaskHandle_t TaskDisplay;
 #define TASK_DISPLAY_PRIORITY               5    // Low: UI updates can be deferred
 
 // CORE ASSIGNMENT (Spread load across both cores)
-#define TASK_GPS_CORE                       0    // Core 0: Critical for system sync
+#define TASK_GPS_CORE                       1    // Core 1: Critical for system sync
 #define TASK_SERIALINFOCMD_CORE             0    // Core 0: Keep on main (timing-sensitive)
 #define TASK_GYRO_CORE                      0    // Core 0: Sensor reading (less critical)
 #define TASK_MULTIPLEXERS_CORE              0    // Core 0: ADC/multiplexing

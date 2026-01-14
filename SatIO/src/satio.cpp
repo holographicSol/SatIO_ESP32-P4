@@ -681,25 +681,33 @@ void getSystemTime(void) {
 //                                                                                                              SYNC RTC FROM GPS
 // ------------------------------------------------------------------------------------------------------------------------------
 void extractDateTimeFromGPSData(void) {
+  memset(satioData.tmp_day, 0, sizeof(satioData.tmp_day));
   satioData.tmp_day[0]=gnrmcData.utc_date[0];
   satioData.tmp_day[1]=gnrmcData.utc_date[1];
+  memset(satioData.tmp_month, 0, sizeof(satioData.tmp_month));
   satioData.tmp_month[0]=gnrmcData.utc_date[2];
   satioData.tmp_month[1]=gnrmcData.utc_date[3];
+  memset(satioData.tmp_year, 0, sizeof(satioData.tmp_year));
   satioData.tmp_year[0]=gnrmcData.utc_date[4];
   satioData.tmp_year[1]=gnrmcData.utc_date[5];
+  memset(satioData.tmp_hour, 0, sizeof(satioData.tmp_hour));
   satioData.tmp_hour[0]=gnrmcData.utc_time[0];
   satioData.tmp_hour[1]=gnrmcData.utc_time[1];
+  memset(satioData.tmp_minute, 0, sizeof(satioData.tmp_minute));
   satioData.tmp_minute[0]=gnrmcData.utc_time[2];
   satioData.tmp_minute[1]=gnrmcData.utc_time[3];
+  memset(satioData.tmp_second, 0, sizeof(satioData.tmp_second));
+  satioData.tmp_second[0]=gnrmcData.utc_time[4];
+  satioData.tmp_second[1]=gnrmcData.utc_time[5];
+  memset(satioData.tmp_millisecond, 0, sizeof(satioData.tmp_millisecond));
+  satioData.tmp_millisecond[0]=gnrmcData.utc_time[7];
+  satioData.tmp_millisecond[1]=gnrmcData.utc_time[8];
+
   satioData.tmp_day_int=atoi(satioData.tmp_day);
   satioData.tmp_month_int=atoi(satioData.tmp_month);
   satioData.tmp_year_int=atoi(satioData.tmp_year);
   satioData.tmp_hour_int=atoi(satioData.tmp_hour);
   satioData.tmp_minute_int=atoi(satioData.tmp_minute);
-  satioData.tmp_second[0]=gnrmcData.utc_time[4];
-  satioData.tmp_second[1]=gnrmcData.utc_time[5];
-  satioData.tmp_millisecond[0]=gnrmcData.utc_time[7];
-  satioData.tmp_millisecond[1]=gnrmcData.utc_time[8];
   satioData.tmp_second_int=atoi(satioData.tmp_second);
   satioData.tmp_millisecond_int=atoi(satioData.tmp_millisecond);
 }
