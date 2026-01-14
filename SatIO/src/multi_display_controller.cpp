@@ -42,6 +42,7 @@ void writeI2C(int address) {
   clearOutputBufferBytes();
   for (byte i=0;i<sizeof(IICLink0.OUTPUT_BUFFER_BYTES);i++)
   {IICLink0.OUTPUT_BUFFER_BYTES[i]=(byte)IICLink0.OUTPUT_BUFFER_CHARS[i];}
+  // IIC bus 0: change as required!
   iic_0.beginTransmission(address);
   iic_0.write(IICLink0.OUTPUT_BUFFER_BYTES, sizeof(IICLink0.OUTPUT_BUFFER_BYTES));
   iic_0.endTransmission();

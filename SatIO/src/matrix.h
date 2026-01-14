@@ -246,29 +246,17 @@ void setOutputValues();
 void override_all_computer_assists();
 
 /**
- * Determines if intructions need to be sent to the port controller.
- * @return Returns None
- */
-bool portControllerWriteRequired(int idx);
-
-/**
- * Initialize portcopntrollers.
- * @return Returns None
- */
-void initOutputPortController();
-void initInputPortController();
-
-/**
  * Instruct portcontroller to clear all stored instructions.
  * @return Returns None
  */
-void writeOutputPortControllerM0(void);
+void writeOutputPortControllerM0(TwoWire &iic_bus);
 
 /**
  * Write mode 1 instructions to portcontroller.
  * @return Returns None
  */
-void writeOutputPortControllerM1(void);
-bool readInputPortControllerM1(void);
+void writeOutputPortControllerM1(TwoWire &iic_bus);
+
+bool readInputPortControllerM1(TwoWire &iic_bus);
 
 #endif

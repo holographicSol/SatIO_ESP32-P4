@@ -35,47 +35,91 @@ TaskHandle_t TaskGPS;
 TaskHandle_t TaskGyro;
 TaskHandle_t TaskMultiplexers;
 TaskHandle_t TaskPortControllerInput;
-TaskHandle_t TaskSwitches;
 TaskHandle_t TaskUniverse;
+TaskHandle_t TaskSwitches;
 TaskHandle_t TaskDisplay;
 
-#define TASK_STORAGE_PRIORITY               2
-#define TASK_LOGGING_PRIORITY               3
-#define TASK_SERIALINFOCMD_PRIORITY         3
-#define TASK_GPS_PRIORITY                   3
-#define TASK_GYRO_PRIORITY                  3
-#define TASK_MULTIPLEXERS_PRIORITY          3
-#define TASK_PORTCONTROLLERINPUT_PRIORITY   4
-#define TASK_SWITCHES_PRIORITY              4
-#define TASK_UNIVERSE_PRIORITY              1
-#define TASK_DISPLAY_PRIORITY               4
+// #define TASK_STORAGE_PRIORITY               2
+// #define TASK_LOGGING_PRIORITY               2
+// #define TASK_SERIALINFOCMD_PRIORITY         3
+// #define TASK_GPS_PRIORITY                   3
+// #define TASK_GYRO_PRIORITY                  3
+// #define TASK_MULTIPLEXERS_PRIORITY          3
+// #define TASK_PORTCONTROLLERINPUT_PRIORITY   4
+// #define TASK_SWITCHES_PRIORITY              4
+// #define TASK_UNIVERSE_PRIORITY              1
+// #define TASK_DISPLAY_PRIORITY               4
 
-#define TASK_STORAGE_CORE                   0
-#define TASK_LOGGING_CORE                   1
-#define TASK_SERIALINFOCMD_CORE             0
-#define TASK_GPS_CORE                       0
-#define TASK_GYRO_CORE                      0
-#define TASK_MULTIPLEXERS_CORE              0
-#define TASK_PORTCONTROLLERINPUT_CORE       0
-#define TASK_SWITCHES_CORE                  0
-#define TASK_UNIVERSE_CORE                  0
-#define TASK_DISPLAY_CORE                   0
+// #define TASK_STORAGE_CORE                   0
+// #define TASK_LOGGING_CORE                   0
+// #define TASK_SERIALINFOCMD_CORE             0
+// #define TASK_GPS_CORE                       0
+// #define TASK_GYRO_CORE                      0
+// #define TASK_MULTIPLEXERS_CORE              0
+// #define TASK_PORTCONTROLLERINPUT_CORE       0
+// #define TASK_SWITCHES_CORE                  0
+// #define TASK_UNIVERSE_CORE                  0
+// #define TASK_DISPLAY_CORE                   0
 
-#define TASK_STORAGE_STACK_SIZE             4096
-#define TASK_LOGGING_STACK_SIZE             4096
-#define TASK_SERIALINFOCMD_STACK_SIZE       16384
-#define TASK_GPS_STACK_SIZE                 4096
-#define TASK_GYRO_STACK_SIZE                4096
-#define TASK_MULTIPLEXERS_STACK_SIZE        4096
-#define TASK_PORTCONTROLLERINPUT_STACK_SIZE 4096
-#define TASK_SWITCHES_STACK_SIZE            4096
-#define TASK_UNIVERSE_STACK_SIZE            16384
-#define TASK_DISPLAY_STACK_SIZE             4096
+// #define TASK_STORAGE_STACK_SIZE             4096
+// #define TASK_LOGGING_STACK_SIZE             4096
+// #define TASK_SERIALINFOCMD_STACK_SIZE       16384
+// #define TASK_GPS_STACK_SIZE                 4096
+// #define TASK_GYRO_STACK_SIZE                4096
+// #define TASK_MULTIPLEXERS_STACK_SIZE        4096
+// #define TASK_PORTCONTROLLERINPUT_STACK_SIZE 4096
+// #define TASK_SWITCHES_STACK_SIZE            4096
+// #define TASK_UNIVERSE_STACK_SIZE            16384
+// #define TASK_DISPLAY_STACK_SIZE             4096
+
+// PRIORITIES (Lower = Higher Priority)
+#define TASK_GPS_PRIORITY                   2    // High: Time/location sync critical
+#define TASK_SERIALINFOCMD_PRIORITY         2    // High: User interaction & debugging
+#define TASK_GYRO_PRIORITY                  3    // Medium: Sensor reading
+#define TASK_MULTIPLEXERS_PRIORITY          3    // Medium: Analog multiplexing
+#define TASK_SWITCHES_PRIORITY              3    // Medium: Logic processing
+#define TASK_PORTCONTROLLERINPUT_PRIORITY   4    // Medium: I/O reading
+
+#define TASK_STORAGE_PRIORITY               3    // Medium: I/O operations, can wait
+#define TASK_LOGGING_PRIORITY               5    // Low: Asynchronous data recording
+#define TASK_UNIVERSE_PRIORITY              4    // Low: Computational, non-critical delay
+#define TASK_DISPLAY_PRIORITY               5    // Low: UI updates can be deferred
+
+// CORE ASSIGNMENT (Spread load across both cores)
+#define TASK_GPS_CORE                       0    // Core 0: Critical for system sync
+#define TASK_SERIALINFOCMD_CORE             0    // Core 0: Keep on main (timing-sensitive)
+#define TASK_GYRO_CORE                      0    // Core 0: Sensor reading (less critical)
+#define TASK_MULTIPLEXERS_CORE              0    // Core 0: ADC/multiplexing
+#define TASK_PORTCONTROLLERINPUT_CORE       0    // Core 0: I2C/GPIO input
+#define TASK_SWITCHES_CORE                  0    // Core 0: Outputs need responsiveness
+
+#define TASK_UNIVERSE_CORE                  0    // Core 0: Heavy compute, can defer
+#define TASK_STORAGE_CORE                   0    // Core 0: I/O-heavy, doesn't need Core 0
+#define TASK_LOGGING_CORE                   0    // Core 0: I/O operations
+#define TASK_DISPLAY_CORE                   0    // Core 0: UI responsiveness
+
+// STACK SIZES (Adjusted for task complexity)
+#define TASK_STORAGE_STACK_SIZE             6144    // +50%: SDMMC operations
+#define TASK_LOGGING_STACK_SIZE             5120    // +25%: File I/O
+#define TASK_SERIALINFOCMD_STACK_SIZE       16384   // Keep: Complex serial processing
+#define TASK_GPS_STACK_SIZE                 5120    // +25%: NMEA parsing + INS updates
+#define TASK_GYRO_STACK_SIZE                4608    // +12%: Math operations
+#define TASK_MULTIPLEXERS_STACK_SIZE        4096    // Keep: Simple ADC reading
+#define TASK_PORTCONTROLLERINPUT_STACK_SIZE 4608    // +12%: I2C buffer + processing
+#define TASK_SWITCHES_STACK_SIZE            5120    // +25%: Matrix calculations, mappings
+#define TASK_UNIVERSE_STACK_SIZE            20480   // +25%: Expensive float math (planets, etc.)
+#define TASK_DISPLAY_STACK_SIZE             6144    // +50%: Multiple display updates + formatting
 
 /** ----------------------------------------------------------------------------
  * Syncronize Tasks.
  * 
- * @brief Time syncronize tasks.
+ * @brief Time syncronize tasks. Main loop and some tasks will not begin until
+ *        this function has completed.
+ * 
+ *        Inital synchronization trigger is GPS milliseconds 00 (any second).
+ * 
+ *        After initial synchronization the system will attempt to synchronize
+ *        every GPS seconds zero (minutely).
  */
 void syncTasks() {
   Serial.println("[syncronizing system] please wait");
@@ -83,12 +127,13 @@ void syncTasks() {
   while (satioData.sync_rtc_immediately_flag==true) {
     getSystemTime();
     system_sync_retry_max--;
-    if (system_sync_retry_max<=0)
-      {Serial.println("[sync] took too long"); break;}
+    if (system_sync_retry_max<=0) {Serial.println("[sync] took too long!"); break;}
+    // Serial.println("[SYN] " + String(system_sync_retry_max));
     delayMicroseconds(1);
   }
   global_task_sync=true;
-  // Serial.println("unixtime sync: " + String(satioData.local_unixtime_uS));
+  // Serial.println("[SYN] syncronized." + String(system_sync_retry_max));
+  // Serial.println("[SYN] local unixtime_uS " + String(satioData.local_unixtime_uS));
 }
 
 /** ----------------------------------------------------------------------------
@@ -258,8 +303,11 @@ void taskGPS(void * pvParameters) {
     // ------------------------------------------------
     if (((gnggaData.valid_checksum=true) &&
         (gnrmcData.valid_checksum=true) &&
-        (gpattData.valid_checksum=true)) ||
-        satioData.set_rtc_datetime_flag==true) {
+        (gpattData.valid_checksum=true))
+          ||
+          satioData.set_rtc_datetime_flag==true) {
+        // -> syncRTC -- > setRTCDateTime --> setSystemTime, storeRTCSYNCTime
+        satioData.set_rtc_datetime_flag=true;
         setSatIOData();
         // --------------------------------------------
         // Set INS data.
@@ -368,10 +416,10 @@ void taskMultiplexers(void * pvParameters) {
     // ------------------------------------------------
     // Counters
     // ------------------------------------------------
-    systemData.i_count_read_mplex++;
-    systemData.interval_breach_mplex = 1;
-    if (systemData.i_count_read_mplex >= UINT32_MAX - 2)
-    systemData.i_count_read_mplex = 0;
+    systemData.i_count_read_mplex_0++;
+    systemData.interval_breach_mplex_0 = 1;
+    if (systemData.i_count_read_mplex_0 >= UINT32_MAX - 2)
+    systemData.i_count_read_mplex_0 = 0;
     // ------------------------------------------------
     // Delay next iteration of task.
     // ------------------------------------------------
@@ -404,7 +452,7 @@ void taskPortControllerInput(void * pvParameters) {
     // ------------------------------------------------
     // Read Input Port Controller.
     // ------------------------------------------------
-    if (readInputPortControllerM1()) {
+    if (readInputPortControllerM1(iic_2)) {
       systemData.i_count_portcontroller_input++;
       if (systemData.i_count_portcontroller_input>=UINT64_MAX-2)
         {systemData.i_count_portcontroller_input=0;}
@@ -459,7 +507,7 @@ void taskSwitches(void * pvParameters) {
     // Output.
     // ------------------------------------------------
     setOutputValues();
-    writeOutputPortControllerM1();
+    writeOutputPortControllerM1(iic_1);
     // SwitchStat();
     // ------------------------------------------------
     // Delay next iteration of task.
@@ -613,12 +661,16 @@ void taskDisplay(void * pvParameters) {
       drawSSD1306Canvas(I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0, 1);
     }
 
+    systemData.i_count_display++;
+    if (systemData.i_count_display>=UINT32_MAX-2)
+      {systemData.i_count_display=0;}
+
     // ------------------------------------------------
     // Delay next iteration of task.
     // ------------------------------------------------
-    if (TICK_DELAY_TASK_7SEG==false)
-      {xTaskNotifyWait(0x00, 0x00, NULL, DELAY_TASK_7SEG / portTICK_PERIOD_MS);}
-    else {xTaskNotifyWait(0x00, 0x00, NULL, DELAY_TASK_7SEG);}
+    if (TICK_DELAY_TASK_DISPLAY==false)
+      {xTaskNotifyWait(0x00, 0x00, NULL, DELAY_TASK_DISPLAY / portTICK_PERIOD_MS);}
+    else {xTaskNotifyWait(0x00, 0x00, NULL, DELAY_TASK_DISPLAY);}
   }
 }
 void createTaskDisplay() {

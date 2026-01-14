@@ -1330,10 +1330,13 @@ void CmdProcess(void) {
 long i_output_config_matrix = 0;
 
 void outputSentences(void) {
-  if (systemData.interval_breach_1_second==true) {outputStat();}
+  if (systemData.interval_breach_1_second_output) {
+    systemData.interval_breach_1_second_output=false;
+    outputStat();
+  }
 
   if (systemData.interval_breach_gps) {
-    systemData.interval_breach_gps=0;
+    systemData.interval_breach_gps=false;
     if (systemData.output_gngga_enabled) {Serial.println(gnggaData.outsentence);}
     if (systemData.output_gnrmc_enabled) {Serial.println(gnrmcData.outsentence);}
     if (systemData.output_gpatt_enabled) {Serial.println(gpattData.outsentence);}
@@ -1420,7 +1423,7 @@ void outputSentences(void) {
     }
   }
   if (systemData.interval_breach_gyro_0) {
-    systemData.interval_breach_gyro_0 = 0;
+    systemData.interval_breach_gyro_0=false;
     if (systemData.output_gyro_0_enabled) {
       memset(serial0Data.BUFFER, 0, sizeof(serial0Data.BUFFER));
       strcat(serial0Data.BUFFER, "$GYRO0,");
@@ -1455,7 +1458,7 @@ void outputSentences(void) {
     }
   }
   if (systemData.interval_breach_track_planets) {
-    systemData.interval_breach_track_planets = 0;
+    systemData.interval_breach_track_planets=false;
     if (systemData.output_sun_enabled) {
       memset(serial0Data.BUFFER, 0, sizeof(serial0Data.BUFFER));
       strcat(serial0Data.BUFFER, "$SUN,");
@@ -1641,7 +1644,7 @@ void outputSentences(void) {
   }
 
   // if (systemData.interval_breach_matrix) {
-  // systemData.interval_breach_matrix = 0;
+  // systemData.interval_breach_matrix=false;
   if (systemData.output_matrix_enabled) {
     memset(serial0Data.BUFFER, 0, sizeof(serial0Data.BUFFER));
     strcpy(serial0Data.BUFFER, "$MATRIX,");
@@ -1735,8 +1738,8 @@ void outputSentences(void) {
     }
   }
 
-  if (systemData.interval_breach_mplex) {
-    systemData.interval_breach_mplex = 0;
+  if (systemData.interval_breach_mplex_0) {
+    systemData.interval_breach_mplex_0=false;
     if (systemData.output_admplex0_enabled) {
       memset(serial0Data.BUFFER, 0, sizeof(serial0Data.BUFFER));
       strcat(serial0Data.BUFFER, "$MPLEX0,");
@@ -1847,6 +1850,7 @@ void outputStat(void) {
     //                                                                                                               PRINT COUNTERS
     // ----------------------------------------------------------------------------------------------------------------------------
     Serial.println();
+    Serial.println("[ " + String(satioData.local_unixtime_uS) + " ]");
     Serial.println("----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
     // printf("taskGyro", "Unused stack: %u words\n", watermark_task_gyro);
     // printf("taskUniverse", "Unused stack: %u words\n", watermark_task_universe);
@@ -1857,12 +1861,12 @@ void outputStat(void) {
     counter_digits_0[0]=systemData.total_loops_a_second;
     counter_digits_0[1]=systemData.total_gps;
     counter_digits_0[2]=systemData.total_ins;
-    counter_digits_0[3]=systemData.total_gyro;
-    counter_digits_0[4]=systemData.total_mplex;
+    counter_digits_0[3]=systemData.total_gyro_0;
+    counter_digits_0[4]=systemData.interval_breach_mplex_0;
     counter_digits_0[5]=systemData.total_infocmd;
     counter_digits_0[6]=systemData.total_universe;
     counter_digits_0[7]=systemData.total_matrix;
-    counter_digits_0[8]=systemData.total_portcon;
+    counter_digits_0[8]=systemData.total_portcontroller_output;
     counter_digits_0[9]=systemData.total_portcontroller_input;
     counter_digits_0[10]=systemData.mainLoopTimeTaken;
     counter_digits_0[11]=systemData.mainLoopTimeTakenMax;

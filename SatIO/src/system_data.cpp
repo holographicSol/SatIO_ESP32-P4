@@ -16,14 +16,15 @@ struct systemStruct systemData = {
   .interval_breach_gps = false,
   .interval_breach_ins = false,
   .interval_breach_gyro_0 = false,
-  .interval_breach_mplex = false,
+  .interval_breach_mplex_0 = false,
   .interval_breach_matrix = false,
   .interval_breach_track_planets = false,
   .interval_breach_logging = false,
+  .interval_breach_1_second_output = false,
   .interval_breach_1_second = false,
 
   .debug = false,
-  .output_stat = true,
+  .output_stat = false,
   .output_stat_v = false,
   .output_stat_vv = false,
   .serial_command = 1,
@@ -67,8 +68,8 @@ struct systemStruct systemData = {
   .i_count_read_gyro_0 = 0,
   .prev_i_count_read_gyro_0 = 0,
 
-  .i_count_read_mplex = 0,
-  .prev_i_count_read_mplex = 0,
+  .i_count_read_mplex_0 = 0,
+  .prev_i_count_read_mplex_0 = 0,
 
   .i_count_matrix = 0,
   .prev_i_count_matrix = 0,
@@ -76,8 +77,8 @@ struct systemStruct systemData = {
   .i_count_portcontroller_input = 0,
   .prev_i_count_portcontroller_input = 0,
 
-  .i_count_port_controller = 0,
-  .prev_i_count_port_controller = 0,
+  .i_count_port_controller_output = 0,
+  .prev_i_count_port_controller_output = 0,
 
   .i_count_track_planets = 0,
   .prev_i_count_track_planets = 0,
@@ -88,83 +89,23 @@ struct systemStruct systemData = {
   .i_count_logging = 0,
   .prev_i_count_logging = 0,
 
+  .i_count_display = 0,
+  .prev_i_count_display = 0,
+
   .loops_a_second = 0,
   .total_loops_a_second = 0,
 
   .total_gps = 0,
   .total_ins = 0,
-  .total_gyro = 0,
-  .total_mplex = 0,
+  .total_gyro_0 = 0,
+  .total_mplex_0 = 0,
   .total_matrix = 0,
-  .total_portcon = 0,
   .total_universe = 0,
   .total_infocmd = 0,
+  .total_portcontroller_output = 0,
   .total_portcontroller_input = 0,
+  .total_display = 0,
 };
-
-int64_t prev_tv_sec;
-
-void systemIntervalCheck(void) {
-  systemData.interval_breach_1_second = 0; // set default
-  // Second interval: ensure safe by detecting a bad prev_tv_sec.
-  if (prev_tv_sec > tv_now.tv_sec || prev_tv_sec < tv_now.tv_sec - 2) {
-    Serial.println("correcting prev_tv_sec");
-    prev_tv_sec = tv_now.tv_sec - 1;
-    systemData.interval_breach_1_second = 1;
-  }
-  // Second interval: check using system time.
-  if (tv_now.tv_sec - prev_tv_sec >= 1) {
-    prev_tv_sec = tv_now.tv_sec;
-    systemData.interval_breach_1_second = 1;
-  }
-}
-
-void intervalBreach1Second(void) {
-  if (systemData.interval_breach_1_second) {
-    // store system time
-    storeLocalTime();
-    // store rtc time
-    storeRTCTime();
-    // set loop counter
-    systemData.total_loops_a_second = systemData.loops_a_second;
-    systemData.loops_a_second = 0;
-    // set gps counters
-    systemData.total_gps = systemData.i_count_read_gps;
-    systemData.i_count_read_gps = 0;
-    // set ins counters
-    systemData.total_ins = systemData.i_count_read_ins;
-    systemData.i_count_read_ins = 0;
-    // set gyro counters
-    systemData.total_gyro = systemData.i_count_read_gyro_0;
-    systemData.i_count_read_gyro_0 = 0;
-    // set mplex counters
-    systemData.total_mplex = systemData.i_count_read_mplex;
-    systemData.i_count_read_mplex = 0;
-    // set mplex counters
-    systemData.total_matrix = systemData.i_count_matrix;
-    systemData.i_count_matrix = 0;
-    // set mplex counters
-    systemData.total_portcon = systemData.i_count_port_controller;
-    systemData.i_count_port_controller = 0;
-    // set mplex counters
-    systemData.total_universe = systemData.i_count_track_planets;
-    systemData.i_count_track_planets = 0;
-    // set mplex counters
-    systemData.total_infocmd = systemData.i_count_read_serial_commands;
-    systemData.i_count_read_serial_commands = 0;
-    // set portcontroller input counters
-    systemData.total_portcontroller_input = systemData.i_count_portcontroller_input;
-    systemData.i_count_portcontroller_input = 0;
-    // set second flags
-    systemData.interval_breach_track_planets = 1;
-    // set uptime
-    systemData.uptime_seconds++;
-    if (systemData.uptime_seconds >= LONG_MAX - 2)
-      {systemData.uptime_seconds = 0;
-        Serial.println("[reset uptime_seconds] " + String(systemData.uptime_seconds));
-      }
-  }
-}
 
 void restore_system_defaults(void) {
   systemData.debug = false;

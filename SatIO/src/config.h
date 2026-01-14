@@ -10,8 +10,8 @@
 #include <Wire.h>   // REQUIRED for TwoWire type
 #include "config.h"
 
-extern long  DELAY_TASK_7SEG;
-extern bool  TICK_DELAY_TASK_7SEG;
+extern long  DELAY_TASK_DISPLAY;
+extern bool  TICK_DELAY_TASK_DISPLAY;
 
 extern long  DELAY_TASK_SERIAL_INFOCMD;
 extern bool  TICK_DELAY_TASK_SERIAL_INFOCMD;
@@ -87,8 +87,8 @@ extern bool ISR_Bool_MultiDisplayController_0;
 #define POWER_CONFIG_1_SECOND_DELAY_TASK_LOGGING                     1000
 #define POWER_CONFIG_1_SECOND_TICK_DELAY_TASK_LOGGING                false
 
-#define POWER_CONFIG_ULTIMATE_PERFORMANCE_DELAY_TASK_7SEG                        10
-#define POWER_CONFIG_ULTIMATE_PERFORMANCE_TICK_DELAY_TASK_7SEG                   false
+#define POWER_CONFIG_ULTIMATE_PERFORMANCE_DELAY_TASK_DISPLAY                     10
+#define POWER_CONFIG_ULTIMATE_PERFORMANCE_TICK_DELAY_TASK_DISPLAY                false
 
 #define POWER_CONFIG_ULTIMATE_PERFORMANCE_DELAY_TASK_SERIAL_INFOCMD              1
 #define POWER_CONFIG_ULTIMATE_PERFORMANCE_TICK_DELAY_TASK_SERIAL_INFOCMD         true
@@ -108,7 +108,7 @@ extern bool ISR_Bool_MultiDisplayController_0;
 #define POWER_CONFIG_ULTIMATE_PERFORMANCE_DELAY_TASK_SWITCHES                    1
 #define POWER_CONFIG_ULTIMATE_PERFORMANCE_TICK_DELAY_TASK_SWITCHES               true
 
-#define POWER_CONFIG_ULTIMATE_PERFORMANCE_DELAY_TASK_PORTCONTROLLER_INPUT        1
+#define POWER_CONFIG_ULTIMATE_PERFORMANCE_DELAY_TASK_PORTCONTROLLER_INPUT        1000
 #define POWER_CONFIG_ULTIMATE_PERFORMANCE_TICK_DELAY_TASK_PORTCONTROLLER_INPUT   false
 
 #define POWER_CONFIG_ULTIMATE_PERFORMANCE_DELAY_TASK_STORAGE                     500
@@ -458,9 +458,19 @@ extern bool ISR_Bool_MultiDisplayController_0;
 /**
  * @brief Global IIC wire instances and data struictures for each wire channel.
  */
+#define IIC_BUS0_SDA 2
+#define IIC_BUS0_SCL 3
+
+#define IIC_BUS1_SDA 4
+#define IIC_BUS1_SCL 5
+
+#define IIC_BUS2_SDA 7
+#define IIC_BUS2_SCL 8
+
 extern TwoWire iic_0;
 extern TwoWire iic_1;
 extern TwoWire iic_2;
+
 typedef struct {
   int  i_token;
   char * token;
@@ -469,6 +479,7 @@ typedef struct {
   char OUTPUT_BUFFER_CHARS[MAX_IIC_BUFFER_SIZE];
   byte OUTPUT_BUFFER_BYTES[MAX_IIC_BUFFER_SIZE];
 } IICLink;
+
 extern IICLink IICLink0;
 extern IICLink IICLink1;
 extern IICLink IICLink2;

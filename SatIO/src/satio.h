@@ -1,27 +1,24 @@
 /*
     SATIO Library. Written by Benjamin Jack Cullen.
 
-    1 : From main call initRTC().
-    2 : From main call initSystemTime().
-    3 : From main call setSatIOData() when required to sync RTC with GPS data and set all other data.
-    4 : All satio data will be available in satioData.
+    1 : From main call initSystemTime().
+    2 : From main call setSatIOData() when required to sync RTC with GPS data and set all other data.
+    3 : All satio data will be available in satioData.
 */
 
 #ifndef SATIO_H
 #define SATIO_H
 
-// #ifdef __cplusplus
-// extern "C" {
-// #endif
-
 #include <stdbool.h>
 #include <stdint.h>
 #include <math.h>
+#include <RTClib.h>  // https://github.com/adafruit/RTClib
 #include "config.h"
 
 extern struct tm *timeinfo;
 extern struct timeval tv_now;
 extern bool sync_rtc_bool;
+extern RTC_DS3231 rtc;
 
 // ----------------------------------------------------------------------------------------
 // SATIO Struct.
@@ -200,7 +197,6 @@ void setSystemTime(long usec);
 void getSystemTime(void);
 void syncRTC(void);
 void setSatIOData(void);
-void initRTC(void);
 void initSystemTime(void);
 
 /**
@@ -218,9 +214,5 @@ void initSystemTime(void);
    * This function has no Kalman filter.
  */
  double calculateSpeedFromLocationData(LocPoint p1, LocPoint p2);
-
-// #ifdef __cplusplus
-// }
-// #endif
 
 #endif

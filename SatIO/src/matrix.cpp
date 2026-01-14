@@ -1641,55 +1641,30 @@ void setOutputValues(void) {
   }
 }
 
-void initOutputPortController() {
-  iic_1.setPins(4, 5);
-  iic_1.setBufferSize(256);
-  iic_1.setTimeOut(1000);
-  iic_1.begin(4, 5);
-  // iic_1.setClock(400000); // ATMEGA2560 no resistors     good
-  // iic_1.setClock(200000); // ESP32 no resistors          good
-  // iic_1.setClock(200000); // ESP32 2.2k resistor         good
-  // iic_1.setClock(250000); // ATMEGA2560 2.2k resistor    good
-  iic_1.setClock(800000); // ATMEGA2560 2.2k resistor       good (+-4ns rise time)
-  // iic_1.setClock(400000); // ESP32 no resistors          bad
-  // iic_1.setClock(400000); // ESP32 2.2k resistor         bad
-  // iic_1.setClock(400000); // ESP32 1k resistor           bad
-  // iic_1.setClock(250000); // ESP32 1k resistor           bad
-}
-
-void initInputPortController() {
-  iic_2.setPins(7, 8);
-  iic_2.setBufferSize(256);
-  iic_2.setTimeOut(1000);
-  iic_2.begin(7, 8);
-  iic_2.setClock(400000); // current
-}
-
-void writeI2COutputPortController(int I2C_Address) {
-  // Serial.println("writeI2COutputPortController: " + String(IICLink1.OUTPUT_BUFFER_CHARS));
+void writeI2COutputPortController(TwoWire &iic_bus) {
   // Compile bytes array.
   memset(IICLink1.OUTPUT_BUFFER_BYTES, 0, sizeof(IICLink1.OUTPUT_BUFFER_BYTES));
   for (byte i=0;i<sizeof(IICLink1.OUTPUT_BUFFER_BYTES);i++)
   {IICLink1.OUTPUT_BUFFER_BYTES[i]=(byte)IICLink1.OUTPUT_BUFFER_CHARS[i];}
-  iic_1.beginTransmission(I2C_Address);
+  iic_bus.beginTransmission(I2C_ADDR_OUTPUT_PORTCONTROLLER);
   // Write bytes array.
-  iic_1.write(IICLink1.OUTPUT_BUFFER_BYTES, sizeof(IICLink1.OUTPUT_BUFFER_BYTES));
-  iic_1.endTransmission();
+  iic_bus.write(IICLink1.OUTPUT_BUFFER_BYTES, sizeof(IICLink1.OUTPUT_BUFFER_BYTES));
+  iic_bus.endTransmission();
 }
 
-void writeOutputPortControllerM0(void) {
+void writeOutputPortControllerM0(TwoWire &iic_bus) {
   // Tag.
   memset(IICLink1.OUTPUT_BUFFER_CHARS, 0, sizeof(IICLink1.OUTPUT_BUFFER_CHARS));
   strcpy(IICLink1.OUTPUT_BUFFER_CHARS, "M0");
   // Write instruction.
-  writeI2COutputPortController(I2C_ADDR_OUTPUT_PORTCONTROLLER);
-  systemData.i_count_port_controller++;
+  // writeI2COutputPortController(iic_bus);
+  systemData.i_count_port_controller_output++;
 }
 
 // ------------------------------------------------------------
 // writeOutputPortControllerM1: binary
 // ------------------------------------------------------------
-void writeOutputPortControllerM1(void) {
+void writeOutputPortControllerM1(TwoWire &iic_bus) {
   uint8_t packet[15];
   for (int Mi = 0; Mi < MAX_MATRIX_SWITCHES; Mi++) {
     if (!matrixData.matrix_switch_write_required[0][Mi])
@@ -1732,9 +1707,9 @@ void writeOutputPortControllerM1(void) {
     // ------------------------------------------------------------
     // Send over I2C
     // ------------------------------------------------------------
-    iic_1.beginTransmission(I2C_ADDR_OUTPUT_PORTCONTROLLER);
-    iic_1.write(packet, 15);
-    uint8_t result = iic_1.endTransmission();
+    iic_bus.beginTransmission(I2C_ADDR_OUTPUT_PORTCONTROLLER);
+    iic_bus.write(packet, 15);
+    uint8_t result = iic_bus.endTransmission();
     // ------------------------------------------------------------
     // Check error code (0=success)
     // ------------------------------------------------------------
@@ -1749,29 +1724,29 @@ void writeOutputPortControllerM1(void) {
     // Clear flag after successful send (or retry logic if needed)
     // ------------------------------------------------------------
     matrixData.matrix_switch_write_required[0][Mi] = false;
+    systemData.i_count_port_controller_output++;
   }
-  systemData.i_count_port_controller++;
 }
 
 // ------------------------------------------------------------
 // readInputPortControllerM1: binary
 // ------------------------------------------------------------
-bool readInputPortControllerM1(void) {
+bool readInputPortControllerM1(TwoWire &iic_bus) {
   const uint8_t TOTAL_PINS = 70;
   for (uint8_t i = 0; i < TOTAL_PINS; i++) {
-    if (iic_2.requestFrom(I2C_ADDR_INPUT_PORTCONTROLLER, (uint8_t)5) != 5) {
+    if (iic_bus.requestFrom(I2C_ADDR_INPUT_PORTCONTROLLER, (uint8_t)5) != 5) {
       Serial.printf("I2C timeout at expected pin %d\n", i);
       return false;
     }
-    uint8_t pin = iic_2.read();
+    uint8_t pin = iic_bus.read();
     union {
       float    f;
       uint8_t  bytes[4];
     } u;
-    u.bytes[0] = iic_2.read();
-    u.bytes[1] = iic_2.read();
-    u.bytes[2] = iic_2.read();
-    u.bytes[3] = iic_2.read();
+    u.bytes[0] = iic_bus.read();
+    u.bytes[1] = iic_bus.read();
+    u.bytes[2] = iic_bus.read();
+    u.bytes[3] = iic_bus.read();
     if (pin < TOTAL_PINS) {
       matrixData.input_value[0][pin] = (double)u.f;
       // Serial.printf("[BIN] P%d = %.6f\n", pin, matrixData.input_value[0][pin]);

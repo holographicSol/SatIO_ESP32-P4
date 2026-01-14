@@ -197,33 +197,56 @@ void setup() {
   // Initialize SDCard and attempt to load files.
   // --------------------------------------------------------------
   sdcardBegin();
-  sdmmcFlagData.load_system=true;
+  // sdmmcFlagData.load_system=true;
   sdcardFlagHandler();
   if (matrixData.load_matrix_on_startup) {
     sdmmcFlagData.load_mapping=true; sdcardFlagHandler();
     sdmmcFlagData.load_matrix=true; sdcardFlagHandler();}
+
   // --------------------------------------------------------------
-  // Initialize I2C.
+  // Initialize I2C BUS 0: RTC
   // --------------------------------------------------------------
-  Serial.println("[IIC] starting IIC as master");
-  initInputPortController();
-  initOutputPortController();
-  // Wire.setClock(1000000);
-  // Wire.setClock(800000L);
-  // Wire.setClock(400000);
-  // Wire.setClock(200000);
-  // Wire.setClock(100000L);
-  writeOutputPortControllerM0();
+  Serial.println("[IIC] intitializing RTC");
+  iic_0.setPins(IIC_BUS0_SDA, IIC_BUS0_SCL);
+  iic_0.begin(IIC_BUS0_SDA, IIC_BUS0_SCL, 200000UL);
+  rtc.begin(&iic_0);
+  // --------------------------------------------------------------
+  // Initialize I2C BUS 0: Display
+  // --------------------------------------------------------------
+  Serial.println("[IIC] intitializing multi display controller");
+  // WARNING! display and rtc are currently on different tasks and are racing for bus 0.
+  //          this until a battery is fitted to system clock or IIC tasks are merged into
+  //          tasks by bus. alternatively semaphores/mutexes could be used or other locks.
+  // iic_0.begin(IIC_BUS0_SDA, IIC_BUS0_SCL, 200000UL); // Bus 0 already initialized
+  // --------------------------------------------------------------
+  // Initialize I2C BUS 1: Output port controller
+  // --------------------------------------------------------------
+  Serial.println("[IIC] intitializing output port controller");
+  iic_1.setPins(IIC_BUS1_SDA, IIC_BUS1_SCL);
+  iic_1.setBufferSize(256);
+  iic_1.setTimeOut(1000);
+  iic_1.begin(IIC_BUS1_SDA, IIC_BUS1_SCL);
+  // iic_1.setClock(400000); // ATMEGA2560 no resistors     good
+  // iic_1.setClock(200000); // ESP32 no resistors          good
+  // iic_1.setClock(200000); // ESP32 2.2k resistor         good
+  // iic_1.setClock(250000); // ATMEGA2560 2.2k resistor    good
+  iic_1.setClock(800000); // ATMEGA2560 2.2k resistor       good (+-4ns rise time)
+  writeOutputPortControllerM0(iic_1);
+  // --------------------------------------------------------------
+  // Initialize I2C BUS 2: Input port controller
+  // --------------------------------------------------------------
+  Serial.println("[IIC] intitializing input port controller");
+  iic_2.setPins(IIC_BUS2_SDA, IIC_BUS2_SCL);
+  iic_2.setBufferSize(256);
+  iic_2.setTimeOut(1000);
+  iic_2.begin(IIC_BUS2_SDA, IIC_BUS2_SCL);
+  iic_2.setClock(400000);
+
   // --------------------------------------------------------------
   // Initialize Multiplexer(s).
   // --------------------------------------------------------------
   initADMultiplexer(ad_mux_0);
-  // setMultiplexChannel_I2C(0, 0);
-  // --------------------------------------------------------------
-  // Initialize RTC (for UTC).
-  // --------------------------------------------------------------
-  Serial.println("[IIC] starting RTC");
-  initRTC();
+
   // --------------------------------------------------------------
   // Initialize System Time (for local time).
   // --------------------------------------------------------------
@@ -265,28 +288,127 @@ void setup() {
   // --------------------------------------------------------------
   // Create Tasks.
   // --------------------------------------------------------------
-  createTaskDisplay(); // optional
-  createTaskGPS();
-  createTaskSerialInfoCMD();
+  // Targets are determined for ESP32-P4, adjust as required.
 
-  createTaskGyro(); // optional
-  createTaskLogging(); // optional
-  createTaskStorage(); // optional
-  createTaskMultiplexers(); // optional
-  createTaskPortControllerInput(); // optional
-  myAstroBegin(); // optional
-  createTaskUniverse(); // optional
-  createTaskSwitches(); // optional
+  createTaskDisplay();          // (target: n/ps)
+  
+  createTaskGPS();                 // (target: 10/ps)   // Time & location
+  createTaskSerialInfoCMD();       // (target: cmds/ps) // Serial I/O
+
+  createTaskGyro();                // (target: 200/ps)  // Attitude
+  createTaskMultiplexers();        // (target: 200/ps)  // Fast general input
+  createTaskPortControllerInput(); // (target: 1/ps)    // Slow general input
+  createTaskSwitches();            // (target: approx. max 1000/ps) Fast general output
+
+  myAstroBegin();
+  createTaskUniverse();            // (target: 1/ps)    // Star tracking
+
+  createTaskStorage();             // (target: 2/ps)    // SD card
+  createTaskLogging();             // (target: n/ps)    // Log to sdcard
+
   syncTasks();
 }
 
 /**
  * @brief Loop
  */
+int64_t prev_tv_sec;
+
+void intervalBreach1Second(void) {
+  // if (systemData.interval_breach_1_second) {
+    // store system time
+    storeLocalTime();
+    // store rtc time
+    storeRTCTime();
+    // set loop counter
+    systemData.total_loops_a_second = systemData.loops_a_second;
+    systemData.loops_a_second = 0;
+    // set gps counters
+    systemData.total_gps = systemData.i_count_read_gps;
+    systemData.i_count_read_gps = 0;
+    // set ins counters
+    systemData.total_ins = systemData.i_count_read_ins;
+    systemData.i_count_read_ins = 0;
+    // set gyro counters
+    systemData.total_gyro_0 = systemData.i_count_read_gyro_0;
+    systemData.i_count_read_gyro_0 = 0;
+    // set mplex counters
+    systemData.total_mplex_0 = systemData.i_count_read_mplex_0;
+    systemData.i_count_read_mplex_0 = 0;
+    // set mplex counters
+    systemData.total_matrix = systemData.i_count_matrix;
+    systemData.i_count_matrix = 0;
+    // set mplex counters
+    systemData.total_portcontroller_output = systemData.i_count_port_controller_output;
+    systemData.prev_i_count_port_controller_output = 0;
+    // set mplex counters
+    systemData.total_universe = systemData.i_count_track_planets;
+    systemData.i_count_track_planets = 0;
+    // set mplex counters
+    systemData.total_infocmd = systemData.i_count_read_serial_commands;
+    systemData.i_count_read_serial_commands = 0;
+    // set portcontroller input counters
+    systemData.total_portcontroller_input = systemData.i_count_portcontroller_input;
+    systemData.i_count_portcontroller_input = 0;
+    // set display counters
+    systemData.total_display = systemData.i_count_display;
+    systemData.i_count_display = 0;
+    // set second flags
+    systemData.interval_breach_track_planets = 1;
+    // set uptime
+    systemData.uptime_seconds++;
+    if (systemData.uptime_seconds >= LONG_MAX - 2)
+      {systemData.uptime_seconds = 0;
+        Serial.println("[reset uptime_seconds] " + String(systemData.uptime_seconds));
+      }
+  // }
+}
+
 void loop() {
-  getSystemTime();
-  systemIntervalCheck();
-  intervalBreach1Second();
+
+  gettimeofday(&tv_now, NULL);
+  timeinfo = localtime(&tv_now.tv_sec); // Assumes localtime works
+  satioData.local_unixtime_uS = (int64_t)tv_now.tv_sec * 1000000L + (int64_t)tv_now.tv_usec;
+
+  if (tv_now.tv_sec != prev_tv_sec) {
+    prev_tv_sec = tv_now.tv_sec;
+    systemData.interval_breach_1_second=true;
+    systemData.interval_breach_1_second_output=true;
+    intervalBreach1Second();
+    Serial.println("[ " + String(satioData.local_unixtime_uS) + " ]" + 
+                   " gps=" + String(gnrmcData.utc_time) +
+                   " rtc=" + String(satioData.padded_rtc_time_HHMMSS) +
+                   " lcl=" + String(satioData.padded_local_time_HHMMSS) +
+                   " syn=" + String(satioData.padded_rtc_sync_time_HHMMSS) +
+                   "  t_loop=" + String(systemData.total_loops_a_second) +
+                   " t_gps=" + String(systemData.total_gps) +
+                   " t_ins=" + String(systemData.total_ins) +
+                   " t_gyr=" + String(systemData.total_gyro_0) +
+                   " t_mlx=" + String(systemData.total_mplex_0) +
+                   " t_uni=" + String(systemData.total_universe) +
+                   " t_pci=" + String(systemData.total_portcontroller_input) +
+                   " t_mtx=" + String(systemData.total_matrix) +
+                   " t_pco=" + String(systemData.total_portcontroller_output) +
+                   " t_dsp=" + String(systemData.total_display) +
+                   "  lat=" + String(satioData.degrees_latitude, 7) +
+                   " lon=" + String(satioData.degrees_longitude, 7) +
+                   " alt=" + String(satioData.altitude_converted) + "_" + String(satioData.char_altitude_unit_mode[satioData.altitude_unit_mode]) +
+                   " ghd=" + String(satioData.ground_heading) +
+                   " spd=" + String(satioData.speed_converted) + "_" + String(satioData.char_speed_unit_mode[satioData.speed_unit_mode]) +
+                   "  ang_x=" + String(gyroData.gyro_0_ang_x) +
+                   " ang_y=" + String(gyroData.gyro_0_ang_y) +
+                   " ang_z=" + String(gyroData.gyro_0_ang_z) +
+                   " gyr_x=" + String(gyroData.gyro_0_gyr_x) +
+                   " gyr_y=" + String(gyroData.gyro_0_gyr_y) +
+                   " gyr_z=" + String(gyroData.gyro_0_gyr_z) +
+                   " acc_x=" + String(gyroData.gyro_0_acc_x) +
+                   " acc_y=" + String(gyroData.gyro_0_acc_y) +
+                   " acc_z=" + String(gyroData.gyro_0_acc_z) +
+                   " mag_x=" + String(gyroData.gyro_0_mag_x) +
+                   " mag_y=" + String(gyroData.gyro_0_mag_y) +
+                   " mag_z=" + String(gyroData.gyro_0_mag_z)
+    );
+  }
+  
   systemData.loops_a_second++;
-  // delay(10);
 }

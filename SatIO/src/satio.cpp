@@ -712,6 +712,7 @@ void setRTCDateTime() {
             (uint8_t)satioData.tmp_minute_int,
             (uint8_t)satioData.tmp_second_int));
   setSystemTime(0);
+  // Serial.println("[ " + String(satioData.local_unixtime_uS) + " ] sync time in setRTCDateTime");
   storeRTCSYNCTime();
   satioData.sync_rtc_immediately_flag=false;
 }
@@ -777,6 +778,7 @@ void syncRTC() {
 // setSatIOData.
 // ----------------------------------------------------------------------------------------
 void setSatIOData(void) {
+    // Serial.println("[setSatIOData]");
       syncRTC();
       setSatioCoordinates();
       setSatIOAltitude();
@@ -805,10 +807,4 @@ void initSystemTime(void) {
                  String(satioData.padded_local_date_DDMMYYYY) +
                  " (+- offset seconds " +
                  String(satioData.utc_second_offset) + ")");
-}
-
-void initRTC(void) {
-  iic_0.begin(2, 3, 200000UL);
-  rtc.begin(&iic_0);
-  // rtc.begin();
 }

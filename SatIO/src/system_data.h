@@ -17,10 +17,11 @@ struct systemStruct {
   bool interval_breach_gps;
   bool interval_breach_ins;
   bool interval_breach_gyro_0;
-  bool interval_breach_mplex;
+  bool interval_breach_mplex_0;
   bool interval_breach_matrix;
   bool interval_breach_track_planets;
   bool interval_breach_logging;
+  bool interval_breach_1_second_output;
   bool interval_breach_1_second;
 
   bool debug;
@@ -69,8 +70,8 @@ struct systemStruct {
   int32_t i_count_read_gyro_0;
   int32_t prev_i_count_read_gyro_0;
 
-  int32_t i_count_read_mplex;
-  int32_t prev_i_count_read_mplex;
+  int32_t i_count_read_mplex_0;
+  int32_t prev_i_count_read_mplex_0;
 
   int32_t i_count_matrix;
   int32_t prev_i_count_matrix;
@@ -78,8 +79,8 @@ struct systemStruct {
   int32_t i_count_portcontroller_input;
   int32_t prev_i_count_portcontroller_input;
 
-  int32_t i_count_port_controller;
-  int32_t prev_i_count_port_controller;
+  int32_t i_count_port_controller_output;
+  int32_t prev_i_count_port_controller_output;
 
   int32_t i_count_track_planets;
   int32_t prev_i_count_track_planets;
@@ -90,31 +91,25 @@ struct systemStruct {
   int32_t i_count_logging;
   int32_t prev_i_count_logging;
 
+  int32_t i_count_display;
+  int32_t prev_i_count_display;
+
   int32_t loops_a_second;
   int32_t total_loops_a_second;
 
   // Additional totals (from intervalBreach1Second)
   int32_t total_gps;
   int32_t total_ins;
-  int32_t total_gyro;
-  int32_t total_mplex;
+  int32_t total_gyro_0;
+  int32_t total_mplex_0;
   int32_t total_matrix;
-  int32_t total_portcon;
   int32_t total_universe;
   int32_t total_infocmd;
+  int32_t total_portcontroller_output;
   int32_t total_portcontroller_input;
+  int32_t total_display;
 };
 extern struct systemStruct systemData;
-
-/**
- * Checks system intervals for breaches and updates breach flags.
- */
-void systemIntervalCheck(void);
-
-/**
- * Handles the 1-second interval breach processing, updating totals and counters.
- */
-void intervalBreach1Second(void);
 
 /**
  * Restores the system to default configuration values.

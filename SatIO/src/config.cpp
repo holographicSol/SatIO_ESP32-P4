@@ -6,8 +6,8 @@
 // Power & Performance – Real mutable variables with default values
 // ----------------------------------------------------------------------------------------
 
-long  DELAY_TASK_7SEG       = POWER_CONFIG_ULTIMATE_PERFORMANCE_DELAY_TASK_7SEG;
-bool  TICK_DELAY_TASK_7SEG  = POWER_CONFIG_ULTIMATE_PERFORMANCE_TICK_DELAY_TASK_7SEG;
+long  DELAY_TASK_DISPLAY              = POWER_CONFIG_ULTIMATE_PERFORMANCE_DELAY_TASK_DISPLAY;
+bool  TICK_DELAY_TASK_DISPLAY         = POWER_CONFIG_ULTIMATE_PERFORMANCE_TICK_DELAY_TASK_DISPLAY;
 
 long  DELAY_TASK_SERIAL_INFOCMD       = POWER_CONFIG_ULTIMATE_PERFORMANCE_DELAY_TASK_SERIAL_INFOCMD;
 bool  TICK_DELAY_TASK_SERIAL_INFOCMD  = POWER_CONFIG_ULTIMATE_PERFORMANCE_TICK_DELAY_TASK_SERIAL_INFOCMD;
@@ -38,7 +38,7 @@ long  DELAY_TASK_LOGGING         = POWER_CONFIG_ULTIMATE_PERFORMANCE_DELAY_TASK_
 bool  TICK_DELAY_TASK_LOGGING    = POWER_CONFIG_ULTIMATE_PERFORMANCE_TICK_DELAY_TASK_LOGGING;
 
 bool global_task_sync      = false;
-long system_sync_retry_max = 2000;
+long system_sync_retry_max = 10000;
 
 /**
  * @brief Global IIC wire instances and data struictures for each wire channel.
