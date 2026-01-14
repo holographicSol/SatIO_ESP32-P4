@@ -705,8 +705,12 @@ void extractDateTimeFromGPSData(void) {
 }
 
 void setRTCDateTime() {
-  rtc.adjust(DateTime((uint16_t)satioData.tmp_year_int, (uint8_t)satioData.tmp_month_int, (uint8_t)satioData.tmp_day_int,
-  (uint8_t)satioData.tmp_hour_int, (uint8_t)satioData.tmp_minute_int, (uint8_t)satioData.tmp_second_int));
+  rtc.adjust(DateTime((uint16_t)satioData.tmp_year_int,
+            (uint8_t)satioData.tmp_month_int,
+            (uint8_t)satioData.tmp_day_int,
+            (uint8_t)satioData.tmp_hour_int,
+            (uint8_t)satioData.tmp_minute_int,
+            (uint8_t)satioData.tmp_second_int));
   setSystemTime(0);
   storeRTCSYNCTime();
   satioData.sync_rtc_immediately_flag=false;
@@ -721,7 +725,8 @@ void syncRTC() {
    * (2) Set satioData.set_rtc_datetime_flag true.
    */
   if (satioData.set_time_automatically==false && satioData.set_rtc_datetime_flag==true)
-    {satioData.set_rtc_datetime_flag=false; setRTCDateTime(); Serial.println("[rtc] sync 2: " + String(rtc.now().timestamp()));}
+    {satioData.set_rtc_datetime_flag=false;
+    setRTCDateTime(); Serial.println("[rtc] sync 2: " + String(rtc.now().timestamp()));}
 
   /**
    * Automatically set RTC datetime with GPS data.
@@ -784,17 +789,22 @@ void setSatIOData(void) {
 // initSystemTime.
 // ----------------------------------------------------------------------------------------
 void initSystemTime(void) {
-  int rtc_second_now=rtc.now().second();
   Serial.println("[SYNC] synchronizing system time with RTC");
+  int rtc_second_now=rtc.now().second();
   getSystemTime();
   while (rtc_second_now==rtc.now().second()) // wait to sync
   setSystemTime(0);
   getSystemTime();
   storeLocalTime();
   storeRTCTime();
-  Serial.println("[SYNC] RTC datetime:    " + String(satioData.padded_rtc_time_HHMMSS) + " " + String(satioData.padded_rtc_date_DDMMYYYY));
-  Serial.println("[SYNC] system datetime: " + String(satioData.padded_local_time_HHMMSS) + " " + String(satioData.padded_local_date_DDMMYYYY) +
-                 " (+- offset seconds " + String(satioData.utc_second_offset) + ")");
+  Serial.println("[SYNC] RTC datetime:    " +
+                  String(satioData.padded_rtc_time_HHMMSS) + " " +
+                  String(satioData.padded_rtc_date_DDMMYYYY));
+  Serial.println("[SYNC] system datetime: " +
+                 String(satioData.padded_local_time_HHMMSS) + " " +
+                 String(satioData.padded_local_date_DDMMYYYY) +
+                 " (+- offset seconds " +
+                 String(satioData.utc_second_offset) + ")");
 }
 
 void initRTC(void) {

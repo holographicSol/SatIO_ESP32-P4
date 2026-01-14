@@ -267,15 +267,16 @@ void setup() {
   // --------------------------------------------------------------
   createTaskDisplay(); // optional
   createTaskGPS();
+  createTaskSerialInfoCMD();
+
   createTaskGyro(); // optional
   createTaskLogging(); // optional
-  createTaskSerialInfoCMD(); // optional
   createTaskStorage(); // optional
   createTaskMultiplexers(); // optional
   createTaskPortControllerInput(); // optional
   myAstroBegin(); // optional
   createTaskUniverse(); // optional
-  createTaskSwitches();
+  createTaskSwitches(); // optional
   syncTasks();
 }
 

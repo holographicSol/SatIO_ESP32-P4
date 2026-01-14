@@ -28,45 +28,49 @@
 #include "./task_handler.h"
 #include "./multi_display_controller.h"
 
-TaskHandle_t TaskDisplay;
-TickType_t   LastWakeTimeTaskDisplay;
-TickType_t   DelayTicksTaskDisplay;
-
-TaskHandle_t TaskSerialInfoCMD;
-TickType_t   LastWakeTimeTaskSerialInfoCMD;
-TickType_t   DelayTicksTaskSerialInfoCMD;
-
 TaskHandle_t TaskStorage;
-TickType_t   LastWakeTimeTaskStorage;
-TickType_t   DelayTicksTaskStorage;
-
-TaskHandle_t TaskMultiplexers;
-TickType_t   LastWakeTimeTaskMultiplexers;
-TickType_t   DelayTicksTaskMultiplexers;
-
-TaskHandle_t TaskPortControllerInput;
-TickType_t   LastWakeTimeTaskPortControllerInput;
-TickType_t   DelayTicksTaskPortControllerInput;
-
-TaskHandle_t TaskGyro;
-TickType_t   LastWakeTimeTaskGyro;
-TickType_t   DelayTicksTaskGyro;
-
-TaskHandle_t TaskGPS;
-TickType_t   LastWakeTimeTaskGPS;
-TickType_t   DelayTicksTaskGPS;
-
-TaskHandle_t TaskUniverse;
-TickType_t   LastWakeTimeTaskUniverse;
-TickType_t   DelayTicksTaskUniverse;
-
-TaskHandle_t TaskSwitches;
-TickType_t   LastWakeTimeTaskSwitches;
-TickType_t   DelayTicksTaskSwitches;
-
 TaskHandle_t TaskLogging;
-TickType_t   LastWakeTimeTaskLogging;
-TickType_t   DelayTicksTaskLogging;
+TaskHandle_t TaskSerialInfoCMD;
+TaskHandle_t TaskGPS;
+TaskHandle_t TaskGyro;
+TaskHandle_t TaskMultiplexers;
+TaskHandle_t TaskPortControllerInput;
+TaskHandle_t TaskSwitches;
+TaskHandle_t TaskUniverse;
+TaskHandle_t TaskDisplay;
+
+#define TASK_STORAGE_PRIORITY               2
+#define TASK_LOGGING_PRIORITY               3
+#define TASK_SERIALINFOCMD_PRIORITY         3
+#define TASK_GPS_PRIORITY                   3
+#define TASK_GYRO_PRIORITY                  3
+#define TASK_MULTIPLEXERS_PRIORITY          3
+#define TASK_PORTCONTROLLERINPUT_PRIORITY   4
+#define TASK_SWITCHES_PRIORITY              4
+#define TASK_UNIVERSE_PRIORITY              1
+#define TASK_DISPLAY_PRIORITY               4
+
+#define TASK_STORAGE_CORE                   0
+#define TASK_LOGGING_CORE                   1
+#define TASK_SERIALINFOCMD_CORE             0
+#define TASK_GPS_CORE                       0
+#define TASK_GYRO_CORE                      0
+#define TASK_MULTIPLEXERS_CORE              0
+#define TASK_PORTCONTROLLERINPUT_CORE       0
+#define TASK_SWITCHES_CORE                  0
+#define TASK_UNIVERSE_CORE                  0
+#define TASK_DISPLAY_CORE                   0
+
+#define TASK_STORAGE_STACK_SIZE             4096
+#define TASK_LOGGING_STACK_SIZE             4096
+#define TASK_SERIALINFOCMD_STACK_SIZE       16384
+#define TASK_GPS_STACK_SIZE                 4096
+#define TASK_GYRO_STACK_SIZE                4096
+#define TASK_MULTIPLEXERS_STACK_SIZE        4096
+#define TASK_PORTCONTROLLERINPUT_STACK_SIZE 4096
+#define TASK_SWITCHES_STACK_SIZE            4096
+#define TASK_UNIVERSE_STACK_SIZE            16384
+#define TASK_DISPLAY_STACK_SIZE             4096
 
 /** ----------------------------------------------------------------------------
  * Syncronize Tasks.
@@ -81,7 +85,7 @@ void syncTasks() {
     system_sync_retry_max--;
     if (system_sync_retry_max<=0)
       {Serial.println("[sync] took too long"); break;}
-    delay(1);
+    delayMicroseconds(1);
   }
   global_task_sync=true;
   // Serial.println("unixtime sync: " + String(satioData.local_unixtime_uS));
@@ -144,12 +148,93 @@ void createTaskStorage() {
     xTaskCreatePinnedToCore(
     taskStorage,   /* Function to implement the task */
     "TaskStorage", /* Name of the task */
-    4096,          /* Stack size in words */
+    TASK_STORAGE_STACK_SIZE, /* Stack size in words */
     NULL,          /* Task input parameter */
-    2,             /* Priority of the task */
-    &TaskStorage,  /* Task handle. */
-    0);            /* Core where the task should run */
+    TASK_STORAGE_PRIORITY, /* Priority of the task */
+    &TaskStorage,          /* Task handle. */
+    TASK_STORAGE_CORE);    /* Core where the task should run */
     esp_task_wdt_add(TaskStorage);
+}
+
+/** ----------------------------------------------------------------------------
+ * Logging Task.
+ * 
+ * @brief Writes logs to disk.
+ */
+void taskLogging(void * pvParameters) {
+  for (;;) {
+    esp_task_wdt_reset();
+    // check disk space
+    // delete old logs if required
+    // write new log
+    // dt,x,y,z
+    // Serial.printf("[log] flag: %d\n", systemData.logging_enabled);
+    if (systemData.logging_enabled) {
+      Serial.printf("[log] setting write flag true\n");
+      sdmmcFlagData.write_log=true;
+    }
+    // else {Serial.println("[log] not enabled");}
+    // ------------------------------------------------
+    // Counters
+    // ------------------------------------------------.
+    systemData.i_count_logging++;
+    systemData.interval_breach_logging = 1;
+    if (systemData.i_count_logging >= UINT32_MAX - 2)
+    systemData.i_count_logging = 0;
+    // ------------------------------------------------
+    // Delay next iteration of task.
+    // ------------------------------------------------
+    if (TICK_DELAY_TASK_LOGGING==false)
+      {xTaskNotifyWait(0x00, 0x00, NULL, DELAY_TASK_LOGGING / portTICK_PERIOD_MS);}
+    else {xTaskNotifyWait(0x00, 0x00, NULL, DELAY_TASK_LOGGING);}
+  }
+}
+void createTaskLogging() {
+    xTaskCreatePinnedToCore(
+    taskLogging,   /* Function to implement the task */
+    "TaskLogging", /* Name of the task */
+    TASK_LOGGING_STACK_SIZE, /* Stack size in words */
+    NULL,          /* Task input parameter */
+    TASK_LOGGING_PRIORITY, /* Priority of the task */
+    &TaskLogging,          /* Task handle. */
+    TASK_LOGGING_CORE);    /* Core where the task should run */
+    esp_task_wdt_add(TaskLogging);
+}
+
+/** ----------------------------------------------------------------------------
+ * Info Command Task.
+ * 
+ * @brief Processes a serial TXD and RXD operations:
+ *  (1) Information out for other system and debug.
+ *  (2) Commands in.
+ */
+void taskSerialInfoCMD(void * pvParameters) {
+  while (global_task_sync==false) {vTaskDelay(1);}
+  for (;;) {
+    esp_task_wdt_reset();
+    // ------------------------------------------------
+    // Note that stat is ran in main loop, not here.
+    // ------------------------------------------------
+    CmdProcess();
+    outputSentences();
+    // ------------------------------------------------
+    // Delay next iteration of task.
+    // ------------------------------------------------
+    if (TICK_DELAY_TASK_SERIAL_INFOCMD==false)
+      {xTaskNotifyWait(0x00, 0x00, NULL, DELAY_TASK_SERIAL_INFOCMD / portTICK_PERIOD_MS);}
+    else {xTaskNotifyWait(0x00, 0x00, NULL, DELAY_TASK_SERIAL_INFOCMD);}
+  }
+}
+void createTaskSerialInfoCMD() {
+  xTaskCreatePinnedToCore(
+    taskSerialInfoCMD,   /* Function to implement the task */
+    "TaskSerialInfoCMD", /* Name of the task */
+    TASK_SERIALINFOCMD_STACK_SIZE, /* Stack size in words */
+    NULL,                /* Task input parameter */
+    TASK_SERIALINFOCMD_PRIORITY, /* Priority of the task */
+    &TaskSerialInfoCMD,          /* Task handle. */
+    TASK_SERIALINFOCMD_CORE);    /* Core where the task should run */
+    esp_task_wdt_add(TaskSerialInfoCMD);
 }
 
 /** ----------------------------------------------------------------------------
@@ -206,11 +291,11 @@ void createTaskGPS() {
     xTaskCreatePinnedToCore(
     taskGPS,   /* Function to implement the task */
     "TaskGPS", /* Name of the task */
-    4096,      /* Stack size in words */
+    TASK_GPS_STACK_SIZE, /* Stack size in words */
     NULL,      /* Task input parameter */
-    3,         /* Priority of the task */
-    &TaskGPS,  /* Task handle. */
-    0);        /* Core where the task should run */
+    TASK_GPS_PRIORITY, /* Priority of the task */
+    &TaskGPS,          /* Task handle. */
+    TASK_GPS_CORE);    /* Core where the task should run */
     esp_task_wdt_add(TaskGPS);
 }
 
@@ -256,14 +341,145 @@ void createTaskGyro() {
     xTaskCreatePinnedToCore(
     taskGyro,   /* Function to implement the task */
     "TaskGyro", /* Name of the task */
-    4096,       /* Stack size in words */
+    TASK_GYRO_STACK_SIZE, /* Stack size in words */
     NULL,       /* Task input parameter */
-    3,          /* Priority of the task */
-    &TaskGyro,  /* Task handle. */
-    0);         /* Core where the task should run */
+    TASK_GYRO_PRIORITY, /* Priority of the task */
+    &TaskGyro,          /* Task handle. */
+    TASK_GYRO_CORE);    /* Core where the task should run */
     esp_task_wdt_add(TaskGyro);
 }
 
+/** ----------------------------------------------------------------------------
+ * Multiplexer Task.
+ * 
+ * @brief Reads all analog/digital multiplexer channels.
+ */
+void taskMultiplexers(void * pvParameters) {
+  while (!global_task_sync) {vTaskDelay(pdMS_TO_TICKS(10));}
+  for (;;) {
+    esp_task_wdt_reset();
+    // ------------------------------------------------
+    // read muiltiplexer channels (customize as required).
+    // ------------------------------------------------
+    for (uint8_t i_chan = 0; i_chan < 16; i_chan++) {
+      readADMultiplexerAnalogChannel(ad_mux_0, i_chan);
+      // Serial.println("[ad] " + String(i_chan) + ": " + String(ad_mux_0.data[i_chan]));
+    }
+    // ------------------------------------------------
+    // Counters
+    // ------------------------------------------------
+    systemData.i_count_read_mplex++;
+    systemData.interval_breach_mplex = 1;
+    if (systemData.i_count_read_mplex >= UINT32_MAX - 2)
+    systemData.i_count_read_mplex = 0;
+    // ------------------------------------------------
+    // Delay next iteration of task.
+    // ------------------------------------------------
+    if (TICK_DELAY_TASK_MULTIPLEXERS==false)
+      {xTaskNotifyWait(0x00, 0x00, NULL, DELAY_TASK_MULTIPLEXERS / portTICK_PERIOD_MS);}
+    else {xTaskNotifyWait(0x00, 0x00, NULL, DELAY_TASK_MULTIPLEXERS);}
+  }
+}
+void createTaskMultiplexers() {
+    xTaskCreatePinnedToCore(
+    taskMultiplexers,   /* Function to implement the task */
+    "TaskMultiplexers", /* Name of the task */
+    TASK_MULTIPLEXERS_STACK_SIZE, /* Stack size in words */
+    NULL,               /* Task input parameter */
+    TASK_MULTIPLEXERS_PRIORITY, /* Priority of the task */
+    &TaskMultiplexers,          /* Task handle. */
+    TASK_MULTIPLEXERS_CORE);    /* Core where the task should run */
+    esp_task_wdt_add(TaskMultiplexers);
+}
+
+/** ----------------------------------------------------------------------------
+ * Port Controller Input Task.
+ * 
+ * @brief Reads pins on portcontroller.
+ */
+void taskPortControllerInput(void * pvParameters) {
+  while (global_task_sync==false) {vTaskDelay(1);}
+  for (;;) {
+    esp_task_wdt_reset();
+    // ------------------------------------------------
+    // Read Input Port Controller.
+    // ------------------------------------------------
+    if (readInputPortControllerM1()) {
+      systemData.i_count_portcontroller_input++;
+      if (systemData.i_count_portcontroller_input>=UINT64_MAX-2)
+        {systemData.i_count_portcontroller_input=0;}
+    }
+    // ------------------------------------------------
+    // Delay next iteration of task.
+    // ------------------------------------------------
+    if (TICK_DELAY_TASK_PORTCONTROLLER_INPUT==false)
+      {xTaskNotifyWait(0x00, 0x00, NULL, DELAY_TASK_PORTCONTROLLER_INPUT / portTICK_PERIOD_MS);}
+    else {xTaskNotifyWait(0x00, 0x00, NULL, DELAY_TASK_PORTCONTROLLER_INPUT);}
+  }
+}
+
+void createTaskPortControllerInput() {
+    xTaskCreatePinnedToCore(
+    taskPortControllerInput,   /* Function to implement the task */
+    "TaskPortControllerInput", /* Name of the task */
+    TASK_PORTCONTROLLERINPUT_STACK_SIZE, /* Stack size in words */
+    NULL,                      /* Task input parameter */
+    TASK_PORTCONTROLLERINPUT_PRIORITY, /* Priority of the task */
+    &TaskPortControllerInput,          /* Task handle. */
+    TASK_PORTCONTROLLERINPUT_CORE);    /* Core where the task should run */
+    esp_task_wdt_add(TaskPortControllerInput);
+}
+
+/** ----------------------------------------------------------------------------
+ * Switch Task.
+ * 
+ * @brief Performs various operations including:
+ *  (1) Martix calculations.
+ *  (2) Mapping values.
+ *  (3) Sets output values.
+ *  (4) Instructing the portcontroller accordingly.
+ */
+void taskSwitches(void * pvParameters) {
+  while (global_task_sync==false) {vTaskDelay(1);}
+  for (;;) {
+    esp_task_wdt_reset();
+    // ------------------------------------------------
+    // Calculate.
+    // ------------------------------------------------
+    if (matrixSwitch()) {
+      systemData.i_count_matrix++;
+      if (systemData.i_count_matrix>=UINT64_MAX-2)
+        {systemData.i_count_matrix=0;}
+    }
+    // ------------------------------------------------
+    // Mapping.
+    // ------------------------------------------------
+    map_values();
+    // ------------------------------------------------
+    // Output.
+    // ------------------------------------------------
+    setOutputValues();
+    writeOutputPortControllerM1();
+    // SwitchStat();
+    // ------------------------------------------------
+    // Delay next iteration of task.
+    // ------------------------------------------------
+    if (TICK_DELAY_TASK_SWITCHES==false)
+      {xTaskNotifyWait(0x00, 0x00, NULL, DELAY_TASK_SWITCHES / portTICK_PERIOD_MS);}
+    else {xTaskNotifyWait(0x00, 0x00, NULL, DELAY_TASK_SWITCHES);}
+  }
+}
+void createTaskSwitches() {
+    xTaskCreatePinnedToCore(
+    taskSwitches,   /* Function to implement the task */
+    "TaskSwitches", /* Name of the task */
+    TASK_SWITCHES_STACK_SIZE, /* Stack size in words */
+    NULL,           /* Task input parameter */
+    TASK_SWITCHES_PRIORITY, /* Priority of the task */
+    &TaskSwitches,          /* Task handle. */
+    TASK_SWITCHES_CORE);    /* Core where the task should run */
+    esp_task_wdt_add(TaskSwitches);
+}
 
 /** ----------------------------------------------------------------------------
  * Universe Task.
@@ -310,74 +526,18 @@ void createTaskUniverse() {
     xTaskCreatePinnedToCore(
     taskUniverse,   /* Function to implement the task */
     "TaskUniverse", /* Name of the task */
-    16384,          /* Stack size in words */
+    TASK_UNIVERSE_STACK_SIZE, /* Stack size in words */
     NULL,           /* Task input parameter */
-    1,              /* Priority of the task */
-    &TaskUniverse,  /* Task handle. */
-    0);             /* Core where the task should run */
+    TASK_UNIVERSE_PRIORITY, /* Priority of the task */
+    &TaskUniverse,          /* Task handle. */
+    TASK_UNIVERSE_CORE);    /* Core where the task should run */
     esp_task_wdt_add(TaskUniverse);
 }
-
-/** ----------------------------------------------------------------------------
- * Switch Task.
- * 
- * @brief Performs various operations including:
- *  (1) Martix calculations.
- *  (2) Mapping values.
- *  (3) Sets output values.
- *  (4) Instructing the portcontroller accordingly.
- */
-void taskSwitches(void * pvParameters) {
-  while (global_task_sync==false) {vTaskDelay(1);}
-  for (;;) {
-    esp_task_wdt_reset();
-    // ------------------------------------------------
-    // Calculate.
-    // ------------------------------------------------
-    if (matrixSwitch()) {
-      systemData.i_count_matrix++;
-      if (systemData.i_count_matrix>=UINT64_MAX-2)
-        {systemData.i_count_matrix=0;}
-    }
-    // ------------------------------------------------
-    // Mapping.
-    // ------------------------------------------------
-    map_values();
-    // ------------------------------------------------
-    // Output.
-    // ------------------------------------------------
-    setOutputValues();
-    writeOutputPortControllerM1();
-    // SwitchStat();
-    // ------------------------------------------------
-    // Delay next iteration of task.
-    // ------------------------------------------------
-    if (TICK_DELAY_TASK_SWITCHES==false)
-      {xTaskNotifyWait(0x00, 0x00, NULL, DELAY_TASK_SWITCHES / portTICK_PERIOD_MS);}
-    else {xTaskNotifyWait(0x00, 0x00, NULL, DELAY_TASK_SWITCHES);}
-  }
-}
-void createTaskSwitches() {
-    xTaskCreatePinnedToCore(
-    taskSwitches,   /* Function to implement the task */
-    "TaskSwitches", /* Name of the task */
-    4096,           /* Stack size in words */
-    NULL,           /* Task input parameter */
-    4,              /* Priority of the task */
-    &TaskSwitches,  /* Task handle. */
-    0);             /* Core where the task should run */
-    esp_task_wdt_add(TaskSwitches);
-}
-
 
 /** ----------------------------------------------------------------------------
  * Multi Display Controller.
  * @brief Sends instructions to multi display controller.
  */
-long time_7seg = 0;
-long prev_time_7seg = 0;
-long date_7seg = 0;
-long prev_date_7seg = 0;
 
 void taskDisplay(void * pvParameters) {
   // while (global_task_sync==false) {vTaskDelay(1);}
@@ -465,176 +625,12 @@ void createTaskDisplay() {
     xTaskCreatePinnedToCore(
     taskDisplay,   /* Function to implement the task */
     "TaskDisplay", /* Name of the task */
-    4096,           /* Stack size in words */
+    TASK_DISPLAY_STACK_SIZE, /* Stack size in words */
     NULL,           /* Task input parameter */
-    4,              /* Priority of the task */
-    &TaskDisplay,  /* Task handle. */
-    1);             /* Core where the task should run */
+    TASK_DISPLAY_PRIORITY, /* Priority of the task */
+    &TaskDisplay,          /* Task handle. */
+    TASK_DISPLAY_CORE);    /* Core where the task should run */
     esp_task_wdt_add(TaskDisplay);
-}
-
-
-/** ----------------------------------------------------------------------------
- * Port Controller Input Task.
- * 
- * @brief Reads pins on portcontroller.
- */
-void taskPortControllerInput(void * pvParameters) {
-  while (global_task_sync==false) {vTaskDelay(1);}
-  for (;;) {
-    esp_task_wdt_reset();
-    // ------------------------------------------------
-    // Read Input Port Controller.
-    // ------------------------------------------------
-    if (readInputPortControllerM1()) {
-      systemData.i_count_portcontroller_input++;
-      if (systemData.i_count_portcontroller_input>=UINT64_MAX-2)
-        {systemData.i_count_portcontroller_input=0;}
-    }
-    // ------------------------------------------------
-    // Delay next iteration of task.
-    // ------------------------------------------------
-    if (TICK_DELAY_TASK_PORTCONTROLLER_INPUT==false)
-      {xTaskNotifyWait(0x00, 0x00, NULL, DELAY_TASK_PORTCONTROLLER_INPUT / portTICK_PERIOD_MS);}
-    else {xTaskNotifyWait(0x00, 0x00, NULL, DELAY_TASK_PORTCONTROLLER_INPUT);}
-  }
-}
-
-void createTaskPortControllerInput() {
-    xTaskCreatePinnedToCore(
-    taskPortControllerInput,   /* Function to implement the task */
-    "TaskPortControllerInput", /* Name of the task */
-    4096,           /* Stack size in words */
-    NULL,           /* Task input parameter */
-    4,              /* Priority of the task */
-    &TaskPortControllerInput,  /* Task handle. */
-    0);             /* Core where the task should run */
-    esp_task_wdt_add(TaskPortControllerInput);
-}
-
-/** ----------------------------------------------------------------------------
- * Info Command Task.
- * 
- * @brief Processes a serial TXD and RXD operations:
- *  (1) Information out for other system and debug.
- *  (2) Commands in.
- */
-void taskSerialInfoCMD(void * pvParameters) {
-  while (global_task_sync==false) {vTaskDelay(1);}
-  for (;;) {
-    esp_task_wdt_reset();
-    // ------------------------------------------------
-    // Note that stat is ran in main loop, not here.
-    // ------------------------------------------------
-    CmdProcess();
-    outputSentences();
-    // ------------------------------------------------
-    // Delay next iteration of task.
-    // ------------------------------------------------
-    if (TICK_DELAY_TASK_SERIAL_INFOCMD==false)
-      {xTaskNotifyWait(0x00, 0x00, NULL, DELAY_TASK_SERIAL_INFOCMD / portTICK_PERIOD_MS);}
-    else {xTaskNotifyWait(0x00, 0x00, NULL, DELAY_TASK_SERIAL_INFOCMD);}
-  }
-}
-void createTaskSerialInfoCMD() {
-  xTaskCreatePinnedToCore(
-    taskSerialInfoCMD,   /* Function to implement the task */
-    "TaskSerialInfoCMD", /* Name of the task */
-    16384,                /* Stack size in words */
-    NULL,                /* Task input parameter */
-    3,                   /* Priority of the task */
-    &TaskSerialInfoCMD,  /* Task handle. */
-    0);                  /* Core where the task should run */
-    esp_task_wdt_add(TaskSerialInfoCMD);
-}
-
-/** ----------------------------------------------------------------------------
- * Info Command Task.
- * 
- * @brief Reads all analog/digital multiplexer channels.
- */
-void taskMultiplexers(void * pvParameters) {
-  while (!global_task_sync) {vTaskDelay(pdMS_TO_TICKS(10));}
-  for (;;) {
-    esp_task_wdt_reset();
-    // ------------------------------------------------
-    // read muiltiplexer channels (customize as required).
-    // ------------------------------------------------
-    for (uint8_t i_chan = 0; i_chan < 16; i_chan++) {
-      readADMultiplexerAnalogChannel(ad_mux_0, i_chan);
-      // Serial.println("[ad] " + String(i_chan) + ": " + String(ad_mux_0.data[i_chan]));
-    }
-    // ------------------------------------------------
-    // Counters
-    // ------------------------------------------------
-    systemData.i_count_read_mplex++;
-    systemData.interval_breach_mplex = 1;
-    if (systemData.i_count_read_mplex >= UINT32_MAX - 2)
-    systemData.i_count_read_mplex = 0;
-    // ------------------------------------------------
-    // Delay next iteration of task.
-    // ------------------------------------------------
-    if (TICK_DELAY_TASK_MULTIPLEXERS==false)
-      {xTaskNotifyWait(0x00, 0x00, NULL, DELAY_TASK_MULTIPLEXERS / portTICK_PERIOD_MS);}
-    else {xTaskNotifyWait(0x00, 0x00, NULL, DELAY_TASK_MULTIPLEXERS);}
-  }
-}
-void createTaskMultiplexers() {
-    xTaskCreatePinnedToCore(
-    taskMultiplexers,   /* Function to implement the task */
-    "TaskMultiplexers", /* Name of the task */
-    4096,               /* Stack size in words */
-    NULL,               /* Task input parameter */
-    3,                  /* Priority of the task */
-    &TaskMultiplexers,  /* Task handle. */
-    0);                 /* Core where the task should run */
-    esp_task_wdt_add(TaskMultiplexers);
-}
-
-
-/** ----------------------------------------------------------------------------
- * Logging Task.
- * 
- * @brief Writes logs to disk.
- */
-void taskLogging(void * pvParameters) {
-  for (;;) {
-    esp_task_wdt_reset();
-    // check disk space
-    // delete old logs if required
-    // write new log
-    // dt,x,y,z
-    // Serial.printf("[log] flag: %d\n", systemData.logging_enabled);
-    if (systemData.logging_enabled) {
-      Serial.printf("[log] setting write flag true\n");
-      sdmmcFlagData.write_log=true;
-    }
-    // else {Serial.println("[log] not enabled");}
-    // ------------------------------------------------
-    // Counters
-    // ------------------------------------------------.
-    systemData.i_count_logging++;
-    systemData.interval_breach_logging = 1;
-    if (systemData.i_count_logging >= UINT32_MAX - 2)
-    systemData.i_count_logging = 0;
-    // ------------------------------------------------
-    // Delay next iteration of task.
-    // ------------------------------------------------
-    if (TICK_DELAY_TASK_LOGGING==false)
-      {xTaskNotifyWait(0x00, 0x00, NULL, DELAY_TASK_LOGGING / portTICK_PERIOD_MS);}
-    else {xTaskNotifyWait(0x00, 0x00, NULL, DELAY_TASK_LOGGING);}
-  }
-}
-void createTaskLogging() {
-    xTaskCreatePinnedToCore(
-    taskLogging,   /* Function to implement the task */
-    "TaskLogging", /* Name of the task */
-    4096,               /* Stack size in words */
-    NULL,               /* Task input parameter */
-    3,                  /* Priority of the task */
-    &TaskLogging,  /* Task handle. */
-    1);                 /* Core where the task should run */
-    esp_task_wdt_add(TaskLogging);
 }
 
 /** ----------------------------------------------------------------------------
