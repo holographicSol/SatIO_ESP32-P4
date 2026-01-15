@@ -197,11 +197,14 @@ void setup() {
   // Initialize SDCard and attempt to load files.
   // --------------------------------------------------------------
   sdcardBegin();
-  // sdmmcFlagData.load_system=true;
+  sdmmcFlagData.load_system=true;
   sdcardFlagHandler();
   if (matrixData.load_matrix_on_startup) {
     sdmmcFlagData.load_mapping=true; sdcardFlagHandler();
     sdmmcFlagData.load_matrix=true; sdcardFlagHandler();}
+  
+  i2c_bus0_mutex = xSemaphoreCreateBinary();
+  xSemaphoreGive(i2c_bus0_mutex);  // Make available
 
   // --------------------------------------------------------------
   // Initialize I2C BUS 0: RTC
@@ -214,10 +217,8 @@ void setup() {
   // Initialize I2C BUS 0: Display
   // --------------------------------------------------------------
   Serial.println("[IIC] intitializing multi display controller");
-  // WARNING! display and rtc are currently on different tasks and are racing for bus 0.
-  //          this until a battery is fitted to system clock or IIC tasks are merged into
-  //          tasks by bus. alternatively semaphores/mutexes could be used or other locks.
   // iic_0.begin(IIC_BUS0_SDA, IIC_BUS0_SCL, 200000UL); // Bus 0 already initialized
+
   // --------------------------------------------------------------
   // Initialize I2C BUS 1: Output port controller
   // --------------------------------------------------------------
@@ -232,6 +233,7 @@ void setup() {
   // iic_1.setClock(250000); // ATMEGA2560 2.2k resistor    good
   iic_1.setClock(800000); // ATMEGA2560 2.2k resistor       good (+-4ns rise time)
   writeOutputPortControllerM0(iic_1);
+  
   // --------------------------------------------------------------
   // Initialize I2C BUS 2: Input port controller
   // --------------------------------------------------------------
@@ -290,21 +292,21 @@ void setup() {
   // --------------------------------------------------------------
   // Targets are determined for ESP32-P4, adjust as required.
 
-  createTaskDisplay();             // (target: n/ps)
+  createTaskMultiDisplay();        // (target: n/ps)    General displays/indicators
   
-  createTaskGPS();                 // (target: 10/ps)   // Time & location
-  createTaskSerialInfoCMD();       // (target: cmds/ps) // Serial I/O
+  createTaskGPS();                 // (target: 10/ps)   Time & location
+  createTaskSerialInfoCMD();       // (target: cmds/ps) Serial I/O
 
-  createTaskGyro();                // (target: 200/ps)  // Attitude
-  createTaskMultiplexers();        // (target: 200/ps)  // Fast general input
-  createTaskPortControllerInput(); // (target: 1/ps)    // Slow general input
+  createTaskGyro();                // (target: 200/ps)  Attitude
+  createTaskMultiplexers();        // (target: 200/ps)  Fast general input
+  createTaskPortControllerInput(); // (target: 1/ps)    Slow general input
   createTaskSwitches();            // (target: approx. max 1000/ps) Fast general output
 
   myAstroBegin();
-  createTaskUniverse();            // (target: 1/ps)    // Star tracking
+  createTaskUniverse();            // (target: 1/ps)    Star tracking
 
-  createTaskStorage();             // (target: 2/ps)    // SD card
-  createTaskLogging();             // (target: n/ps)    // Log to sdcard
+  createTaskStorage();             // (target: 2/ps)    SD card
+  createTaskLogging();             // (target: n/ps)    Log to sdcard
 
   syncTasks();
 }
@@ -340,7 +342,7 @@ void intervalBreach1Second(void) {
     systemData.i_count_matrix = 0;
     // set mplex counters
     systemData.total_portcontroller_output = systemData.i_count_port_controller_output;
-    systemData.prev_i_count_port_controller_output = 0;
+    systemData.i_count_port_controller_output = 0;
     // set mplex counters
     systemData.total_universe = systemData.i_count_track_planets;
     systemData.i_count_track_planets = 0;

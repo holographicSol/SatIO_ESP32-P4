@@ -5,6 +5,7 @@
 #include <Arduino.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include "freertos/semphr.h"
 #include <rtc_wdt.h>
 #include <esp_task_wdt.h>
 #include "./config.h"
@@ -27,6 +28,9 @@
 #include "./sdmmc_helper.h"
 #include "./task_handler.h"
 #include "./multi_display_controller.h"
+#include "freertos/semphr.h"
+
+SemaphoreHandle_t i2c_bus0_mutex;
 
 TaskHandle_t TaskStorage;
 TaskHandle_t TaskLogging;
@@ -37,40 +41,7 @@ TaskHandle_t TaskMultiplexers;
 TaskHandle_t TaskPortControllerInput;
 TaskHandle_t TaskUniverse;
 TaskHandle_t TaskSwitches;
-TaskHandle_t TaskDisplay;
-
-// #define TASK_STORAGE_PRIORITY               2
-// #define TASK_LOGGING_PRIORITY               2
-// #define TASK_SERIALINFOCMD_PRIORITY         3
-// #define TASK_GPS_PRIORITY                   3
-// #define TASK_GYRO_PRIORITY                  3
-// #define TASK_MULTIPLEXERS_PRIORITY          3
-// #define TASK_PORTCONTROLLERINPUT_PRIORITY   4
-// #define TASK_SWITCHES_PRIORITY              4
-// #define TASK_UNIVERSE_PRIORITY              1
-// #define TASK_DISPLAY_PRIORITY               4
-
-// #define TASK_STORAGE_CORE                   0
-// #define TASK_LOGGING_CORE                   0
-// #define TASK_SERIALINFOCMD_CORE             0
-// #define TASK_GPS_CORE                       0
-// #define TASK_GYRO_CORE                      0
-// #define TASK_MULTIPLEXERS_CORE              0
-// #define TASK_PORTCONTROLLERINPUT_CORE       0
-// #define TASK_SWITCHES_CORE                  0
-// #define TASK_UNIVERSE_CORE                  0
-// #define TASK_DISPLAY_CORE                   0
-
-// #define TASK_STORAGE_STACK_SIZE             4096
-// #define TASK_LOGGING_STACK_SIZE             4096
-// #define TASK_SERIALINFOCMD_STACK_SIZE       16384
-// #define TASK_GPS_STACK_SIZE                 4096
-// #define TASK_GYRO_STACK_SIZE                4096
-// #define TASK_MULTIPLEXERS_STACK_SIZE        4096
-// #define TASK_PORTCONTROLLERINPUT_STACK_SIZE 4096
-// #define TASK_SWITCHES_STACK_SIZE            4096
-// #define TASK_UNIVERSE_STACK_SIZE            16384
-// #define TASK_DISPLAY_STACK_SIZE             4096
+TaskHandle_t TasMultikDisplay;
 
 // PRIORITIES (Lower = Higher Priority)
 #define TASK_GPS_PRIORITY                   2    // High: Time/location sync critical
@@ -83,7 +54,7 @@ TaskHandle_t TaskDisplay;
 #define TASK_STORAGE_PRIORITY               3    // Medium: I/O operations, can wait
 #define TASK_LOGGING_PRIORITY               5    // Low: Asynchronous data recording
 #define TASK_UNIVERSE_PRIORITY              4    // Low: Computational, non-critical delay
-#define TASK_DISPLAY_PRIORITY               5    // Low: UI updates can be deferred
+#define TASK_MULTI_DISPLAY_PRIORITY         5    // Low: UI updates can be deferred
 
 // CORE ASSIGNMENT (Spread load across both cores)
 #define TASK_GPS_CORE                       1    // Core 1: Critical for system sync
@@ -96,7 +67,7 @@ TaskHandle_t TaskDisplay;
 #define TASK_UNIVERSE_CORE                  0    // Core 0: Heavy compute, can defer
 #define TASK_STORAGE_CORE                   0    // Core 0: I/O-heavy, doesn't need Core 0
 #define TASK_LOGGING_CORE                   0    // Core 0: I/O operations
-#define TASK_DISPLAY_CORE                   0    // Core 0: UI responsiveness
+#define TASK_MULTI_DISPLAY_CORE             0    // Core 0: UI responsiveness
 
 // STACK SIZES (Adjusted for task complexity)
 #define TASK_STORAGE_STACK_SIZE             6144    // +50%: SDMMC operations
@@ -308,7 +279,9 @@ void taskGPS(void * pvParameters) {
           satioData.set_rtc_datetime_flag==true) {
         // -> syncRTC -- > setRTCDateTime --> setSystemTime, storeRTCSYNCTime
         satioData.set_rtc_datetime_flag=true;
+        // xSemaphoreTake(i2c_bus0_mutex, 1000 / portTICK_PERIOD_MS);
         setSatIOData();
+        // xSemaphoreGive(i2c_bus0_mutex);
         // --------------------------------------------
         // Set INS data.
         // --------------------------------------------
@@ -587,7 +560,7 @@ void createTaskUniverse() {
  * @brief Sends instructions to multi display controller.
  */
 
-void taskDisplay(void * pvParameters) {
+void tasMultikDisplay(void * pvParameters) {
   // while (global_task_sync==false) {vTaskDelay(1);}
   for (;;) {
     esp_task_wdt_reset();
@@ -673,16 +646,16 @@ void taskDisplay(void * pvParameters) {
     else {xTaskNotifyWait(0x00, 0x00, NULL, DELAY_TASK_DISPLAY);}
   }
 }
-void createTaskDisplay() {
+void createTaskMultiDisplay() {
     xTaskCreatePinnedToCore(
-    taskDisplay,   /* Function to implement the task */
-    "TaskDisplay", /* Name of the task */
+    tasMultikDisplay,   /* Function to implement the task */
+    "TasMultikDisplay", /* Name of the task */
     TASK_DISPLAY_STACK_SIZE, /* Stack size in words */
     NULL,           /* Task input parameter */
-    TASK_DISPLAY_PRIORITY, /* Priority of the task */
-    &TaskDisplay,          /* Task handle. */
-    TASK_DISPLAY_CORE);    /* Core where the task should run */
-    esp_task_wdt_add(TaskDisplay);
+    TASK_MULTI_DISPLAY_PRIORITY, /* Priority of the task */
+    &TasMultikDisplay,          /* Task handle. */
+    TASK_MULTI_DISPLAY_CORE);    /* Core where the task should run */
+    esp_task_wdt_add(TasMultikDisplay);
 }
 
 /** ----------------------------------------------------------------------------

@@ -8,6 +8,9 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include "freertos/FreeRTOS.h"
+#include "freertos/semphr.h"
+
+extern SemaphoreHandle_t i2c_bus0_mutex;
 
 extern TaskHandle_t Task7Seg;
 extern TaskHandle_t TaskSerialInfoCMD;
@@ -20,7 +23,7 @@ extern TaskHandle_t TaskUniverse;
 extern TaskHandle_t TaskSwitches;
 extern TaskHandle_t TaskLogging;
 
-void createTaskDisplay();
+void createTaskMultiDisplay();
 void createTaskSerialInfoCMD();
 void createTaskStorage();
 void createTaskMultiplexers();

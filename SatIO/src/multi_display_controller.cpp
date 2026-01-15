@@ -10,6 +10,8 @@
 #include "multi_display_controller.h"
 #include "satio.h"
 #include "wtgps300p.h"
+#include "task_handler.h"
+#include "freertos/semphr.h"
 
 bool ISR_FLAG_MULTI_DISPLAY_CONTROLLER_0    = false;
 bool ALLOW_UPDATE_MULTIDISPLAY_CONTROLLER_0 = true;
@@ -28,14 +30,15 @@ void clearOutputBufferBytes() {
 }
 
 /* Check output bytes less than MAX_IIC_BUFFER_SIZE */
-bool isOuptutBufferBytesLessThanMaxIICBufferSize(int address) {
+bool isOuptutBufferBytesLessThanMaxIICBufferSize() {
   if (strlen(IICLink0.OUTPUT_BUFFER_CHARS)<MAX_IIC_BUFFER_SIZE) {return true;}
   return false;
 }
 
 /* Converts chars array to bytes array */
 void writeI2C(int address) {
-  if (!isOuptutBufferBytesLessThanMaxIICBufferSize(address)) {
+  // Serial.printf("[writeI2C] display\n");
+  if (!isOuptutBufferBytesLessThanMaxIICBufferSize()) {
     Serial.printf("[writeI2C] bytes exceed MAX_IIC_BUFFER_SIZE (%d bytes)\n", MAX_IIC_BUFFER_SIZE);
     return;
   }
@@ -43,9 +46,11 @@ void writeI2C(int address) {
   for (byte i=0;i<sizeof(IICLink0.OUTPUT_BUFFER_BYTES);i++)
   {IICLink0.OUTPUT_BUFFER_BYTES[i]=(byte)IICLink0.OUTPUT_BUFFER_CHARS[i];}
   // IIC bus 0: change as required!
+  xSemaphoreTake(i2c_bus0_mutex, 1000 / portTICK_PERIOD_MS);  // Lock
   iic_0.beginTransmission(address);
   iic_0.write(IICLink0.OUTPUT_BUFFER_BYTES, sizeof(IICLink0.OUTPUT_BUFFER_BYTES));
   iic_0.endTransmission();
+  xSemaphoreGive(i2c_bus0_mutex);  // Unlock
 }
 
 /* Instruction Structure: DisplayType,DisplayIndex,R,G,B */
@@ -128,6 +133,7 @@ void requestMultiDisplayControllerData(int address, bool &isr_interrupt_flag) {
    
    // Read old value
    memset(IICLink0.OUTPUT_BUFFER_CHARS, 0, sizeof(IICLink0.OUTPUT_BUFFER_CHARS));
+   xSemaphoreTake(i2c_bus0_mutex, 1000 / portTICK_PERIOD_MS);
    if (iic_0.requestFrom(address, sizeof(IICLink0.OUTPUT_BUFFER_CHARS)) != sizeof(IICLink0.OUTPUT_BUFFER_CHARS)) {
      // Serial.printf("[I2C] error requesting data %d\n");
     }
@@ -135,11 +141,13 @@ void requestMultiDisplayControllerData(int address, bool &isr_interrupt_flag) {
       uint8_t len = iic_0.readBytes(IICLink0.OUTPUT_BUFFER_CHARS, sizeof(IICLink0.OUTPUT_BUFFER_CHARS));
       // Serial.printf("[MASTER RX] %s (%d bytes)\n", OUTPUT_BUFFER_CHARS, len);
     }
+    xSemaphoreGive(i2c_bus0_mutex);
 
     delay(1);
 
     // Read new value
     memset(IICLink0.OUTPUT_BUFFER_CHARS, 0, sizeof(IICLink0.OUTPUT_BUFFER_CHARS));
+    xSemaphoreTake(i2c_bus0_mutex, 1000 / portTICK_PERIOD_MS);
     if (iic_0.requestFrom(address, sizeof(IICLink0.OUTPUT_BUFFER_CHARS)) != sizeof(IICLink0.OUTPUT_BUFFER_CHARS)) {
       Serial.printf("[I2C] error requesting data %d\n");
     }
@@ -158,6 +166,7 @@ void requestMultiDisplayControllerData(int address, bool &isr_interrupt_flag) {
         IICLink0.i_token = IICLink0.i_token + 1;
       }
     }
+    xSemaphoreGive(i2c_bus0_mutex);
   }
 }
 

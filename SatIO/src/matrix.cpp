@@ -1667,65 +1667,65 @@ void writeOutputPortControllerM0(TwoWire &iic_bus) {
 void writeOutputPortControllerM1(TwoWire &iic_bus) {
   uint8_t packet[15];
   for (int Mi = 0; Mi < MAX_MATRIX_SWITCHES; Mi++) {
-    if (!matrixData.matrix_switch_write_required[0][Mi])
-      continue;
-    // ------------------------------------------------------------
-    // Determine which value to send (computer assist vs override)
-    // ------------------------------------------------------------
-    int32_t value_to_send = matrixData.computer_assist[0][Mi]
-                            ? matrixData.output_value[0][Mi]
-                            : (int32_t)matrixData.override_output_value[0][Mi];
-    // ------------------------------------------------------------
-    // Build binary packet
-    // ------------------------------------------------------------
-    packet[0] = 0xB1;                                               // Command: M1 binary
-    packet[1] = (uint8_t)Mi;                                        // Matrix index (0–69)
-    packet[2] = (uint8_t)(int8_t)matrixData.matrix_port_map[0][Mi]; // Signed pin (-1 allowed!)
-    // ------------------------------------------------------------
-    // int32_t output value (4 bytes, little-endian)
-    // ------------------------------------------------------------
-    packet[3] = (uint8_t)(value_to_send & 0xFF);
-    packet[4] = (uint8_t)((value_to_send >> 8)  & 0xFF);
-    packet[5] = (uint8_t)((value_to_send >> 16) & 0xFF);
-    packet[6] = (uint8_t)((value_to_send >> 24) & 0xFF);
-    // ------------------------------------------------------------
-    // uint32_t OFF time µs (4 bytes)
-    // ------------------------------------------------------------
-    uint32_t off_time = matrixData.output_pwm[0][Mi][0];
-    packet[7]  = (uint8_t)(off_time & 0xFF);
-    packet[8]  = (uint8_t)((off_time >> 8)  & 0xFF);
-    packet[9]  = (uint8_t)((off_time >> 16) & 0xFF);
-    packet[10] = (uint8_t)((off_time >> 24) & 0xFF);
-    // ------------------------------------------------------------
-    // uint16_t ON time µs (4 bytes)
-    // ------------------------------------------------------------
-    uint32_t on_time = matrixData.output_pwm[0][Mi][1];
-    packet[11] = (uint8_t)(on_time & 0xFF);
-    packet[12] = (uint8_t)((on_time >> 8)  & 0xFF);
-    packet[13] = (uint8_t)((on_time >> 16) & 0xFF);
-    packet[14] = (uint8_t)((on_time >> 24) & 0xFF);
-    // ------------------------------------------------------------
-    // Send over I2C
-    // ------------------------------------------------------------
-    iic_bus.beginTransmission(I2C_ADDR_OUTPUT_PORTCONTROLLER);
-    iic_bus.write(packet, 15);
-    uint8_t result = iic_bus.endTransmission();
-    // ------------------------------------------------------------
-    // Check error code (0=success)
-    // ------------------------------------------------------------
-    if (result != 0) {
-      Serial.printf("I2C M1 error @idx %d (pin %d): err=%d\n",
-                    Mi, matrixData.matrix_port_map[0][Mi], result);
+    if (matrixData.matrix_switch_write_required[0][Mi]) {
+      // ------------------------------------------------------------
+      // Determine which value to send (computer assist vs override)
+      // ------------------------------------------------------------
+      int32_t value_to_send = matrixData.computer_assist[0][Mi]
+                              ? matrixData.output_value[0][Mi]
+                              : (int32_t)matrixData.override_output_value[0][Mi];
+      // ------------------------------------------------------------
+      // Build binary packet
+      // ------------------------------------------------------------
+      packet[0] = 0xB1;                                               // Command: M1 binary
+      packet[1] = (uint8_t)Mi;                                        // Matrix index (0–69)
+      packet[2] = (uint8_t)(int8_t)matrixData.matrix_port_map[0][Mi]; // Signed pin (-1 allowed!)
+      // ------------------------------------------------------------
+      // int32_t output value (4 bytes, little-endian)
+      // ------------------------------------------------------------
+      packet[3] = (uint8_t)(value_to_send & 0xFF);
+      packet[4] = (uint8_t)((value_to_send >> 8)  & 0xFF);
+      packet[5] = (uint8_t)((value_to_send >> 16) & 0xFF);
+      packet[6] = (uint8_t)((value_to_send >> 24) & 0xFF);
+      // ------------------------------------------------------------
+      // uint32_t OFF time µs (4 bytes)
+      // ------------------------------------------------------------
+      uint32_t off_time = matrixData.output_pwm[0][Mi][0];
+      packet[7]  = (uint8_t)(off_time & 0xFF);
+      packet[8]  = (uint8_t)((off_time >> 8)  & 0xFF);
+      packet[9]  = (uint8_t)((off_time >> 16) & 0xFF);
+      packet[10] = (uint8_t)((off_time >> 24) & 0xFF);
+      // ------------------------------------------------------------
+      // uint16_t ON time µs (4 bytes)
+      // ------------------------------------------------------------
+      uint32_t on_time = matrixData.output_pwm[0][Mi][1];
+      packet[11] = (uint8_t)(on_time & 0xFF);
+      packet[12] = (uint8_t)((on_time >> 8)  & 0xFF);
+      packet[13] = (uint8_t)((on_time >> 16) & 0xFF);
+      packet[14] = (uint8_t)((on_time >> 24) & 0xFF);
+      // ------------------------------------------------------------
+      // Send over I2C
+      // ------------------------------------------------------------
+      iic_bus.beginTransmission(I2C_ADDR_OUTPUT_PORTCONTROLLER);
+      iic_bus.write(packet, 15);
+      uint8_t result = iic_bus.endTransmission();
+      // ------------------------------------------------------------
+      // Check error code (0=success)
+      // ------------------------------------------------------------
+      if (result != 0) {
+        Serial.printf("I2C M1 error @idx %d (pin %d): err=%d\n",
+                      Mi, matrixData.matrix_port_map[0][Mi], result);
+      }
+      // Optional live debug (uncomment when tuning)
+      // Serial.printf("[M1] idx:%02d pin:%3d val:%6ld off:%6lu on:%5u\n",
+      //               Mi, matrixData.matrix_port_map[0][Mi], value_to_send, off_time, on_time);
+      // ------------------------------------------------------------
+      // Clear flag after successful send (or retry logic if needed)
+      // ------------------------------------------------------------
+      matrixData.matrix_switch_write_required[0][Mi] = false;
     }
-    // Optional live debug (uncomment when tuning)
-    // Serial.printf("[M1] idx:%02d pin:%3d val:%6ld off:%6lu on:%5u\n",
-    //               Mi, matrixData.matrix_port_map[0][Mi], value_to_send, off_time, on_time);
-    // ------------------------------------------------------------
-    // Clear flag after successful send (or retry logic if needed)
-    // ------------------------------------------------------------
-    matrixData.matrix_switch_write_required[0][Mi] = false;
-    systemData.i_count_port_controller_output++;
   }
+  systemData.i_count_port_controller_output++;
 }
 
 // ------------------------------------------------------------

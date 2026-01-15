@@ -8,6 +8,8 @@
 #include <Wire.h>
 #include <RTClib.h>  // https://github.com/adafruit/RTClib
 #include "wtgps300p.h"
+#include "./task_handler.h"
+#include "freertos/semphr.h"
 
 // ----------------------------------------------------------------------------------------
 // Globals
@@ -455,6 +457,8 @@ void padDigitsZero(int digits, char* output, size_t output_size) {
 // ----------------------------------------------------------------------------------------
 void storeRTCTime(void) {
     // Store RTC time (UTC) to avoid multiple calls to rtc.now()
+    // Serial.printf("[writeI2C] storeRTCTime\n");
+    xSemaphoreTake(i2c_bus0_mutex, 1000 / portTICK_PERIOD_MS);
     satioData.rtc_hour = rtc.now().hour();
     satioData.rtc_minute = rtc.now().minute();
     satioData.rtc_second = rtc.now().second();
@@ -463,6 +467,7 @@ void storeRTCTime(void) {
     satioData.rtc_wday = rtc.now().dayOfTheWeek();
     satioData.rtc_mday = rtc.now().day();
     satioData.rtc_unixtime = rtc.now().unixtime();
+    xSemaphoreGive(i2c_bus0_mutex);
 
     // Debug output without String
     // char debug_str[MAX_GLOBAL_ELEMENT_SIZE];
@@ -594,7 +599,10 @@ void storeRTCSYNCTime(void) {
     satioData.rtcsync_year = satioData.local_year;
     satioData.rtcsync_month = satioData.local_month;
     satioData.rtcsync_day = satioData.local_mday;
+    // Serial.printf("[writeI2C] storeRTCSYNCTime\n");
+    xSemaphoreTake(i2c_bus0_mutex, 1000 / portTICK_PERIOD_MS);
     satioData.rtcsync_unixtime = rtc.now().unixtime();
+    xSemaphoreGive(i2c_bus0_mutex);
 
     // Format sync time (HH:MM:SS)
     char hour_str[MAX_GLOBAL_ELEMENT_SIZE], min_str[MAX_GLOBAL_ELEMENT_SIZE], sec_str[MAX_GLOBAL_ELEMENT_SIZE];
@@ -643,12 +651,15 @@ void setSystemTime(long usec) {
   // -----------------------------------------------------
   struct tm tmpti = {0};
   memset(&tmpti, 0, sizeof(tmpti));
+  // Serial.printf("[writeI2C] setSystemTime\n");
+  xSemaphoreTake(i2c_bus0_mutex, 1000 / portTICK_PERIOD_MS);
   tmpti.tm_year = int(rtc.now().year()) - LAST_EPOCH; // Years since 1900 (since last epoch)
   tmpti.tm_mon = rtc.now().month() - 1; // Months 0-11
   tmpti.tm_mday = rtc.now().day();
   tmpti.tm_hour = rtc.now().hour();
   tmpti.tm_min = rtc.now().minute();
   tmpti.tm_sec = rtc.now().second();
+  xSemaphoreGive(i2c_bus0_mutex);
   tmpti.tm_isdst = -1; // No DST
   time_t now = mktime(&tmpti);
   tv_now = {

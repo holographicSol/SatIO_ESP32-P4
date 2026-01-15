@@ -27,7 +27,7 @@ struct systemStruct systemData = {
   .output_stat = false,
   .output_stat_v = false,
   .output_stat_vv = false,
-  .serial_command = 1,
+  .serial_command = true,
   .logging_enabled=false,
 
   .output_satio_all = false,
