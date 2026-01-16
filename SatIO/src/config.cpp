@@ -46,6 +46,6 @@ long system_sync_retry_max = 10000;
 TwoWire iic_0(0); // wire channel 0
 TwoWire iic_1(1); // wire channel 1
 TwoWire iic_2(2); // wire channel 2
-IICLink IICLink0; // wire channel 0 data
+
 IICLink IICLink1; // wire channel 1 data
 IICLink IICLink2; // wire channel 2 data

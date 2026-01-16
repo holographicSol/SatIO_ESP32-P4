@@ -425,7 +425,7 @@ void taskPortControllerInput(void * pvParameters) {
     // ------------------------------------------------
     // Read Input Port Controller.
     // ------------------------------------------------
-    if (readInputPortControllerM1(iic_2)) {
+    if (readInputPortControllerM1(iic_2, I2C_ADDR_INPUT_PORTCONTROLLER)==true) {
       systemData.i_count_portcontroller_input++;
       if (systemData.i_count_portcontroller_input>=UINT64_MAX-2)
         {systemData.i_count_portcontroller_input=0;}
@@ -480,7 +480,7 @@ void taskSwitches(void * pvParameters) {
     // Output.
     // ------------------------------------------------
     setOutputValues();
-    writeOutputPortControllerM1(iic_1);
+    writeOutputPortControllerM1(iic_1, I2C_ADDR_OUTPUT_PORTCONTROLLER);
     // SwitchStat();
     // ------------------------------------------------
     // Delay next iteration of task.
@@ -568,70 +568,70 @@ void tasMultikDisplay(void * pvParameters) {
     /* test multi display module and library  */
 
     // test request interrupt
-    requestMultiDisplayControllerData(I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0,
+    requestMultiDisplayControllerData(iic_0, I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0,
     ISR_FLAG_MULTI_DISPLAY_CONTROLLER_0);
 
     if (ALLOW_UPDATE_MULTIDISPLAY_CONTROLLER_0) {
 
       // test indiocators
-      updateIndicator(I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0,
+      updateIndicator(iic_0, I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0,
                       0,
                       255, 0, 0);
-      updateIndicator(I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0,
+      updateIndicator(iic_0, I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0,
                       9,
                       0, 0, 255);
       
       // test 7 segment 4 digit display 0
-      update7Segment4Digit(I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0,
+      update7Segment4Digit(iic_0, I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0,
       0,
       gnggaData.satellite_count);
       
       // test 7 segment 4 digit display 1
-      update7Segment4Digit(I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0,
+      update7Segment4Digit(iic_0, I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0,
       1,
       gnggaData.gps_precision_factor);
 
       // test 7 segment 6 digit display 0
-      update7Segment6Digit(I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0,
+      update7Segment6Digit(iic_0, I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0,
       2,
       satioData.padded_local_time_HHMMSS
       );
 
       // test 7 segment 6 digit display 1
-      update7Segment6Digit(I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0,
+      update7Segment6Digit(iic_0, I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0,
       3,
       satioData.padded_local_short_date_DDMMYY
       );
 
       // test SSD1306 0
-      updateSSD1306(I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0,
+      updateSSD1306(iic_0, I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0,
       0,
       0,
       1, 1,
       gnggaData.satellite_count
       );
-      updateSSD1306(I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0,
+      updateSSD1306(iic_0, I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0,
         0,
         1,
         1, 12,
         satioData.formatted_local_time_HHMMSS
       );
-      drawSSD1306Canvas(I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0, 0);
+      drawSSD1306Canvas(iic_0, I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0, 0);
       
       // test SSD1306 1
-      updateSSD1306(I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0,
+      updateSSD1306(iic_0, I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0,
       1,
       0,
       1, 1,
       gnggaData.satellite_count
       );
-      updateSSD1306(I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0,
+      updateSSD1306(iic_0, I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0,
       1,
       1,
       1, 16,
       satioData.formatted_local_time_HHMMSS
       );
-      drawSSD1306Canvas(I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0, 1);
+      drawSSD1306Canvas(iic_0, I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0, 1);
     }
 
     systemData.i_count_display++;

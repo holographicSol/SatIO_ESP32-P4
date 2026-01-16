@@ -32,13 +32,14 @@ extern bool ALLOW_UPDATE_MULTIDISPLAY_CONTROLLER_0;
 
 /**
  * @brief Control addressable RGB LED(s).
+ * @param wire I2C bus instance.
  * @param address I2C address of Multi Display Controller.
  * @param display_index Specify target LED number.
  * @param r Specify value red between 0-255.
  * @param g Specify value green between 0-255.
  * @param b Specify value blue between 0-255.
  */
-void updateIndicator(int address, int display_index, int r, int g, int b);
+void updateIndicator(TwoWire &wire, int address, int display_index, int r, int g, int b);
 
 /**
  * @brief Control 7 segment 4 digit display.
@@ -46,18 +47,20 @@ void updateIndicator(int address, int display_index, int r, int g, int b);
  * @param display_index Specify display index (0-15).
  * @param value Specify value to be displayed.
  */
-void update7Segment4Digit(int address, int display_index, char* value);
+void update7Segment4Digit(TwoWire &wire, int address, int display_index, char* value);
 
 /**
  * @brief Control 7 segment 6 digit display.
+ * @param wire I2C bus instance.
  * @param address I2C address of Multi Display Controller.
  * @param display_index Specify display index (0-15).
  * @param value Specify value to be displayed.
  */
-void update7Segment6Digit(int address, int display_index, char* value);
+void update7Segment6Digit(TwoWire &wire, int address, int display_index, char* value);
 
 /**
  * @brief Writes to a canvas for SSD1306 display.
+ * @param wire I2C bus instance.
  * @param address I2C address of Multi Display Controller.
  * @param display_index Specify display index (0-7).
  * @param value_index Specify value index.
@@ -65,24 +68,26 @@ void update7Segment6Digit(int address, int display_index, char* value);
  * @param dy Specify value y position on canvas.
  * @param value Specify value to be displayed.
  */
-void updateSSD1306(int address, int display_index, int value_index, int dx, int dy, char* value);
+void updateSSD1306(TwoWire &wire, int address, int display_index, int value_index, int dx, int dy, char* value);
 
 /**
  * @brief Draws canvas on SSD1306 display.
+ * @param wire I2C bus instance.
  * @param address I2C address of Multi Display Controller.
  * @param display_index Specify display index (0-7).
  */
-void drawSSD1306Canvas(int address, int display_index);
+void drawSSD1306Canvas(TwoWire &wire, int address, int display_index);
 
 /**
  * @brief Draws canvas on SSD1306 display.
+ * @param wire I2C bus instance.
  * @param address I2C address of Multi Display Controller.
  * @param isr_interrupt_flag Specify interrupt flag to check.
  */
-void requestMultiDisplayControllerData(int address, bool &isr_interrupt_flag);
+void requestMultiDisplayControllerData(TwoWire &wire, int address, bool &isr_interrupt_flag);
 
 /**
- * @brief Draws canvas on SSD1306 display.
+ * @brief Interrupt sub-routine to trigger data request.
  * @details Takes no paramters.
  * 
  */

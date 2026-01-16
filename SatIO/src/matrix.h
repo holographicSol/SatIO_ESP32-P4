@@ -247,16 +247,26 @@ void override_all_computer_assists();
 
 /**
  * Instruct portcontroller to clear all stored instructions.
+ * @param wire I2C bus instance.
+ * @param address I2C address of output portcontroller.
  * @return Returns None
  */
-void writeOutputPortControllerM0(TwoWire &iic_bus);
+void writeOutputPortControllerM0(TwoWire &wire, int address);
 
 /**
- * Write mode 1 instructions to portcontroller.
+ * @brief Write all stored instructions to output portcontroller.
+ * @param wire I2C bus instance.
+ * @param address I2C address of output portcontroller.
  * @return Returns None
  */
-void writeOutputPortControllerM1(TwoWire &iic_bus);
+void writeOutputPortControllerM1(TwoWire &wire, int address);
 
-bool readInputPortControllerM1(TwoWire &iic_bus);
+/**
+ * @brief Read all input states from input portcontroller.
+ * @param wire I2C bus instance.
+ * @param address I2C address of input portcontroller.
+ * @return Returns true if successful.
+ */
+bool readInputPortControllerM1(TwoWire &wire, int address);
 
 #endif

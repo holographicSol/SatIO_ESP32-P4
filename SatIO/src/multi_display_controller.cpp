@@ -17,153 +17,155 @@ bool ISR_FLAG_MULTI_DISPLAY_CONTROLLER_0    = false;
 bool ALLOW_UPDATE_MULTIDISPLAY_CONTROLLER_0 = true;
 
 // bool ISR_FLAG_MULTI_DISPLAY_CONTROLLER_1    = false; // example second controller.
-// bool ALLOW_UPDATE_MULTIDISPLAY_CONTROLLER_1 = true;  // example second controller.
+// bool ALLOW_UPDATE_MULTIDISPLAY_CONTROLLER_1 = true;  // example second controller...
+
+IICLink IICLinkMultiDisplayController; // IIC link data structure for Multi Display Controller
 
 /* Clear output buffer chars */
 void clearOutputBufferChars() {
-  memset(IICLink0.OUTPUT_BUFFER_CHARS, 0, sizeof(IICLink0.OUTPUT_BUFFER_CHARS));
+  memset(IICLinkMultiDisplayController.OUTPUT_BUFFER_CHARS, 0, sizeof(IICLinkMultiDisplayController.OUTPUT_BUFFER_CHARS));
 }
 
 /* Clear output buffer bytes */
 void clearOutputBufferBytes() {
-  memset(IICLink0.OUTPUT_BUFFER_BYTES, 0, sizeof(IICLink0.OUTPUT_BUFFER_BYTES));
+  memset(IICLinkMultiDisplayController.OUTPUT_BUFFER_BYTES, 0, sizeof(IICLinkMultiDisplayController.OUTPUT_BUFFER_BYTES));
 }
 
 /* Check output bytes less than MAX_IIC_BUFFER_SIZE */
 bool isOuptutBufferBytesLessThanMaxIICBufferSize() {
-  if (strlen(IICLink0.OUTPUT_BUFFER_CHARS)<MAX_IIC_BUFFER_SIZE) {return true;}
+  if (strlen(IICLinkMultiDisplayController.OUTPUT_BUFFER_CHARS)<MAX_IIC_BUFFER_SIZE) {return true;}
   return false;
 }
 
 /* Converts chars array to bytes array */
-void writeI2C(int address) {
+void writeI2C(TwoWire &wire, int address) {
   // Serial.printf("[writeI2C] display\n");
   if (!isOuptutBufferBytesLessThanMaxIICBufferSize()) {
     Serial.printf("[writeI2C] bytes exceed MAX_IIC_BUFFER_SIZE (%d bytes)\n", MAX_IIC_BUFFER_SIZE);
     return;
   }
   clearOutputBufferBytes();
-  for (byte i=0;i<sizeof(IICLink0.OUTPUT_BUFFER_BYTES);i++)
-  {IICLink0.OUTPUT_BUFFER_BYTES[i]=(byte)IICLink0.OUTPUT_BUFFER_CHARS[i];}
+  for (byte i=0;i<sizeof(IICLinkMultiDisplayController.OUTPUT_BUFFER_BYTES);i++)
+  {IICLinkMultiDisplayController.OUTPUT_BUFFER_BYTES[i]=(byte)IICLinkMultiDisplayController.OUTPUT_BUFFER_CHARS[i];}
   // IIC bus 0: change as required!
   xSemaphoreTake(i2c_bus0_mutex, 1000 / portTICK_PERIOD_MS);  // Lock
-  iic_0.beginTransmission(address);
-  iic_0.write(IICLink0.OUTPUT_BUFFER_BYTES, sizeof(IICLink0.OUTPUT_BUFFER_BYTES));
-  iic_0.endTransmission();
+  wire.beginTransmission(address);
+  wire.write(IICLinkMultiDisplayController.OUTPUT_BUFFER_BYTES, sizeof(IICLinkMultiDisplayController.OUTPUT_BUFFER_BYTES));
+  wire.endTransmission();
   xSemaphoreGive(i2c_bus0_mutex);  // Unlock
 }
 
 /* Instruction Structure: DisplayType,DisplayIndex,R,G,B */
-void updateIndicator(int address, int display_index, int r, int g, int b) {
+void updateIndicator(TwoWire &wire, int address, int display_index, int r, int g, int b) {
     clearOutputBufferChars();
-    strcpy(IICLink0.OUTPUT_BUFFER_CHARS, String(DISPLAY_TYPE_ADDRESSABLE_LEDS).c_str());
-    strcat(IICLink0.OUTPUT_BUFFER_CHARS, ",");
-    strcat(IICLink0.OUTPUT_BUFFER_CHARS, String(display_index).c_str());
-    strcat(IICLink0.OUTPUT_BUFFER_CHARS, ",");
-    strcat(IICLink0.OUTPUT_BUFFER_CHARS, String(r).c_str());
-    strcat(IICLink0.OUTPUT_BUFFER_CHARS, ",");
-    strcat(IICLink0.OUTPUT_BUFFER_CHARS, String(g).c_str());
-    strcat(IICLink0.OUTPUT_BUFFER_CHARS, ",");
-    strcat(IICLink0.OUTPUT_BUFFER_CHARS, String(b).c_str());
-    // Serial.printf("[updateIndicator] %s\n", IICLink0.OUTPUT_BUFFER_CHARS);
-    writeI2C(address);
+    strcpy(IICLinkMultiDisplayController.OUTPUT_BUFFER_CHARS, String(DISPLAY_TYPE_ADDRESSABLE_LEDS).c_str());
+    strcat(IICLinkMultiDisplayController.OUTPUT_BUFFER_CHARS, ",");
+    strcat(IICLinkMultiDisplayController.OUTPUT_BUFFER_CHARS, String(display_index).c_str());
+    strcat(IICLinkMultiDisplayController.OUTPUT_BUFFER_CHARS, ",");
+    strcat(IICLinkMultiDisplayController.OUTPUT_BUFFER_CHARS, String(r).c_str());
+    strcat(IICLinkMultiDisplayController.OUTPUT_BUFFER_CHARS, ",");
+    strcat(IICLinkMultiDisplayController.OUTPUT_BUFFER_CHARS, String(g).c_str());
+    strcat(IICLinkMultiDisplayController.OUTPUT_BUFFER_CHARS, ",");
+    strcat(IICLinkMultiDisplayController.OUTPUT_BUFFER_CHARS, String(b).c_str());
+    // Serial.printf("[updateIndicator] %s\n", IICLinkMultiDisplayController.OUTPUT_BUFFER_CHARS);
+    writeI2C(wire, address);
 }
 
 /* Instruction Structure: DisplayType,DisplayIndex,Value */
-void update7Segment4Digit(int address, int display_index, char* value) {
+void update7Segment4Digit(TwoWire &wire, int address, int display_index, char* value) {
     clearOutputBufferChars();
-    strcpy(IICLink0.OUTPUT_BUFFER_CHARS, String(DISPLAY_TYPE_7SEGMENT_4DIGIT).c_str());
-    strcat(IICLink0.OUTPUT_BUFFER_CHARS, ",");
-    strcat(IICLink0.OUTPUT_BUFFER_CHARS, String(display_index).c_str());
-    strcat(IICLink0.OUTPUT_BUFFER_CHARS, ",");
-    strcat(IICLink0.OUTPUT_BUFFER_CHARS, value);
-    // Serial.printf("[update7Segment4Digit] %s\n", IICLink0.OUTPUT_BUFFER_CHARS);
-    writeI2C(address);
+    strcpy(IICLinkMultiDisplayController.OUTPUT_BUFFER_CHARS, String(DISPLAY_TYPE_7SEGMENT_4DIGIT).c_str());
+    strcat(IICLinkMultiDisplayController.OUTPUT_BUFFER_CHARS, ",");
+    strcat(IICLinkMultiDisplayController.OUTPUT_BUFFER_CHARS, String(display_index).c_str());
+    strcat(IICLinkMultiDisplayController.OUTPUT_BUFFER_CHARS, ",");
+    strcat(IICLinkMultiDisplayController.OUTPUT_BUFFER_CHARS, value);
+    // Serial.printf("[update7Segment4Digit] %s\n", IICLinkMultiDisplayController.OUTPUT_BUFFER_CHARS);
+    writeI2C(wire, address);
 }
 
 /* Instruction Structure: DisplayType,DisplayIndex,Value */
-void update7Segment6Digit(int address, int display_index, char* value) {
+void update7Segment6Digit(TwoWire &wire, int address, int display_index, char* value) {
     clearOutputBufferChars();
-    strcpy(IICLink0.OUTPUT_BUFFER_CHARS, String(DISPLAY_TYPE_7SEGMENT_6DIGIT).c_str());
-    strcat(IICLink0.OUTPUT_BUFFER_CHARS, ",");
-    strcat(IICLink0.OUTPUT_BUFFER_CHARS, String(display_index).c_str());
-    strcat(IICLink0.OUTPUT_BUFFER_CHARS, ",");
-    strcat(IICLink0.OUTPUT_BUFFER_CHARS, value);
-    // Serial.printf("[update7Segment6Digit] %s\n", IICLink0.OUTPUT_BUFFER_CHARS);
-    writeI2C(address);
+    strcpy(IICLinkMultiDisplayController.OUTPUT_BUFFER_CHARS, String(DISPLAY_TYPE_7SEGMENT_6DIGIT).c_str());
+    strcat(IICLinkMultiDisplayController.OUTPUT_BUFFER_CHARS, ",");
+    strcat(IICLinkMultiDisplayController.OUTPUT_BUFFER_CHARS, String(display_index).c_str());
+    strcat(IICLinkMultiDisplayController.OUTPUT_BUFFER_CHARS, ",");
+    strcat(IICLinkMultiDisplayController.OUTPUT_BUFFER_CHARS, value);
+    // Serial.printf("[update7Segment6Digit] %s\n", IICLinkMultiDisplayController.OUTPUT_BUFFER_CHARS);
+    writeI2C(wire, address);
 }
 
 /* Instruction Structure: DisplayType,DisplayIndex,ValueIndex,Dx,Dy,Value */
-void updateSSD1306(int address, int display_index, int value_index, int dx, int dy, char* value) {
+void updateSSD1306(TwoWire &wire, int address, int display_index, int value_index, int dx, int dy, char* value) {
     clearOutputBufferChars();
-    strcpy(IICLink0.OUTPUT_BUFFER_CHARS, String(DISPLAY_TYPE_SSD1306).c_str());
-    strcat(IICLink0.OUTPUT_BUFFER_CHARS, ",");
-    strcat(IICLink0.OUTPUT_BUFFER_CHARS, String(display_index).c_str());
-    strcat(IICLink0.OUTPUT_BUFFER_CHARS, ",");
-    strcat(IICLink0.OUTPUT_BUFFER_CHARS, String(value_index).c_str());
-    strcat(IICLink0.OUTPUT_BUFFER_CHARS, ",");
-    strcat(IICLink0.OUTPUT_BUFFER_CHARS, String(dx).c_str());
-    strcat(IICLink0.OUTPUT_BUFFER_CHARS, ",");
-    strcat(IICLink0.OUTPUT_BUFFER_CHARS, String(dy).c_str());
-    strcat(IICLink0.OUTPUT_BUFFER_CHARS, ",");
-    strcat(IICLink0.OUTPUT_BUFFER_CHARS, String(value).c_str());
-    // Serial.printf("[updateSSD1306] %s\n", IICLink0.OUTPUT_BUFFER_CHARS);
-    writeI2C(address);
+    strcpy(IICLinkMultiDisplayController.OUTPUT_BUFFER_CHARS, String(DISPLAY_TYPE_SSD1306).c_str());
+    strcat(IICLinkMultiDisplayController.OUTPUT_BUFFER_CHARS, ",");
+    strcat(IICLinkMultiDisplayController.OUTPUT_BUFFER_CHARS, String(display_index).c_str());
+    strcat(IICLinkMultiDisplayController.OUTPUT_BUFFER_CHARS, ",");
+    strcat(IICLinkMultiDisplayController.OUTPUT_BUFFER_CHARS, String(value_index).c_str());
+    strcat(IICLinkMultiDisplayController.OUTPUT_BUFFER_CHARS, ",");
+    strcat(IICLinkMultiDisplayController.OUTPUT_BUFFER_CHARS, String(dx).c_str());
+    strcat(IICLinkMultiDisplayController.OUTPUT_BUFFER_CHARS, ",");
+    strcat(IICLinkMultiDisplayController.OUTPUT_BUFFER_CHARS, String(dy).c_str());
+    strcat(IICLinkMultiDisplayController.OUTPUT_BUFFER_CHARS, ",");
+    strcat(IICLinkMultiDisplayController.OUTPUT_BUFFER_CHARS, String(value).c_str());
+    // Serial.printf("[updateSSD1306] %s\n", IICLinkMultiDisplayController.OUTPUT_BUFFER_CHARS);
+    writeI2C(wire, address);
 }
 
 /* Instruction Structure: EventID,DisplayIndex, */
-void drawSSD1306Canvas(int address, int display_index) {
+void drawSSD1306Canvas(TwoWire &wire, int address, int display_index) {
   clearOutputBufferChars();
-  strcpy(IICLink0.OUTPUT_BUFFER_CHARS, "101,");
-  strcat(IICLink0.OUTPUT_BUFFER_CHARS, String(display_index).c_str());
-  writeI2C(address);
+  strcpy(IICLinkMultiDisplayController.OUTPUT_BUFFER_CHARS, "101,");
+  strcat(IICLinkMultiDisplayController.OUTPUT_BUFFER_CHARS, String(display_index).c_str());
+  writeI2C(wire, address);
 }
 
 /* Request data from I2C Multi Display Module(s) */
-void requestMultiDisplayControllerData(int address, bool &isr_interrupt_flag) {
+void requestMultiDisplayControllerData(TwoWire &wire, int address, bool &isr_interrupt_flag) {
 
  if (isr_interrupt_flag==true) {
    isr_interrupt_flag=false;
-   Serial.printf("[ISR] requestMultiDisplayControllerData\n");
+   Serial.printf("[ISR FLAG] requestMultiDisplayControllerData\n");
    
    // Send 301 instruction
-   memset(IICLink0.OUTPUT_BUFFER_CHARS, 0, sizeof(IICLink0.OUTPUT_BUFFER_CHARS));
-   strcpy(IICLink0.OUTPUT_BUFFER_CHARS, "301");
-   if (strlen(IICLink0.OUTPUT_BUFFER_CHARS)<MAX_IIC_BUFFER_SIZE) {writeI2C(address);}
+   memset(IICLinkMultiDisplayController.OUTPUT_BUFFER_CHARS, 0, sizeof(IICLinkMultiDisplayController.OUTPUT_BUFFER_CHARS));
+   strcpy(IICLinkMultiDisplayController.OUTPUT_BUFFER_CHARS, "301");
+   if (strlen(IICLinkMultiDisplayController.OUTPUT_BUFFER_CHARS)<MAX_IIC_BUFFER_SIZE) {writeI2C(wire, address);}
    
    // Read old value
-   memset(IICLink0.OUTPUT_BUFFER_CHARS, 0, sizeof(IICLink0.OUTPUT_BUFFER_CHARS));
+   memset(IICLinkMultiDisplayController.OUTPUT_BUFFER_CHARS, 0, sizeof(IICLinkMultiDisplayController.OUTPUT_BUFFER_CHARS));
    xSemaphoreTake(i2c_bus0_mutex, 1000 / portTICK_PERIOD_MS);
-   if (iic_0.requestFrom(address, sizeof(IICLink0.OUTPUT_BUFFER_CHARS)) != sizeof(IICLink0.OUTPUT_BUFFER_CHARS)) {
+   if (wire.requestFrom(address, sizeof(IICLinkMultiDisplayController.OUTPUT_BUFFER_CHARS)) != sizeof(IICLinkMultiDisplayController.OUTPUT_BUFFER_CHARS)) {
      // Serial.printf("[I2C] error requesting data %d\n");
     }
     else {
-      uint8_t len = iic_0.readBytes(IICLink0.OUTPUT_BUFFER_CHARS, sizeof(IICLink0.OUTPUT_BUFFER_CHARS));
-      // Serial.printf("[MASTER RX] %s (%d bytes)\n", OUTPUT_BUFFER_CHARS, len);
+      uint8_t len = wire.readBytes(IICLinkMultiDisplayController.OUTPUT_BUFFER_CHARS, sizeof(IICLinkMultiDisplayController.OUTPUT_BUFFER_CHARS));
+      // Serial.printf("[MASTER RX] %s (%d bytes)\n", IICLinkMultiDisplayController.OUTPUT_BUFFER_CHARS, len);
     }
     xSemaphoreGive(i2c_bus0_mutex);
 
     delay(1);
 
     // Read new value
-    memset(IICLink0.OUTPUT_BUFFER_CHARS, 0, sizeof(IICLink0.OUTPUT_BUFFER_CHARS));
+    memset(IICLinkMultiDisplayController.OUTPUT_BUFFER_CHARS, 0, sizeof(IICLinkMultiDisplayController.OUTPUT_BUFFER_CHARS));
     xSemaphoreTake(i2c_bus0_mutex, 1000 / portTICK_PERIOD_MS);
-    if (iic_0.requestFrom(address, sizeof(IICLink0.OUTPUT_BUFFER_CHARS)) != sizeof(IICLink0.OUTPUT_BUFFER_CHARS)) {
+    if (wire.requestFrom(address, sizeof(IICLinkMultiDisplayController.OUTPUT_BUFFER_CHARS)) != sizeof(IICLinkMultiDisplayController.OUTPUT_BUFFER_CHARS)) {
       Serial.printf("[I2C] error requesting data %d\n");
     }
     else {
-      uint8_t len = iic_0.readBytes(IICLink0.OUTPUT_BUFFER_CHARS, sizeof(IICLink0.OUTPUT_BUFFER_CHARS));
-      Serial.printf("[MASTER RX] %s (%d bytes)\n", IICLink0.OUTPUT_BUFFER_CHARS, len);
+      uint8_t len = wire.readBytes(IICLinkMultiDisplayController.OUTPUT_BUFFER_CHARS, sizeof(IICLinkMultiDisplayController.OUTPUT_BUFFER_CHARS));
+      Serial.printf("[MASTER RX] %s (%d bytes)\n", IICLinkMultiDisplayController.OUTPUT_BUFFER_CHARS, len);
       if (len < 1) return;
-      IICLink0.i_token = 0;
-      IICLink0.token = strtok(IICLink0.OUTPUT_BUFFER_CHARS, ",");
-      while (IICLink0.token != NULL) {
-        // Serial.printf("[TKN] %d: %s\n", IICLink0.i_token, IICLink0.token);
-        switch (IICLink0.i_token) {
-          case 1: if (str_is_bool(IICLink0.token)) {ALLOW_UPDATE_MULTIDISPLAY_CONTROLLER_0=atoi(IICLink0.token); break;}
+      IICLinkMultiDisplayController.i_token = 0;
+      IICLinkMultiDisplayController.token = strtok(IICLinkMultiDisplayController.OUTPUT_BUFFER_CHARS, ",");
+      while (IICLinkMultiDisplayController.token != NULL) {
+        // Serial.printf("[TKN] %d: %s\n", IICLinkMultiDisplayController.i_token, IICLinkMultiDisplayController.token);
+        switch (IICLinkMultiDisplayController.i_token) {
+          case 1: if (str_is_bool(IICLinkMultiDisplayController.token)) {ALLOW_UPDATE_MULTIDISPLAY_CONTROLLER_0=atoi(IICLinkMultiDisplayController.token); break;}
         }
-        IICLink0.token = strtok(NULL, ",");
-        IICLink0.i_token = IICLink0.i_token + 1;
+        IICLinkMultiDisplayController.token = strtok(NULL, ",");
+        IICLinkMultiDisplayController.i_token = IICLinkMultiDisplayController.i_token + 1;
       }
     }
     xSemaphoreGive(i2c_bus0_mutex);

@@ -19,6 +19,9 @@
 #include "system_data.h"
 #include "sdmmc_helper.h"
 
+// ----------------------------------------------------------------------------------------
+//  MATRIX
+// ----------------------------------------------------------------------------------------
 struct MatrixStruct matrixData = {
   .i_count_matrix=0,
   .load_matrix_on_startup=0,
@@ -1641,30 +1644,33 @@ void setOutputValues(void) {
   }
 }
 
-void writeI2COutputPortController(TwoWire &iic_bus) {
+// ----------------------------------------------------------------------------------------
+//  MATRIX I/O
+// ----------------------------------------------------------------------------------------
+IICLink IICLinkPCI; // IIC link data structure for input port controller
+IICLink IICLinkPCO; // IIC link data structure for output port controller
+
+void writeI2COutputPortController(TwoWire &wire, int address) {
   // Compile bytes array.
-  memset(IICLink1.OUTPUT_BUFFER_BYTES, 0, sizeof(IICLink1.OUTPUT_BUFFER_BYTES));
-  for (byte i=0;i<sizeof(IICLink1.OUTPUT_BUFFER_BYTES);i++)
-  {IICLink1.OUTPUT_BUFFER_BYTES[i]=(byte)IICLink1.OUTPUT_BUFFER_CHARS[i];}
-  iic_bus.beginTransmission(I2C_ADDR_OUTPUT_PORTCONTROLLER);
+  memset(IICLinkPCO.OUTPUT_BUFFER_BYTES, 0, sizeof(IICLinkPCO.OUTPUT_BUFFER_BYTES));
+  for (byte i=0;i<sizeof(IICLinkPCO.OUTPUT_BUFFER_BYTES);i++)
+  {IICLinkPCO.OUTPUT_BUFFER_BYTES[i]=(byte)IICLinkPCO.OUTPUT_BUFFER_CHARS[i];}
+  wire.beginTransmission(address);
   // Write bytes array.
-  iic_bus.write(IICLink1.OUTPUT_BUFFER_BYTES, sizeof(IICLink1.OUTPUT_BUFFER_BYTES));
-  iic_bus.endTransmission();
+  wire.write(IICLinkPCO.OUTPUT_BUFFER_BYTES, sizeof(IICLinkPCO.OUTPUT_BUFFER_BYTES));
+  wire.endTransmission();
 }
 
-void writeOutputPortControllerM0(TwoWire &iic_bus) {
+void writeOutputPortControllerM0(TwoWire &wire, int address) {
   // Tag.
-  memset(IICLink1.OUTPUT_BUFFER_CHARS, 0, sizeof(IICLink1.OUTPUT_BUFFER_CHARS));
-  strcpy(IICLink1.OUTPUT_BUFFER_CHARS, "M0");
+  memset(IICLinkPCO.OUTPUT_BUFFER_CHARS, 0, sizeof(IICLinkPCO.OUTPUT_BUFFER_CHARS));
+  strcpy(IICLinkPCO.OUTPUT_BUFFER_CHARS, "M0");
   // Write instruction.
-  // writeI2COutputPortController(iic_bus);
+  writeI2COutputPortController(wire, address);
   systemData.i_count_port_controller_output++;
 }
 
-// ------------------------------------------------------------
-// writeOutputPortControllerM1: binary
-// ------------------------------------------------------------
-void writeOutputPortControllerM1(TwoWire &iic_bus) {
+void writeOutputPortControllerM1(TwoWire &wire, int address) {
   uint8_t packet[15];
   for (int Mi = 0; Mi < MAX_MATRIX_SWITCHES; Mi++) {
     if (matrixData.matrix_switch_write_required[0][Mi]) {
@@ -1706,9 +1712,9 @@ void writeOutputPortControllerM1(TwoWire &iic_bus) {
       // ------------------------------------------------------------
       // Send over I2C
       // ------------------------------------------------------------
-      iic_bus.beginTransmission(I2C_ADDR_OUTPUT_PORTCONTROLLER);
-      iic_bus.write(packet, 15);
-      uint8_t result = iic_bus.endTransmission();
+      wire.beginTransmission(address);
+      wire.write(packet, 15);
+      uint8_t result = wire.endTransmission();
       // ------------------------------------------------------------
       // Check error code (0=success)
       // ------------------------------------------------------------
@@ -1728,25 +1734,22 @@ void writeOutputPortControllerM1(TwoWire &iic_bus) {
   systemData.i_count_port_controller_output++;
 }
 
-// ------------------------------------------------------------
-// readInputPortControllerM1: binary
-// ------------------------------------------------------------
-bool readInputPortControllerM1(TwoWire &iic_bus) {
+bool readInputPortControllerM1(TwoWire &wire, int address) {
   const uint8_t TOTAL_PINS = 70;
   for (uint8_t i = 0; i < TOTAL_PINS; i++) {
-    if (iic_bus.requestFrom(I2C_ADDR_INPUT_PORTCONTROLLER, (uint8_t)5) != 5) {
+    if (wire.requestFrom(address, (uint8_t)5) != 5) {
       Serial.printf("I2C timeout at expected pin %d\n", i);
       return false;
     }
-    uint8_t pin = iic_bus.read();
+    uint8_t pin = wire.read();
     union {
       float    f;
       uint8_t  bytes[4];
     } u;
-    u.bytes[0] = iic_bus.read();
-    u.bytes[1] = iic_bus.read();
-    u.bytes[2] = iic_bus.read();
-    u.bytes[3] = iic_bus.read();
+    u.bytes[0] = wire.read();
+    u.bytes[1] = wire.read();
+    u.bytes[2] = wire.read();
+    u.bytes[3] = wire.read();
     if (pin < TOTAL_PINS) {
       matrixData.input_value[0][pin] = (double)u.f;
       // Serial.printf("[BIN] P%d = %.6f\n", pin, matrixData.input_value[0][pin]);
