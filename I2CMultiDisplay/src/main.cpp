@@ -266,18 +266,16 @@ uint8_t colorB;
 void receiveEvent(int howMany) {
   int len = Wire1.readBytes((char *)I2CLink.INPUT_BUFFER, howMany);
   if (len < 1) return;
-  // Serial.printf("[RX] %s\n", I2CLink.INPUT_BUFFER);
+  I2CLink.INPUT_BUFFER[len] = '\0';
+  Serial.printf("[RX] %s (%d bytes)\n", I2CLink.INPUT_BUFFER, len);
   // -----------------------------------------------------
-  // Initialize Parser Data
-  // -----------------------------------------------------
-  I2CLink.i_token = 0;
-  I2CLink.token   = strtok(I2CLink.INPUT_BUFFER, ",");
-  // -----------------------------------------------------
-  // Request Events
+  // Received request event id
   // -----------------------------------------------------
   if (strcmp(I2CLink.INPUT_BUFFER, "301")==0) {request_event_id=301;}
-
+  
   else {
+    I2CLink.i_token = 0;
+    I2CLink.token   = strtok(I2CLink.INPUT_BUFFER, ",");
     dtype = atoi(I2CLink.token);
     // -----------------------------------------------------
     // Parse Command: Draw Canvas
