@@ -8,6 +8,8 @@
 #define MULTIPLEXERS_H
 
 #include <stdint.h>
+#include <Arduino.h>
+#include <Wire.h>
 
 /* Do not modify */
 #define MAX_ANALOG_DIGITAL_MULTIPLEXER_PINS             5
@@ -60,11 +62,13 @@ extern AnalogDigitalMultiplexer ad_mux_0;
 
 /**
  * Set IIC multiplexer channel
+ * @param wire Specify TwoWire instance
  * @param mux_id Specify IIC multiplexer
  * @param channel Specify IIC multiplexer channel
  * @return None
  */
-void setI2CMultiplexChannel(I2CMultiplexer &mux_id, uint8_t channel);
+void setI2CMultiplexChannel(TwoWire &wire, I2CMultiplexer &mux_id, uint8_t channel);
+
 
 /**
  * Initialize analog/digital multiplexer

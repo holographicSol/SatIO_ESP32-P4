@@ -37,11 +37,11 @@ I2CMultiplexer i2c_mux_0 = {
 // ------------------------------------------------------------------------------------
 // IIC
 // ------------------------------------------------------------------------------------
-void setI2CMultiplexChannel(I2CMultiplexer &mux_id, uint8_t channel) {
+void setI2CMultiplexChannel(TwoWire &wire, I2CMultiplexer &mux_id, uint8_t channel) {
   /* Set the channel on specified I2C multiplexer */
-  Wire.beginTransmission(mux_id.address);
-  Wire.write(1 << channel);
-  Wire.endTransmission();
+  wire.beginTransmission(mux_id.address);
+  wire.write(1 << channel);
+  wire.endTransmission();
 }
 
 void setI2CMultiplexerDataNAN(I2CMultiplexer &mux_id) {

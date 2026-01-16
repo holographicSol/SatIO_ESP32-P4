@@ -480,7 +480,4 @@ typedef struct {
   byte OUTPUT_BUFFER_BYTES[MAX_IIC_BUFFER_SIZE];
 } IICLink;
 
-// extern IICLink IICLink1;
-// extern IICLink IICLink2;
-
 #endif // CONFIG_H
