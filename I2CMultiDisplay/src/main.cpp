@@ -23,6 +23,10 @@ Support:
 #include <FastLED.h>            // https://github.com/FastLED
 #include "lcdgfx.h"             // https://github.com/lexus2k/lcdgfx
 #include "lcdgfx_gui.h"         // https://github.com/lexus2k/lcdgfx
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+#include <rtc_wdt.h>
+#include <esp_task_wdt.h>
 #include "./multiplexers.h"
 #include "./strval.h"
 
@@ -34,6 +38,14 @@ Support:
 #define SLAVE_SCL  19 // (Wire1)
 
 #define MAX_IIC_BUFER_SIZE 32
+
+#define TASK_DISPLAY_PRIORITY               4
+#define TASK_DISPLAY_CORE                   0
+#define TASK_DISPLAY_STACK_SIZE             16384
+#define TICK_DELAY_TASK_DISPLAY             true
+#define DELAY_TASK_DISPLAY                  1
+
+TaskHandle_t TaskDisplay;
 
 /** ----------------------------------------------------------------------------
  * SSD1306 Displays - Mixed 128×32 and 128×64.
@@ -222,22 +234,19 @@ void UpdateAllIndicators(int start, int end, CRGB color) {
  */
 volatile int request_event_id=0;
 
-char TMP_BUFFER_0[MAX_IIC_BUFFER_SIZE];
-byte OUTPUT_BUFFER[MAX_IIC_BUFFER_SIZE];
-
 void requestEvent() {
+  // --------------------------
   // brightness level
+  // --------------------------
   if (request_event_id==301) {
-    memset(TMP_BUFFER_0, 0, sizeof(TMP_BUFFER_0));
-    strcpy(TMP_BUFFER_0, "$DATA,");
-    strcat(TMP_BUFFER_0, String(brightness_stage).c_str());
-    Serial.printf("[requestEvent] data: %s\n", TMP_BUFFER_0);
-    memset(OUTPUT_BUFFER, 0, sizeof(OUTPUT_BUFFER));
-    for (byte i=0;i<sizeof(OUTPUT_BUFFER);i++)
-    {OUTPUT_BUFFER[i]=(byte)TMP_BUFFER_0[i];}
-    // Serial.printf("[requestEvent] bytes data: %s\n", OUTPUT_BUFFER);
-    Wire1.write(OUTPUT_BUFFER, sizeof(OUTPUT_BUFFER));  // or more bytes
-    // Serial.println("[requestEvent] requestEvent: sent requested data");
+    memset(I2CLink.TMP_BUFFER, 0, sizeof(I2CLink.TMP_BUFFER));
+    strcpy(I2CLink.TMP_BUFFER, "$DATA,");
+    strcat(I2CLink.TMP_BUFFER, String(brightness_stage).c_str());
+    Serial.printf("[requestEvent] data: %s\n", I2CLink.TMP_BUFFER);
+    memset(I2CLink.OUTPUT_BUFFER, 0, sizeof(I2CLink.OUTPUT_BUFFER));
+    for (byte i=0;i<sizeof(I2CLink.OUTPUT_BUFFER);i++)
+    {I2CLink.OUTPUT_BUFFER[i]=(byte)I2CLink.TMP_BUFFER[i];}
+    Wire1.write(I2CLink.OUTPUT_BUFFER, sizeof(I2CLink.OUTPUT_BUFFER));
   }
 }
 
@@ -263,12 +272,11 @@ void receiveEvent(int howMany) {
   // -----------------------------------------------------
   I2CLink.i_token = 0;
   I2CLink.token   = strtok(I2CLink.INPUT_BUFFER, ",");
-
   // -----------------------------------------------------
   // Request Events
   // -----------------------------------------------------
   if (strcmp(I2CLink.INPUT_BUFFER, "301")==0) {request_event_id=301;}
-  
+
   else {
     dtype = atoi(I2CLink.token);
     // -----------------------------------------------------
@@ -377,18 +385,6 @@ void receiveEvent(int howMany) {
   }
 }
 
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
-
-#define TASK_DISPLAY_PRIORITY               4
-#define TASK_DISPLAY_CORE                   0
-#define TASK_DISPLAY_STACK_SIZE             16384
-#define TICK_DELAY_TASK_DISPLAY             false
-#define DELAY_TASK_DISPLAY                  1
-TaskHandle_t TaskDisplay;
-#include <rtc_wdt.h>
-#include <esp_task_wdt.h>
-
 /** ----------------------------------------------------------------------------
  * taskDisplay.
  * 
@@ -398,27 +394,31 @@ void taskDisplay(void * pvParameters) {
   // while (global_task_sync==false) {vTaskDelay(1);}
   for (;;) {
     esp_task_wdt_reset();
-
     // -----------------------------------------------------
-    // Check Interrupt Flag: Brightness Button
+    // Adjust Brightness Level
     // -----------------------------------------------------
     if (iter_brightness==true) {
+      // -----------------------
+      // Set brightness stage
+      // -----------------------
       iter_brightness=false;
       brightness_stage = brightness_stage + 1;
       if (brightness_stage>=MAX_BRIGHTNESS_STAGE) {brightness_stage=0;}
       Serial.printf("[Brightness level] %d\n", brightness_stage);
-
       // -----------------------------------------------------
-      // LEDs
+      // LEDs: Adjust Brightness
       // -----------------------------------------------------
+      // clear
+      // -----------------------
       for (int i_display=0; i_display<MAX_INDICATORS; i_display++) {
         FastLED.setBrightness(LED_BRIGHTNESS_LEVELS[brightness_stage]);
         FastLED.show();
       }
-
       // -----------------------------------------------------
-      // Seven Segment Displays
+      // 7 Segment Displays: Adjust Brightness
       // -----------------------------------------------------
+      // clear
+      // -----------------------
       if (brightness_stage==0) {
         for (int i_display=0; i_display<MAX_7SEG_DISPLAYS; i_display++) {
           auto& disp = seven_seg_displays[i_display];
@@ -428,6 +428,9 @@ void taskDisplay(void * pvParameters) {
           else if (disp.type == SEG_6DIGIT) {disp.display6->clear();}
         }
       }
+      // -----------------------
+      // set brightness
+      // -----------------------
       else {
         for (int i_display=0; i_display<MAX_7SEG_DISPLAYS; i_display++) {
           auto& disp = seven_seg_displays[i_display];
@@ -439,14 +442,15 @@ void taskDisplay(void * pvParameters) {
             {disp.display6->setBrightness(SEG_BRIGHTNESS_LEVELS[brightness_stage]);}
         }
       }
-
       // -----------------------------------------------------
-      // SSD1306
+      // SSD1306: Adjust Brightness
       // -----------------------------------------------------
+      // clear
+      // -----------------------
       if (brightness_stage==0) {
         for (int i_display=0; i_display<MAX_SSD1306_DISPLAYS; i_display++) {
           auto& disp = ssd1306_displays[i_display];
-          setI2CMultiplexChannel(i2c_mux_0, i_display);
+          setI2CMultiplexChannel(Wire, i2c_mux_0, i_display);
           if (disp.type==SSD_128X32) {
             disp.canvas32->clear();
             disp.display32->drawCanvas(0, 0, *disp.canvas32);
@@ -457,12 +461,27 @@ void taskDisplay(void * pvParameters) {
           }
         }
       }
-      // else {} add brightness support to lcdgfx
+      // -----------------------
+      // set brightness
+      // -----------------------
+      else {
+        for (int i_display=0; i_display<MAX_SSD1306_DISPLAYS; i_display++) {
+          auto& disp = ssd1306_displays[i_display];
+          setI2CMultiplexChannel(Wire, i2c_mux_0, i_display);
+          if (disp.type==SSD_128X32) {
+            // send brightness/contrast command if supported
+          }
+          else if (disp.type==SSD_128X64) {
+            // send brightness/contrast command if supported
+          }
+        }
+      }
       interruptMaster();
     }
-
+    // -----------------------------------------------------
+    // Update Displays
+    // -----------------------------------------------------
     if (!brightness_stage==0) {
-
       // -----------------------------------------------------
       // Update Indicators
       // -----------------------------------------------------
@@ -478,7 +497,6 @@ void taskDisplay(void * pvParameters) {
                             led_color_values[i_display][INDEX_LED_COLOR_VALUE_GREEN],
                             led_color_values[i_display][INDEX_LED_COLOR_VALUE_BLUE]));
       }
-
       // -----------------------------------------------------
       // Update I2C Display(s)
       // -----------------------------------------------------
@@ -486,7 +504,7 @@ void taskDisplay(void * pvParameters) {
         auto& disp = ssd1306_displays[i_display];
         if (disp.draw==true) {
           disp.draw=false;
-          setI2CMultiplexChannel(i2c_mux_0, i_display);
+          setI2CMultiplexChannel(Wire, i2c_mux_0, i_display);
           if (disp.type==SSD_128X32) {
             disp.canvas32->clear();
             for (int i_value=0; i_value<MAX_SSD1306_DISPLAY_VALUES; i_value++) {
@@ -525,12 +543,9 @@ void taskDisplay(void * pvParameters) {
       // -----------------------------------------------------
       for (uint8_t i_display = 0; i_display < MAX_7SEG_DISPLAYS; i_display++) {
         auto& disp = seven_seg_displays[i_display];
-
         // if (disp.value == disp.prev_value) continue;
-        
         setADMultiplexerChannel(ad_mux_0, i_display);
         setADMultiplexerChannel(ad_mux_1, i_display);
-        
         if (disp.type == SEG_4DIGIT) {
           // Serial.printf("[SEG_4DIGIT] display_index=%d type=%d value=%s\n",
           //               i_display,
@@ -551,8 +566,10 @@ void taskDisplay(void * pvParameters) {
         // strcpy(disp.prev_value, disp.value);
       }
     }
-    
+  
+    // -----------------------------------------------------
     // Track and print loops per second
+    // -----------------------------------------------------
     display_loop_counter++;
     unsigned long current_time = millis();
     if (current_time - display_loop_last_time >= 1000) {
@@ -560,22 +577,27 @@ void taskDisplay(void * pvParameters) {
       display_loop_counter = 0;
       display_loop_last_time = current_time;
     }
-
+    // -----------------------------------------------------
+    // Delay Task
+    // -----------------------------------------------------
     if (TICK_DELAY_TASK_DISPLAY==false)
       {xTaskNotifyWait(0x00, 0x00, NULL, DELAY_TASK_DISPLAY / portTICK_PERIOD_MS);}
     else {xTaskNotifyWait(0x00, 0x00, NULL, DELAY_TASK_DISPLAY);}
   }
 }
 
+/** ----------------------------------------------------------------------------
+ * Create the display task.
+ */
 void createTaskDisplay() {
     xTaskCreatePinnedToCore(
-    taskDisplay,   /* Function to implement the task */
-    "TaskDisplay", /* Name of the task */
+    taskDisplay,             /* Function to implement the task */
+    "TaskDisplay",           /* Name of the task */
     TASK_DISPLAY_STACK_SIZE, /* Stack size in words */
-    NULL,           /* Task input parameter */
-    TASK_DISPLAY_PRIORITY, /* Priority of the task */
-    &TaskDisplay,          /* Task handle. */
-    TASK_DISPLAY_CORE);    /* Core where the task should run */
+    NULL,                    /* Task input parameter */
+    TASK_DISPLAY_PRIORITY,   /* Priority of the task */
+    &TaskDisplay,            /* Task handle. */
+    TASK_DISPLAY_CORE);      /* Core where the task should run */
     esp_task_wdt_add(TaskDisplay);
 }
 
@@ -592,9 +614,10 @@ void setup() {
   // ------------------------------------------------------------
   // Interrupts
   // ------------------------------------------------------------
+  // Send interrupt to master to indicate data is ready
   pinMode(MASTER_INTERRUPT_PIN, OUTPUT);
   digitalWrite(MASTER_INTERRUPT_PIN, HIGH);
-
+  // Button to iterate brightness level
   pinMode(ISR_PIN_BRIGHTNESS, INPUT);
   attachInterruptArg(digitalPinToInterrupt(ISR_PIN_BRIGHTNESS), iter_brightness_ISR, NULL, RISING);
 
@@ -645,16 +668,15 @@ void setup() {
   // ------------------------------------------------------------
   // Initialize I2C Multiplexers
   // ------------------------------------------------------------
-  setI2CMultiplexChannel(i2c_mux_0, 0);
+  setI2CMultiplexChannel(Wire, i2c_mux_0, 0);
 
   // ------------------------------------------------------------
   // Initialize Analog/Digital Multiplexers
   // ------------------------------------------------------------
   initADMultiplexer(ad_mux_0);
   initADMultiplexer(ad_mux_1);
-
   // --------------------------------------------------------------------
-  // Set analog/digital multiplexer sig as OUTPUT LOW (ready for writes).
+  // Set analog/digital multiplexer sig as OUTPUT LOW (ready for write).
   // --------------------------------------------------------------------
   pinMode(ad_mux_0.pins[INDEX_ANALOG_DIGITAL_MULTIPLEXER_SIG], OUTPUT); // DIO pins
   pinMode(ad_mux_1.pins[INDEX_ANALOG_DIGITAL_MULTIPLEXER_SIG], OUTPUT); // CLK pins
@@ -688,9 +710,7 @@ void setup() {
   // ------------------------------------------------------------
   Serial.println("[Initializing I2C Multiplexer Displays]");
   for (int i_display=0; i_display<MAX_SSD1306_DISPLAYS; i_display++) {
-
-    setI2CMultiplexChannel(i2c_mux_0, i_display);
-
+    setI2CMultiplexChannel(Wire, i2c_mux_0, i_display);
     auto& disp = ssd1306_displays[i_display];
 
     Serial.printf("  Display %d: type=%d display32=%p display64=%p canvas32=%p canvas64=%p\n",
@@ -706,27 +726,16 @@ void setup() {
     if (disp.type==SSD_128X32) {
       disp.display32->begin();
       disp.display32->clear();
-      // test zero
-      // disp.display32->setFixedFont(disp.font);
-      // disp.display32->printFixed(4, 10, "starting", STYLE_BOLD);
-      // delay(1000);
       // test canvas
       disp.canvas32->setFixedFont(disp.font);
       disp.canvas32->clear();
       disp.canvas32->printFixed(1, 1, "starting", STYLE_BOLD);
-      // disp.canvas32->printFixed(1, 11, "TEST 1", STYLE_BOLD);
-      // disp.canvas32->printFixed(1, 22, "TEST 2", STYLE_BOLD);
-      // disp.canvas32->printFixed(1, 32, "TEST 3", STYLE_BOLD);
       disp.display32->drawCanvas(0, 0, *disp.canvas32);
       delay(1000);
     }
     else if (disp.type==SSD_128X64) {
       disp.display64->begin();
       disp.display64->clear();
-      // test zero
-      // disp.display64->setFixedFont(disp.font);
-      // disp.display64->printFixed(4, 10, "starting", STYLE_BOLD);
-      // delay(1000);
       // test canvas
       disp.canvas64->setFixedFont(disp.font);
       disp.canvas64->clear();
@@ -739,9 +748,10 @@ void setup() {
   // ------------------------------------------------------------
   delay(1000);
   Serial.println("Initialization complete..");
-
+  // ------------------------------------------------------------
+  // Create Tasks
+  // ------------------------------------------------------------
   createTaskDisplay();
-
   // ------------------------------------------------------------
   // Function to run when data requested from master
   // ------------------------------------------------------------
