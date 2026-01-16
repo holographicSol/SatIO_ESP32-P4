@@ -1,0 +1,689 @@
+/*
+  SatioFile - Written By Benjamin Jack Cullen.
+*/
+
+#include "satio_file.h"
+#include <Arduino.h>
+#include <FS.h>
+#include "SD_MMC.h"
+#include "SPIFFS.h"
+#include "matrix.h"
+#include <esp_task_wdt.h>
+#include "strval.h"
+#include "satio.h"
+#include "system_data.h"
+#include "matrix.h"
+#include "custommapping.h"
+#include "ins.h"
+#include "config.h"
+#include "multiplexers.h"
+#include "wtgps300p.h"
+#include "wt901.h"
+#include "sdmmc_helper.h"
+
+struct satioFileStruct satioFileData = {
+    .i_token=0,
+    .token={},
+    .tmp_chars="",
+
+    .matrix_tags=
+    {
+        "SWITCH_PORT",        // 0
+        "SWITCH_FUNCTION",    // 1
+        "FUNCTION_X",         // 2
+        "FUNCTION_Y",         // 3
+        "FUNCTION_Z",         // 4
+        "FUNCTION_OPERATOR",  // 5
+        "FUNCTION_INVERT",    // 6
+        "SWITCH_OUTPUT_MODE", // 7
+        "SWITCH_PWM_VALUE_0", // 8
+        "SWITCH_PWM_VALUE_1", // 9
+        "SWITCH_FLUX",        // 10
+        "COMPUTER_ASSIST",    // 11
+        
+    },
+    .matix_filepaths=
+    {
+        "/MATRIX/MATRIX_0.csv",
+        "/MATRIX/MATRIX_1.csv",
+        "/MATRIX/MATRIX_2.csv",
+        "/MATRIX/MATRIX_3.csv",
+        "/MATRIX/MATRIX_4.csv",
+        "/MATRIX/MATRIX_5.csv",
+        "/MATRIX/MATRIX_6.csv",
+        "/MATRIX/MATRIX_7.csv",
+        "/MATRIX/MATRIX_8.csv",
+        "/MATRIX/MATRIX_9.csv",
+    },
+    .matrix_file_slots={0},
+    .current_matrix_filepath="/MATRIX/MATRIX_0.csv", // default
+    .mapping_tags=
+    {
+        "MAP_MODE",     // 0
+        "INDEX_MAPPED", // 1
+        "FUNCTION_N",   // 2
+        "MAP_CONFIG_1", // 3
+        "MAP_CONFIG_2", // 4
+        "MAP_CONFIG_3", // 5
+        "MAP_CONFIG_4", // 6
+        "MAP_CONFIG_5", // 7   
+    },
+    .mapping_filepath="/MAPPING/mapping_conf.csv",
+    .system_tags=
+    {
+
+        "SERIAL_COMMAND",               // 0
+        "OUTPUT_ALL",                   // 1
+        "OUTPUT_SATIO",                 // 2
+        "OUTPUT_INS",                   // 3
+        "OUTPUT_GNGGA",                 // 4
+        "OUTPUT_GNRMC",                 // 5
+        "OUTPUT_GPATT",                 // 6
+        "OUTPUT_MATRIX",                // 7
+        "OUTPUT_ADMPLEX0",              // 8
+        "OUTPUT_GYRO0",                 // 9
+        "OUTPUT_SUN",                   // 10
+        "OUTPUT_MOON",                  // 11
+        "OUTPUT_MERCURY",               // 12
+        "OUTPUT_VENUS",                 // 13
+        "OUTPUT_MARS",                  // 14
+        "OUTPUT_JUPITER",               // 15
+        "OUTPUT_SATURN",                // 16
+        "OUTPUT_URANUS",                // 17
+        "OUTPUT_NEPTUNE",               // 18
+        "OUTPUT_METEORS",               // 19
+        "COORDINATE_CONVERSION_MODE",   // 20
+        "SPEED_CONVERSION_MODE",        // 21
+        "ALTITUDE_CONVERSION_MODE",     // 22
+        "UTC_SECOND_OFFSET",            // 23
+        "UTC_AUTO_OFFSET_FLAG",         // 24
+        "SET_DATETIME_AUTOMATICALLY",   // 25
+        "INS_REQ_GPS_PRECISION",        // 26
+        "INS_REQ_MIN_SPEED",            // 27
+        "INS_REQ_HEADING_RANGE_DIFF",   // 28
+        "INS_MODE",                     // 29
+        "INS_USE_GYRO_HEADING",         // 30
+        "MATRIX_FILE",                  // 31
+        "LOAD_MATRIX_ON_STARTUP",       // 32
+        "SPEED_UNIT_MODE",              // 33
+        "ALTITUDE_UNIT_MODE",           // 34
+        "GROUND_HEADING_MODE",          // 35
+        "ALTITUDE",                     // 36
+        "COORDINATES_LATITUDE",         // 37
+        "COORDINATES_LONGITUDE",        // 38
+        "GROUND_SPEED",                 // 39
+        "GROUND_HEADING",               // 40
+
+        "DELAY_TASK_SERIAL_INFOCMD",        // 41
+        "TICK_DELAY_TASK_SERIAL_INFOCMD",   // 42
+        "DELAY_TASK_MULTIPLEXERS",          // 43
+        "TICK_DELAY_TASK_MULTIPLEXERS",     // 44
+        "DELAY_TASK_GYRO0",                 // 45
+        "TICK_DELAY_TASK_GYRO0",            // 46
+        "DELAY_TASK_UNIVERSE",              // 47
+        "TICK_DELAY_TASK_UNIVERSE",         // 48
+        "DELAY_TASK_GPS",                   // 49
+        "TICK_DELAY_TASK_GPS",              // 50
+        "DELAY_TASK_SWITCHES",              // 51
+        "TICK_DELAY_TASK_SWITCHES",         // 52
+        "DELAY_TASK_PORTCONTROLLER_INPUT",      // 53
+        "TICK_DELAY_TASK_PORTCONTROLLER_INPUT", // 54
+        "DELAY_TASK_STORAGE",               // 55
+        "TICK_DELAY_TASK_STORAGE",          // 56
+        "DELAY_TASK_LOGGING",               // 57
+        "TICK_DELAY_TASK_LOGGING",          // 58
+
+        "LOGGING",          // 59
+    },
+    .system_filepath="/SYSTEM/system_conf.csv",
+    .log_dir="/LOG/",
+    .log_files = {},
+    .log_filepath = "",
+    .unixtimestamp=0,
+    .tmp_unixtimestamp=0,
+    .number_of_log_files=0,
+};
+
+bool isOpen(File root) {
+ if (!root) {
+    Serial.println("[getLogFiles] Failed to open directory");
+    return false;
+  }
+  if (!root.isDirectory()) {
+    Serial.println("[getLogFiles] Not a directory");
+    root.close();
+    return false;
+  }
+  return true;
+}
+
+/**
+ * @brief Get a log filename.
+ * @param mode Specify mode: 0=oldest 1=latest.
+ */
+bool getLogFile(int mode) {
+//   Serial.printf("[getLogFiles] Listing directory: %s\n", satioFileData.log_dir);
+
+  // Open dir (and create dir if not exist)
+  File root = SD_MMC.open(satioFileData.log_dir, "r", true);
+  if (!isOpen) {return false;}
+
+  // Set target
+  if (mode==0) {satioFileData.unixtimestamp=INT64_MAX;} // for finding oldest
+  else {satioFileData.unixtimestamp=0;} // for finding latest
+  
+  // Iterate through files in directory
+  satioFileData.number_of_log_files=0;
+  File file = root.openNextFile();
+  while (file) {
+    if (!file.isDirectory()) {
+    //   Serial.printf("  FILE : %s (%llu bytes)\n", file.name(), file.size());
+
+      // Create a copy of filename
+      memset(satioFileData.tmp_chars, 0, sizeof(satioFileData.tmp_chars));
+      strncpy(satioFileData.tmp_chars, file.name(), sizeof(satioFileData.tmp_chars));
+
+      // Tokenize
+      int i_san=0;
+      satioFileData.tmp_unixtimestamp=0;
+      satioFileData.i_token = 0;
+      satioFileData.token = strtok(satioFileData.tmp_chars, ".");
+      while (satioFileData.token != NULL) {
+        switch (satioFileData.i_token) {
+            case 0: if (satioFileData.token != NULL && str_is_int64(satioFileData.token)) {
+                i_san++; char *endptr; satioFileData.tmp_unixtimestamp = strtoll(satioFileData.token, &endptr, 10);} break;
+            case 1: if (strcmp(satioFileData.token, "csv")==0) {i_san++;} break;
+        }
+        satioFileData.token = strtok(NULL, ".");
+        satioFileData.i_token++;
+      }
+      // Update unixtimestamp
+      if (i_san==2) {
+        satioFileData.number_of_log_files++;
+        if      (mode==0 && satioFileData.tmp_unixtimestamp<satioFileData.unixtimestamp) {satioFileData.unixtimestamp=satioFileData.tmp_unixtimestamp;}
+        else if (mode==1 && satioFileData.tmp_unixtimestamp>satioFileData.unixtimestamp) {satioFileData.unixtimestamp=satioFileData.tmp_unixtimestamp;}
+      }
+    }
+    file = root.openNextFile();
+  }
+  root.close();
+//   Serial.printf("[getLogFiles] number_of_log_files: %llu\n", satioFileData.number_of_log_files);
+  if (satioFileData.unixtimestamp==0 || satioFileData.unixtimestamp==INT64_MIN) {return false;} 
+
+  // Store filename of interest
+  memset(satioFileData.log_filepath, 0, sizeof(satioFileData.log_filepath));
+  strcpy(satioFileData.log_filepath, String(String(satioFileData.log_dir) + String(satioFileData.unixtimestamp) + ".csv").c_str());
+//   Serial.printf("[getLogFiles] current log file: %s\n", satioFileData.log_filepath);
+  return true;
+}
+
+void createNewLogFilename() {
+  memset(satioFileData.log_filepath, 0, sizeof(satioFileData.log_filepath));
+  strcpy(satioFileData.log_filepath, satioFileData.log_dir);
+//   strcat(satioFileData.log_filepath, String(String(satioData.rtc_unixtime) + ".csv").c_str()); // use UTC.
+  strcat(satioFileData.log_filepath, String(String(satioData.local_unixtime_uS) + ".csv").c_str());
+//   Serial.printf("[createNewLogFilename] current log file: %s\n", satioFileData.log_filepath);
+}
+
+void deleteOldestLogFile(FS &fs) {
+  if (getLogFile(0)==true && satioFileData.number_of_log_files>MAX_LOG_FILES) {
+    // Serial.printf("[deleteOldestLogFile] attempting to delete log file: %s\n", satioFileData.log_filepath);
+    fs.remove(satioFileData.log_filepath);
+    if (!fs.exists(satioFileData.log_filepath)) {
+        Serial.printf("[deleteOldestLogFile] log file deleted successfully.\n");
+    }
+    else {Serial.printf("[deleteOldestLogFile] failed to delete log file.\n");}
+  }
+}
+
+void printLogLine(FS &fs, String line) {
+    // Serial.printf("[printLogLine]\n");
+    line = line+"\n";
+    // Serial.print(line);  // uncomment to debug
+
+    // Check disk space
+    if (!isAvailableBytes(strlen(line.c_str()))) {Serial.println("No more diskspace available!"); return;}
+
+    // Selct log filename
+    deleteOldestLogFile(fs);
+    if (getLogFile(1)==false) {createNewLogFilename();}
+    File f = fs.open(satioFileData.log_filepath, "a", true);
+    f.close();
+
+    f = fs.open(satioFileData.log_filepath, "r", true);
+    if (fs.exists(satioFileData.log_filepath)) {
+
+      // Check file size
+      uint64_t line_size = strlen(line.c_str());
+      uint64_t file_size = f.size();
+    //   Serial.printf("[printLogLine] line_size=%llu, file_size=%llu\n", line_size, file_size);
+      if (file_size+line_size>MAX_LOG_FILE_SIZE) {
+        Serial.printf("[printLogLine] creating new log file..\n");
+        f.close();
+        deleteOldestLogFile(fs);
+        createNewLogFilename();
+        f = fs.open(satioFileData.log_filepath, "a", true);
+        f.close();
+      }
+    //   Serial.printf("[printLogLine] writing to log file: %s\n", satioFileData.log_filepath);
+      f = fs.open(satioFileData.log_filepath, "a", true);
+      f.print(line);
+    }
+    else {Serial.printf("[printLogLine] file does not exist: %s\n", satioFileData.log_filepath);}
+    f.close();
+}
+
+bool writeLog(FS &fs) {
+    // Serial.println("--------------------------------------");
+    Serial.println("[writeLog] writing log");
+
+    // --------------------------------
+    // Log Line: Timestamp & Basic Stat
+    // --------------------------------
+    String line="";
+    // --------------------------------
+    // Log Line: Satio
+    // --------------------------------
+    line = "$SATIO,";
+    line=line+ String(satioData.padded_rtc_time_HHMMSS) + ",";
+    line=line+ String(satioData.padded_rtc_date_DDMMYYYY) + ",";
+    line=line+ String(satioData.padded_rtc_sync_time_HHMMSS) + ",";
+    line=line+ String(satioData.padded_rtc_sync_date_DDMMYYYY) + ",";
+    line=line+ String(satioData.padded_local_time_HHMMSS) + ",";
+    line=line+ String(satioData.padded_local_date_DDMMYYYY) + ",";
+    line=line+ String(systemData.uptime_seconds) + ",";
+    line=line+ String(satioData.char_coordinate_conversion_mode[satioData.coordinate_conversion_mode]) + ",";
+    line=line+ String(satioData.degrees_latitude) + ",";
+    line=line+ String(satioData.degrees_longitude) + ",";
+    line=line+ String(satioData.char_altitude_conversion_mode[satioData.altitude_conversion_mode]) + ",";
+    line=line+ String(satioData.altitude_converted) + ",";
+    line=line+ String(satioData.char_altitude_unit_mode[satioData.altitude_unit_mode]) + ",";
+    line=line+ String(satioData.char_speed_conversion_mode[satioData.speed_conversion_mode]) + ",";
+    line=line+ String(satioData.speed_converted, 7) + ",";
+    line=line+ String(satioData.char_speed_unit_mode[satioData.speed_unit_mode]) + ",";
+    line=line+ String(satioData.char_ground_heading_mode[satioData.ground_heading_mode]) + ",";
+    line=line+ String(satioData.ground_heading, 7) + ",";
+    line=line+ String(insData.ins_latitude, 7) + ",";
+    line=line+ String(insData.ins_longitude, 7) + ",";
+    line=line+ String(insData.ins_altitude) + ",";
+    line=line+ String(insData.ins_heading) + ",";
+    line=line+ String(insData.INS_INITIALIZATION_FLAG) + ",";
+    line=line+ String(insData.INS_MODE) + ",";
+    line=line+ String(insData.INS_FORCED_ON_FLAG) + ",";
+    line=line+ String(insData.INS_REQ_GPS_PRECISION) + ",";
+    line=line+ String(insData.INS_REQ_HEADING_RANGE_DIFF) + ",";
+    line=line+ String(insData.INS_REQ_MIN_SPEED) + ",";
+    line=line+ String(insData.INS_USE_GYRO_HEADING) + ",";
+    line=line+ String(insData.INS_ENABLED) + ",";
+    printLogLine(fs, line);
+    // --------------------------------
+    // Log Line: Analog/Digital
+    // --------------------------------
+    line="$MPLEX0,";
+    for (int i=0; i<MAX_AD_MUX_CHANNELS; i++) {line=line+String(ad_mux_0.data[i])+",";}
+    printLogLine(fs, line);
+    // --------------------------------
+    // Log Line: Port Controller Input
+    // --------------------------------
+    line="$PCINPT,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(matrixData.input_value[0][i])+",";}
+    printLogLine(fs, line);
+    // --------------------------------
+    // Log Line: Gyro0
+    // --------------------------------
+    line="$GYRO0,";
+    line=line+ String(gyroData.gyro_0_acc_x) + ",";
+    line=line+ String(gyroData.gyro_0_acc_y) + ",";
+    line=line+ String(gyroData.gyro_0_acc_z) + ",";
+    line=line+ String(gyroData.gyro_0_ang_x) + ",";
+    line=line+ String(gyroData.gyro_0_ang_y) + ",";
+    line=line+ String(gyroData.gyro_0_ang_z) + ",";
+    line=line+ String(gyroData.gyro_0_gyr_x) + ",";
+    line=line+ String(gyroData.gyro_0_gyr_y) + ",";
+    line=line+ String(gyroData.gyro_0_gyr_z) + ",";
+    line=line+ String(gyroData.gyro_0_mag_x) + ",";
+    line=line+ String(gyroData.gyro_0_mag_y) + ",";
+    line=line+ String(gyroData.gyro_0_mag_z) + ",";
+    printLogLine(fs, line);
+
+    return true;
+}
+
+void printLine(File f, String line) {
+    line = line+"\n";
+    // Serial.print(line);  // uncomment to debug
+    if (!isAvailableBytes(strlen(line.c_str()))) {Serial.println("No more diskspace available!"); return;}
+    f.print(line);
+}
+
+char *endptr;
+
+bool saveMappingFile(FS &fs, const char *filepath) {
+    Serial.println("$MAPPINGSAVING");
+    File f = fs.open(filepath, "w", true);
+    if (!f) return false;
+    if (fs.exists(filepath)) {
+        for (int i_tag=0; i_tag<MAX_MAPPING_TAGS; i_tag++) {
+            String line="";
+            if      (i_tag==0) {for (int i_map=0; i_map<MAX_MAP_SLOTS; i_map++){line = String(satioFileData.mapping_tags[i_tag]) + String("," + String(i_map) + "," + String(mappingData.map_mode[0][i_map])).c_str(); printLine(f, line);}}
+            else if (i_tag==1) {for (int i_map=0; i_map<MAX_MAP_SLOTS; i_map++) {line = String(satioFileData.mapping_tags[i_tag]) + String("," + String(i_map) + "," + String(mappingData.index_mapped_value[0][i_map])).c_str(); printLine(f, line);}}
+            else if (i_tag==2) {for (int i_map=0; i_map<MAX_MAP_SLOTS; i_map++) {line = String(satioFileData.mapping_tags[i_tag]) + String("," + String(i_map) + "," + String(mappingData.mapping_config[0][i_map][0])).c_str(); printLine(f, line);}}
+            else if (i_tag==3) {for (int i_map=0; i_map<MAX_MAP_SLOTS; i_map++) {line = String(satioFileData.mapping_tags[i_tag]) + String("," + String(i_map) + "," + String(mappingData.mapping_config[0][i_map][1])).c_str(); printLine(f, line);}}
+            else if (i_tag==4) {for (int i_map=0; i_map<MAX_MAP_SLOTS; i_map++) {line = String(satioFileData.mapping_tags[i_tag]) + String("," + String(i_map) + "," + String(mappingData.mapping_config[0][i_map][2])).c_str(); printLine(f, line);}}
+            else if (i_tag==5) {for (int i_map=0; i_map<MAX_MAP_SLOTS; i_map++) {line = String(satioFileData.mapping_tags[i_tag]) + String("," + String(i_map) + "," + String(mappingData.mapping_config[0][i_map][3])).c_str(); printLine(f, line);}}
+            else if (i_tag==6) {for (int i_map=0; i_map<MAX_MAP_SLOTS; i_map++) {line = String(satioFileData.mapping_tags[i_tag]) + String("," + String(i_map) + "," + String(mappingData.mapping_config[0][i_map][4])).c_str(); printLine(f, line);}}
+            else if (i_tag==7) {for (int i_map=0; i_map<MAX_MAP_SLOTS; i_map++) {line = String(satioFileData.mapping_tags[i_tag]) + String("," + String(i_map) + "," + String(mappingData.mapping_config[0][i_map][5])).c_str(); printLine(f, line);}}
+        }
+    }
+    else {Serial.println("$MAPPINGSAVEFAILED"); return false;}
+    f.close();
+    Serial.println("$MAPPINGSAVED");  // currently no checks
+    return true;
+}
+
+bool loadMappingFile(FS &fs, const char *filepath) {
+    Serial.println("$MAPPINGLOADING");
+    if (fs.exists(filepath)) {
+        File f = fs.open(filepath, "r", false);
+        if (!f) return false;
+        override_all_computer_assists();
+        set_all_mapping_default(); // avoid mixing current values with loaded values
+        char lineBuffer[1024];
+        int currentTag = 0;
+        while (f.available()) {
+            int len = f.readBytesUntil('\n', lineBuffer, sizeof(lineBuffer) - 1);
+            if (len <= 0) break;
+            lineBuffer[len] = '\0'; // null-terminate
+            if (strlen(lineBuffer) == 0) continue;
+            // Serial.println("Processing Tag Token Number: " + String(currentTag) + " (data: " + String(lineBuffer) + ")"); // uncomment to debug
+            char *commaToken = strtok(lineBuffer, ",");
+            int tokenCount = 0;
+            int tag_index;
+            for (int i_find_tag=0; i_find_tag<MAX_MAPPING_TAGS; i_find_tag++) {if (strcmp(satioFileData.mapping_tags[i_find_tag], commaToken)==0) {tag_index=i_find_tag; break;}}
+            // Serial.println("Tag Found: " + String(satioFileData.mapping_tags[tag_index]));
+            String data_0; String data_1; String data_2;
+            commaToken = strtok(NULL, ","); // remove tag
+            while (commaToken != NULL) {if (tokenCount==0) {data_0=commaToken;} else if (tokenCount==1) {data_1=commaToken;} else if (tokenCount==2) {data_2=commaToken;} commaToken = strtok(NULL, ","); tokenCount++;}
+            if      (tag_index==0) {if (str_is_int8(data_0.c_str()) && str_is_int8(data_1.c_str())) {mappingData.map_mode[0][atoi(data_0.c_str())]=atoi(data_1.c_str());}}
+            else if (tag_index==1) {if (str_is_int8(data_0.c_str()) && str_is_int8(data_1.c_str())) {mappingData.index_mapped_value[0][atoi(data_0.c_str())]=atoi(data_1.c_str());}}
+            else if (tag_index==2) {if (str_is_int8(data_0.c_str()) && str_is_long(data_1.c_str())) {mappingData.mapping_config[0][atoi(data_0.c_str())][0]=strtol(data_1.c_str(), &endptr, 10);}}
+            else if (tag_index==3) {if (str_is_int8(data_0.c_str()) && str_is_long(data_1.c_str())) {mappingData.mapping_config[0][atoi(data_0.c_str())][1]=strtol(data_1.c_str(), &endptr, 10);}}
+            else if (tag_index==4) {if (str_is_int8(data_0.c_str()) && str_is_long(data_1.c_str())) {mappingData.mapping_config[0][atoi(data_0.c_str())][2]=strtol(data_1.c_str(), &endptr, 10);}}
+            else if (tag_index==5) {if (str_is_int8(data_0.c_str()) && str_is_long(data_1.c_str())) {mappingData.mapping_config[0][atoi(data_0.c_str())][3]=strtol(data_1.c_str(), &endptr, 10);}}
+            else if (tag_index==6) {if (str_is_int8(data_0.c_str()) && str_is_long(data_1.c_str())) {mappingData.mapping_config[0][atoi(data_0.c_str())][4]=strtol(data_1.c_str(), &endptr, 10);}}
+            else if (tag_index==7) {if (str_is_int8(data_0.c_str()) && str_is_long(data_1.c_str())) {mappingData.mapping_config[0][atoi(data_0.c_str())][5]=strtol(data_1.c_str(), &endptr, 10);}}
+            currentTag++;
+        }
+        f.close();
+        if (currentTag == 0) {Serial.println("$MAPPINGLOADFAILED"); return false;}
+        Serial.println("$MAPPINGLOADED");  // currently no checks
+        return true;
+    }
+    else {Serial.println("$MAPPINGLOADFAILED"); return false;}
+}
+
+bool deleteMappingFile(FS &fs, const char *filepath) {
+    if (fs.exists(filepath)) {if (fs.remove(filepath)) {Serial.println("$MAPPINGDELETED"); return true;}}
+    Serial.println("$MAPPINGDELETEFAILED");
+    return false;
+}
+
+// todo: mapping data will saved with matrix data
+bool saveMatrixFile(FS &fs, const char *filepath) {    
+    Serial.println("$MATRIXSAVING");
+    File f = fs.open(filepath, "w", true);
+    if (!f) return false;
+    if (fs.exists(filepath)) {
+        for (int i_tag=0; i_tag<MAX_MATRIX_TAGS; i_tag++) {
+            String line="";
+
+            if  (i_tag==0) {for (int i_switch=0; i_switch<MAX_MATRIX_SWITCHES; i_switch++){line = String(satioFileData.matrix_tags[i_tag]) + String("," + String(i_switch) + "," + String(matrixData.matrix_port_map[0][i_switch])).c_str(); printLine(f, line);}}
+
+            else if  (i_tag==1) {for (int i_switch=0; i_switch<MAX_MATRIX_SWITCHES; i_switch++) {for (int i_func=0; i_func<MAX_MATRIX_SWITCH_FUNCTIONS; i_func++) {
+                line = String(satioFileData.matrix_tags[i_tag]) + String("," + String(i_switch) + "," + String(i_func) + "," + String(matrixData.matrix_function[0][i_switch][i_func])).c_str(); printLine(f, line);}}}
+            else if  (i_tag==2) {for (int i_switch=0; i_switch<MAX_MATRIX_SWITCHES; i_switch++) {for (int i_func=0; i_func<MAX_MATRIX_SWITCH_FUNCTIONS; i_func++) {
+                line = String(satioFileData.matrix_tags[i_tag]) + String("," + String(i_switch) + "," + String(i_func) + "," + String(matrixData.matrix_function_xyz[0][i_switch][i_func][INDEX_MATRIX_FUNTION_X], 10)).c_str(); printLine(f, line);}}}
+            else if  (i_tag==3) {for (int i_switch=0; i_switch<MAX_MATRIX_SWITCHES; i_switch++) {for (int i_func=0; i_func<MAX_MATRIX_SWITCH_FUNCTIONS; i_func++) {
+                line = String(satioFileData.matrix_tags[i_tag]) + String("," + String(i_switch) + "," + String(i_func) + "," + String(matrixData.matrix_function_xyz[0][i_switch][i_func][INDEX_MATRIX_FUNTION_Y], 10)).c_str(); printLine(f, line);}}}
+            else if  (i_tag==4) {for (int i_switch=0; i_switch<MAX_MATRIX_SWITCHES; i_switch++) {for (int i_func=0; i_func<MAX_MATRIX_SWITCH_FUNCTIONS; i_func++) {
+                line = String(satioFileData.matrix_tags[i_tag]) + String("," + String(i_switch) + "," + String(i_func) + "," + String(matrixData.matrix_function_xyz[0][i_switch][i_func][INDEX_MATRIX_FUNTION_Z], 10)).c_str(); printLine(f, line);}}}
+            else if  (i_tag==5) {for (int i_switch=0; i_switch<MAX_MATRIX_SWITCHES; i_switch++) {for (int i_func=0; i_func<MAX_MATRIX_SWITCH_FUNCTIONS; i_func++) {
+                line = String(satioFileData.matrix_tags[i_tag]) + String("," + String(i_switch) + "," + String(i_func) + "," + String(matrixData.matrix_switch_operator_index[0][i_switch][i_func])).c_str(); printLine(f, line);}}}
+            else if  (i_tag==6) {for (int i_switch=0; i_switch<MAX_MATRIX_SWITCHES; i_switch++) {for (int i_func=0; i_func<MAX_MATRIX_SWITCH_FUNCTIONS; i_func++) {
+                line = String(satioFileData.matrix_tags[i_tag]) + String("," + String(i_switch) + "," + String(i_func) + "," + String(matrixData.matrix_switch_inverted_logic[0][i_switch][i_func])).c_str(); printLine(f, line);}}}
+
+            else if  (i_tag==7) {for (int i_switch=0; i_switch<MAX_MATRIX_SWITCHES; i_switch++) {line = String(satioFileData.matrix_tags[i_tag]) + String("," + String(i_switch) + "," + String(matrixData.output_mode[0][i_switch])).c_str(); printLine(f, line);}}
+            else if  (i_tag==8) {for (int i_switch=0; i_switch<MAX_MATRIX_SWITCHES; i_switch++) {line = String(satioFileData.matrix_tags[i_tag]) + String("," + String(i_switch) + "," + String(matrixData.output_pwm[0][i_switch][0])).c_str(); printLine(f, line);}}
+            else if  (i_tag==9) {for (int i_switch=0; i_switch<MAX_MATRIX_SWITCHES; i_switch++) {line = String(satioFileData.matrix_tags[i_tag]) + String("," + String(i_switch) + "," + String(matrixData.output_pwm[0][i_switch][1])).c_str(); printLine(f, line);}}
+            else if  (i_tag==10) {for (int i_switch=0; i_switch<MAX_MATRIX_SWITCHES; i_switch++) {line = String(satioFileData.matrix_tags[i_tag]) + String("," + String(i_switch) + "," + String(matrixData.flux_value[0][i_switch])).c_str(); printLine(f, line);}}
+            else if  (i_tag==11) {for (int i_switch=0; i_switch<MAX_MATRIX_SWITCHES; i_switch++) {line = String(satioFileData.matrix_tags[i_tag]) + String("," + String(i_switch) + "," + String(matrixData.computer_assist[0][i_switch])).c_str(); printLine(f, line);}}
+        }
+    }
+    else {Serial.println("$MATRIXSAVEFAILED"); return false;}
+    f.close();
+    Serial.println("$MATRIXSAVED");  // currently no checks
+    return true;
+}
+
+bool loadMatrixFile(FS &fs, const char *filepath) {
+    Serial.println("$MATRIXLOADING");
+    if (fs.exists(filepath)) {
+        File f = fs.open(filepath, "r", false);
+        if (!f) return false;
+        override_all_computer_assists();
+        set_all_matrix_default(); // avoid mixing current values with loaded values
+        char lineBuffer[1024];
+        int currentTag = 0;
+        while (f.available()) {
+            int len = f.readBytesUntil('\n', lineBuffer, sizeof(lineBuffer) - 1);
+            if (len <= 0) break;
+            lineBuffer[len] = '\0'; // null-terminate
+            if (strlen(lineBuffer) == 0) continue;
+            // Serial.println("Processing Tag Token Number: " + String(currentTag) + " (data: " + String(lineBuffer) + ")"); // uncomment to debug
+            char *commaToken = strtok(lineBuffer, ",");
+            int tokenCount = 0;
+            int tag_index;
+            for (int i_find_tag=0; i_find_tag<MAX_MATRIX_TAGS; i_find_tag++) {if (strcmp(satioFileData.matrix_tags[i_find_tag], commaToken)==0) {tag_index=i_find_tag; break;}}
+            // Serial.println("Tag Found: " + String(satioFileData.matrix_tags[tag_index]));
+            String data_0; String data_1; String data_2;
+            commaToken = strtok(NULL, ","); // remove tag
+            while (commaToken != NULL) {if (tokenCount==0) {data_0=commaToken;} else if (tokenCount==1) {data_1=commaToken;} else if (tokenCount==2) {data_2=commaToken;} commaToken = strtok(NULL, ","); tokenCount++;}
+            if      (tag_index==0) {if (str_is_int8(data_0.c_str()) && str_is_int8(data_1.c_str())) {matrixData.matrix_port_map[0][atoi(data_0.c_str())]=atoi(data_1.c_str());} matrixData.matrix_switch_write_required[0][atoi(data_0.c_str())]=true;}
+            else if (tag_index==1) {if (str_is_int8(data_0.c_str()) && str_is_int8(data_1.c_str()) && str_is_int8(data_2.c_str())) {matrixData.matrix_function[0][atoi(data_0.c_str())][atoi(data_1.c_str())]=atoi(data_2.c_str());} matrixData.matrix_switch_write_required[0][atoi(data_0.c_str())]=true;}
+            else if (tag_index==2) {if (str_is_int8(data_0.c_str()) && str_is_int8(data_1.c_str()) && str_is_double(data_2.c_str())) {matrixData.matrix_function_xyz[0][atoi(data_0.c_str())][atoi(data_1.c_str())][INDEX_MATRIX_FUNTION_X]=strtod(data_2.c_str(), &endptr);} matrixData.matrix_switch_write_required[0][atoi(data_0.c_str())]=true;}
+            else if (tag_index==3) {if (str_is_int8(data_0.c_str()) && str_is_int8(data_1.c_str()) && str_is_double(data_2.c_str())) {matrixData.matrix_function_xyz[0][atoi(data_0.c_str())][atoi(data_1.c_str())][INDEX_MATRIX_FUNTION_Y]=strtod(data_2.c_str(), &endptr);} matrixData.matrix_switch_write_required[0][atoi(data_0.c_str())]=true;}
+            else if (tag_index==4) {if (str_is_int8(data_0.c_str()) && str_is_int8(data_1.c_str()) && str_is_double(data_2.c_str())) {matrixData.matrix_function_xyz[0][atoi(data_0.c_str())][atoi(data_1.c_str())][INDEX_MATRIX_FUNTION_Z]=strtod(data_2.c_str(), &endptr);} matrixData.matrix_switch_write_required[0][atoi(data_0.c_str())]=true;}
+            else if (tag_index==5) {if (str_is_int8(data_0.c_str()) && str_is_int8(data_1.c_str()) && str_is_int8(data_2.c_str())) {matrixData.matrix_switch_operator_index[0][atoi(data_0.c_str())][atoi(data_1.c_str())]=atoi(data_2.c_str());} matrixData.matrix_switch_write_required[0][atoi(data_0.c_str())]=true;}
+            else if (tag_index==6) {if (str_is_int8(data_0.c_str()) && str_is_int8(data_1.c_str()) && str_is_int8(data_2.c_str())) {matrixData.matrix_switch_inverted_logic[0][atoi(data_0.c_str())][atoi(data_1.c_str())]=atoi(data_2.c_str());} matrixData.matrix_switch_write_required[0][atoi(data_0.c_str())]=true;}
+            else if (tag_index==7) {if (str_is_int8(data_0.c_str()) && str_is_int8(data_1.c_str())) {matrixData.output_mode[0][atoi(data_0.c_str())]=atoi(data_1.c_str());} matrixData.matrix_switch_write_required[0][atoi(data_0.c_str())]=true;}
+            else if (tag_index==8) {if (str_is_int8(data_0.c_str()) && str_is_uint32(data_1.c_str())) {matrixData.output_pwm[0][atoi(data_0.c_str())][0]=strtoul(data_1.c_str(), &endptr, 10);} matrixData.matrix_switch_write_required[0][atoi(data_0.c_str())]=true;}
+            else if (tag_index==9) {if (str_is_int8(data_0.c_str()) && str_is_uint32(data_1.c_str())) {matrixData.output_pwm[0][atoi(data_0.c_str())][1]=strtoul(data_1.c_str(), &endptr, 10);} matrixData.matrix_switch_write_required[0][atoi(data_0.c_str())]=true;}
+            else if (tag_index==10) {if (str_is_int8(data_0.c_str()) && str_is_long(data_1.c_str())) {matrixData.flux_value[0][atoi(data_0.c_str())]=strtol(data_1.c_str(), &endptr, 10);} matrixData.matrix_switch_write_required[0][atoi(data_0.c_str())]=true;}
+            else if (tag_index==11) {if (str_is_int8(data_0.c_str()) && str_is_bool(data_1.c_str())) {matrixData.computer_assist[0][atoi(data_0.c_str())]=atoi(data_1.c_str());} matrixData.matrix_switch_write_required[0][atoi(data_0.c_str())]=true;}
+            currentTag++;
+        }
+        f.close();
+        if (currentTag == 0) {Serial.println("$MATRIXLOADFAILED"); return false;}
+        Serial.println("$MATRIXLOADED");  // currently no checks
+        return true;
+    }
+    else {Serial.println("$MATRIXLOADFAILED"); return false;}
+}
+
+bool deleteMatrixFile(FS &fs, const char *filepath) {
+    if (fs.exists(filepath)) {if (fs.remove(filepath)) {Serial.println("$MATRIXDELETED"); return true;}}
+    Serial.println("$MATRIXDELETEFAILED");
+    return false;
+}
+
+bool saveSystemFile(FS &fs, const char *filepath) {
+    Serial.println("$SYSTEMSAVING");
+    File f = fs.open(filepath, "w", true);
+    if (!f) return false;
+    if (fs.exists(filepath)) {
+        for (int i_tag=0; i_tag<MAX_SYSTEM_TAGS; i_tag++) {
+            String line="";
+            if       (i_tag==0) {line = String(satioFileData.system_tags[i_tag]) + String("," + String(systemData.serial_command)); printLine(f, line);}
+            else if  (i_tag==1) {line = String(satioFileData.system_tags[i_tag]) + String("," + String(systemData.output_satio_all)); printLine(f, line);}
+            else if  (i_tag==2) {line = String(satioFileData.system_tags[i_tag]) + String("," + String(systemData.output_satio_enabled)); printLine(f, line);}
+            else if  (i_tag==3) {line = String(satioFileData.system_tags[i_tag]) + String("," + String(systemData.output_ins_enabled)); printLine(f, line);}
+            else if  (i_tag==4) {line = String(satioFileData.system_tags[i_tag]) + String("," + String(systemData.output_gngga_enabled)); printLine(f, line);}
+            else if  (i_tag==5) {line = String(satioFileData.system_tags[i_tag]) + String("," + String(systemData.output_gnrmc_enabled)); printLine(f, line);}
+            else if  (i_tag==6) {line = String(satioFileData.system_tags[i_tag]) + String("," + String(systemData.output_gpatt_enabled)); printLine(f, line);}
+            else if  (i_tag==7) {line = String(satioFileData.system_tags[i_tag]) + String("," + String(systemData.output_matrix_enabled)); printLine(f, line);}
+            else if  (i_tag==8) {line = String(satioFileData.system_tags[i_tag]) + String("," + String(systemData.output_admplex0_enabled)); printLine(f, line);}
+            else if  (i_tag==9) {line = String(satioFileData.system_tags[i_tag]) + String("," + String(systemData.output_gyro_0_enabled)); printLine(f, line);}
+            else if  (i_tag==10) {line = String(satioFileData.system_tags[i_tag]) + String("," + String(systemData.output_sun_enabled)); printLine(f, line);}
+            else if  (i_tag==11) {line = String(satioFileData.system_tags[i_tag]) + String("," + String(systemData.output_moon_enabled)); printLine(f, line);}
+            else if  (i_tag==12) {line = String(satioFileData.system_tags[i_tag]) + String("," + String(systemData.output_mercury_enabled)); printLine(f, line);}
+            else if  (i_tag==13) {line = String(satioFileData.system_tags[i_tag]) + String("," + String(systemData.output_venus_enabled)); printLine(f, line);}
+            else if  (i_tag==14) {line = String(satioFileData.system_tags[i_tag]) + String("," + String(systemData.output_mars_enabled)); printLine(f, line);}
+            else if  (i_tag==15) {line = String(satioFileData.system_tags[i_tag]) + String("," + String(systemData.output_jupiter_enabled)); printLine(f, line);}
+            else if  (i_tag==16) {line = String(satioFileData.system_tags[i_tag]) + String("," + String(systemData.output_saturn_enabled)); printLine(f, line);}
+            else if  (i_tag==17) {line = String(satioFileData.system_tags[i_tag]) + String("," + String(systemData.output_uranus_enabled)); printLine(f, line);}
+            else if  (i_tag==18) {line = String(satioFileData.system_tags[i_tag]) + String("," + String(systemData.output_neptune_enabled)); printLine(f, line);}
+            else if  (i_tag==19) {line = String(satioFileData.system_tags[i_tag]) + String("," + String(systemData.output_meteors_enabled)); printLine(f, line);}
+            else if  (i_tag==20) {line = String(satioFileData.system_tags[i_tag]) + String("," + String(satioData.coordinate_conversion_mode)); printLine(f, line);}
+            else if  (i_tag==21) {line = String(satioFileData.system_tags[i_tag]) + String("," + String(satioData.speed_conversion_mode)); printLine(f, line);}
+            else if  (i_tag==22) {line = String(satioFileData.system_tags[i_tag]) + String("," + String(satioData.altitude_conversion_mode)); printLine(f, line);}
+            else if  (i_tag==23) {line = String(satioFileData.system_tags[i_tag]) + String("," + String(satioData.utc_second_offset)); printLine(f, line);}
+            else if  (i_tag==24) {line = String(satioFileData.system_tags[i_tag]) + String("," + String(satioData.utc_auto_offset_flag)); printLine(f, line);}
+            else if  (i_tag==25) {line = String(satioFileData.system_tags[i_tag]) + String("," + String(satioData.set_time_automatically)); printLine(f, line);}
+            else if  (i_tag==26) {line = String(satioFileData.system_tags[i_tag]) + String("," + String(insData.INS_REQ_GPS_PRECISION)); printLine(f, line);}
+            else if  (i_tag==27) {line = String(satioFileData.system_tags[i_tag]) + String("," + String(insData.INS_REQ_MIN_SPEED)); printLine(f, line);}
+            else if  (i_tag==28) {line = String(satioFileData.system_tags[i_tag]) + String("," + String(insData.INS_REQ_HEADING_RANGE_DIFF)); printLine(f, line);}
+            else if  (i_tag==29) {line = String(satioFileData.system_tags[i_tag]) + String("," + String(insData.INS_MODE)); printLine(f, line);}
+            else if  (i_tag==30) {line = String(satioFileData.system_tags[i_tag]) + String("," + String(insData.INS_USE_GYRO_HEADING)); printLine(f, line);}
+            else if  (i_tag==31) {line = String(satioFileData.system_tags[i_tag]) + String("," + String(satioFileData.current_matrix_filepath)); printLine(f, line);}
+            else if  (i_tag==32) {line = String(satioFileData.system_tags[i_tag]) + String("," + String(matrixData.load_matrix_on_startup)); printLine(f, line);}
+            else if  (i_tag==33) {line = String(satioFileData.system_tags[i_tag]) + String("," + String(satioData.speed_unit_mode)); printLine(f, line);}
+            else if  (i_tag==34) {line = String(satioFileData.system_tags[i_tag]) + String("," + String(satioData.altitude_unit_mode)); printLine(f, line);}
+            else if  (i_tag==35) {line = String(satioFileData.system_tags[i_tag]) + String("," + String(satioData.ground_heading_mode)); printLine(f, line);}
+            else if  (i_tag==36) {line = String(satioFileData.system_tags[i_tag]) + String("," + String(satioData.altitude)); printLine(f, line);}
+            else if  (i_tag==37) {line = String(satioFileData.system_tags[i_tag]) + String("," + String(satioData.degrees_latitude)); printLine(f, line);}
+            else if  (i_tag==38) {line = String(satioFileData.system_tags[i_tag]) + String("," + String(satioData.degrees_longitude)); printLine(f, line);}
+            else if  (i_tag==39) {line = String(satioFileData.system_tags[i_tag]) + String("," + String(satioData.speed)); printLine(f, line);}
+            else if  (i_tag==40) {line = String(satioFileData.system_tags[i_tag]) + String("," + String(satioData.ground_heading)); printLine(f, line);}
+            else if  (i_tag==41) {line = String(satioFileData.system_tags[i_tag]) + String("," + String(DELAY_TASK_SERIAL_INFOCMD)); printLine(f, line);}
+            else if  (i_tag==42) {line = String(satioFileData.system_tags[i_tag]) + String("," + String(TICK_DELAY_TASK_SERIAL_INFOCMD)); printLine(f, line);}
+            else if  (i_tag==43) {line = String(satioFileData.system_tags[i_tag]) + String("," + String(DELAY_TASK_MULTIPLEXERS)); printLine(f, line);}
+            else if  (i_tag==44) {line = String(satioFileData.system_tags[i_tag]) + String("," + String(TICK_DELAY_TASK_MULTIPLEXERS)); printLine(f, line);}
+            else if  (i_tag==45) {line = String(satioFileData.system_tags[i_tag]) + String("," + String(DELAY_TASK_GYRO0)); printLine(f, line);}
+            else if  (i_tag==46) {line = String(satioFileData.system_tags[i_tag]) + String("," + String(TICK_DELAY_TASK_GYRO0)); printLine(f, line);}
+            else if  (i_tag==47) {line = String(satioFileData.system_tags[i_tag]) + String("," + String(DELAY_TASK_UNIVERSE)); printLine(f, line);}
+            else if  (i_tag==48) {line = String(satioFileData.system_tags[i_tag]) + String("," + String(TICK_DELAY_TASK_UNIVERSE)); printLine(f, line);}
+            else if  (i_tag==49) {line = String(satioFileData.system_tags[i_tag]) + String("," + String(DELAY_TASK_GPS)); printLine(f, line);}
+            else if  (i_tag==50) {line = String(satioFileData.system_tags[i_tag]) + String("," + String(TICK_DELAY_TASK_GPS)); printLine(f, line);}
+            else if  (i_tag==51) {line = String(satioFileData.system_tags[i_tag]) + String("," + String(DELAY_TASK_SWITCHES)); printLine(f, line);}
+            else if  (i_tag==52) {line = String(satioFileData.system_tags[i_tag]) + String("," + String(TICK_DELAY_TASK_SWITCHES)); printLine(f, line);}
+            else if  (i_tag==53) {line = String(satioFileData.system_tags[i_tag]) + String("," + String(DELAY_TASK_PORTCONTROLLER_INPUT)); printLine(f, line);}
+            else if  (i_tag==54) {line = String(satioFileData.system_tags[i_tag]) + String("," + String(TICK_DELAY_TASK_PORTCONTROLLER_INPUT)); printLine(f, line);}
+            else if  (i_tag==55) {line = String(satioFileData.system_tags[i_tag]) + String("," + String(DELAY_TASK_STORAGE)); printLine(f, line);}
+            else if  (i_tag==56) {line = String(satioFileData.system_tags[i_tag]) + String("," + String(TICK_DELAY_TASK_STORAGE)); printLine(f, line);}
+            else if  (i_tag==57) {line = String(satioFileData.system_tags[i_tag]) + String("," + String(DELAY_TASK_LOGGING)); printLine(f, line);}
+            else if  (i_tag==58) {line = String(satioFileData.system_tags[i_tag]) + String("," + String(TICK_DELAY_TASK_LOGGING)); printLine(f, line);}
+            else if  (i_tag==59) {line = String(satioFileData.system_tags[i_tag]) + String("," + String(systemData.logging_enabled)); printLine(f, line);}
+        }
+    }
+    else {Serial.println("$SYSTEMSAVEFAILED"); return false;}
+    f.close();
+    Serial.println("$SYSTEMSAVED");  // currently no checks
+    return true;
+}
+
+bool loadSystemFile(FS &fs, const char *filepath) {
+    Serial.println("$SYSTEMLOADING");
+    if (fs.exists(filepath)) {
+        File f = fs.open(filepath, "r", false);
+        if (!f) return false;
+        char lineBuffer[1024];
+        int currentTag = 0;
+        while (f.available()) {
+            int len = f.readBytesUntil('\n', lineBuffer, sizeof(lineBuffer) - 1);
+            if (len <= 0) break;
+            lineBuffer[len] = '\0'; // null-terminate
+            if (strlen(lineBuffer) == 0) continue;
+            // Serial.println("Processing Tag Token Number: " + String(currentTag) + " (data: " + String(lineBuffer) + ")"); // uncomment to debug
+            char *commaToken = strtok(lineBuffer, ",");
+            int tokenCount = 0;
+            int tag_index;
+            for (int i_find_tag=0; i_find_tag<MAX_SYSTEM_TAGS; i_find_tag++) {if (strcmp(satioFileData.system_tags[i_find_tag], commaToken)==0) {tag_index=i_find_tag; break;}}
+            // Serial.println("Tag Found: " + String(satioFileData.system_tags[tag_index]));
+            String data_0; String data_1; String data_2;
+            commaToken = strtok(NULL, ","); // remove tag
+            while (commaToken != NULL) {if (tokenCount==0) {data_0=commaToken;} else if (tokenCount==1) {data_1=commaToken;} else if (tokenCount==2) {data_2=commaToken;} commaToken = strtok(NULL, ","); tokenCount++;}
+            if      (tag_index==0) {if (str_is_bool(data_0.c_str())) {systemData.serial_command=atoi(data_0.c_str());}}
+            else if (tag_index==1) {if (str_is_bool(data_0.c_str())) {systemData.output_satio_all=atoi(data_0.c_str());}}
+            else if (tag_index==2) {if (str_is_bool(data_0.c_str())) {systemData.output_satio_enabled=atoi(data_0.c_str());}}
+            else if (tag_index==3) {if (str_is_bool(data_0.c_str())) {systemData.output_ins_enabled=atoi(data_0.c_str());}}
+            else if (tag_index==4) {if (str_is_bool(data_0.c_str())) {systemData.output_gngga_enabled=atoi(data_0.c_str());}}
+            else if (tag_index==5) {if (str_is_bool(data_0.c_str())) {systemData.output_gnrmc_enabled=atoi(data_0.c_str());}}
+            else if (tag_index==6) {if (str_is_bool(data_0.c_str())) {systemData.output_gpatt_enabled=atoi(data_0.c_str());}}
+            else if (tag_index==7) {if (str_is_bool(data_0.c_str())) {systemData.output_matrix_enabled=atoi(data_0.c_str());}}
+            else if (tag_index==8) {if (str_is_bool(data_0.c_str())) {systemData.output_admplex0_enabled=atoi(data_0.c_str());}}
+            else if (tag_index==9) {if (str_is_bool(data_0.c_str())) {systemData.output_gyro_0_enabled=atoi(data_0.c_str());}}
+            else if (tag_index==10) {if (str_is_bool(data_0.c_str())) {systemData.output_sun_enabled=atoi(data_0.c_str());}}
+            else if (tag_index==11) {if (str_is_bool(data_0.c_str())) {systemData.output_moon_enabled=atoi(data_0.c_str());}}
+            else if (tag_index==12) {if (str_is_bool(data_0.c_str())) {systemData.output_mercury_enabled=atoi(data_0.c_str());}}
+            else if (tag_index==13) {if (str_is_bool(data_0.c_str())) {systemData.output_venus_enabled=atoi(data_0.c_str());}}
+            else if (tag_index==14) {if (str_is_bool(data_0.c_str())) {systemData.output_mars_enabled=atoi(data_0.c_str());}}
+            else if (tag_index==15) {if (str_is_bool(data_0.c_str())) {systemData.output_jupiter_enabled=atoi(data_0.c_str());}}
+            else if (tag_index==16) {if (str_is_bool(data_0.c_str())) {systemData.output_saturn_enabled=atoi(data_0.c_str());}}
+            else if (tag_index==17) {if (str_is_bool(data_0.c_str())) {systemData.output_uranus_enabled=atoi(data_0.c_str());}}
+            else if (tag_index==18) {if (str_is_bool(data_0.c_str())) {systemData.output_neptune_enabled=atoi(data_0.c_str());}}
+            else if (tag_index==19) {if (str_is_bool(data_0.c_str())) {systemData.output_meteors_enabled=atoi(data_0.c_str());}}
+            else if (tag_index==20) {if (str_is_uint8(data_0.c_str())) {if (atoi(data_0.c_str())<MAX_COORDINATE_CONVERSION_CONVERSION_MODES) {satioData.coordinate_conversion_mode=atoi(data_0.c_str());}}}
+            else if (tag_index==21) {if (str_is_uint8(data_0.c_str())) {if (atoi(data_0.c_str())<MAX_SPEED_CONVERSIO_MODES) {satioData.speed_conversion_mode=atoi(data_0.c_str());}}}
+            else if (tag_index==22) {if (str_is_uint8(data_0.c_str())) {if (atoi(data_0.c_str())<MAX_ALTITUDE_CONVERSION_MODES) {satioData.altitude_conversion_mode=atoi(data_0.c_str());}}}
+            else if (tag_index==23) {if (str_is_long(data_0.c_str())) {satioData.utc_second_offset=strtol(data_0.c_str(), &endptr, 10);}}
+            else if (tag_index==24) {if (str_is_bool(data_0.c_str())) {satioData.utc_auto_offset_flag=atoi(data_0.c_str());}}
+            else if (tag_index==25) {if (str_is_bool(data_0.c_str())) {satioData.set_time_automatically=atoi(data_0.c_str());}}
+            else if (tag_index==26) {if (str_is_double(data_0.c_str())) {insData.INS_REQ_GPS_PRECISION=strtod(data_0.c_str(), &endptr);}}
+            else if (tag_index==27) {if (str_is_double(data_0.c_str())) {insData.INS_REQ_MIN_SPEED=strtod(data_0.c_str(), &endptr);}}
+            else if (tag_index==28) {if (str_is_double(data_0.c_str())) {insData.INS_REQ_HEADING_RANGE_DIFF=strtod(data_0.c_str(), &endptr);}}
+            else if (tag_index==29) {if (str_is_double(data_0.c_str())) {insData.INS_MODE=strtod(data_0.c_str(), &endptr);}}
+            else if (tag_index==30) {if (str_is_double(data_0.c_str())) {insData.INS_USE_GYRO_HEADING=strtod(data_0.c_str(), &endptr);}}
+            else if (tag_index==31) {memset(satioFileData.current_matrix_filepath, 0, sizeof(satioFileData.current_matrix_filepath)); strcpy(satioFileData.current_matrix_filepath, data_0.c_str());}
+            else if (tag_index==32) {if (str_is_bool(data_0.c_str())) {matrixData.load_matrix_on_startup=atoi(data_0.c_str());}}
+            else if (tag_index==33) {if (str_is_uint8(data_0.c_str())) {if (atoi(data_0.c_str())<MAX_SPEED_UNIT_MODES) {satioData.speed_unit_mode=atoi(data_0.c_str());}}}
+            else if (tag_index==34) {if (str_is_uint8(data_0.c_str())) {if (atoi(data_0.c_str())<MAX_ALTITUDE_UNIT_MODES) {satioData.altitude_unit_mode=atoi(data_0.c_str());}}}
+            else if (tag_index==35) {if (str_is_uint8(data_0.c_str())) {if (atoi(data_0.c_str())<MAX_GROUND_HEADING_MODES) {satioData.ground_heading_mode=atoi(data_0.c_str());}}}
+            else if (tag_index==36) {if (str_is_double(data_0.c_str())) {satioData.altitude=strtod(data_0.c_str(), &endptr);}}
+            else if (tag_index==37) {if (str_is_double(data_0.c_str())) {satioData.degrees_latitude=strtod(data_0.c_str(), &endptr);}}
+            else if (tag_index==38) {if (str_is_double(data_0.c_str())) {satioData.degrees_longitude=strtod(data_0.c_str(), &endptr);}}
+            else if (tag_index==39) {if (str_is_double(data_0.c_str())) {satioData.speed=strtod(data_0.c_str(), &endptr);}}
+            else if (tag_index==40) {if (str_is_double(data_0.c_str())) {satioData.ground_heading=strtod(data_0.c_str(), &endptr);}}
+            else if (tag_index==41) {if (str_is_long(data_0.c_str())) {DELAY_TASK_SERIAL_INFOCMD=strtol(data_0.c_str(), &endptr, 10);}}
+            else if (tag_index==42) {if (str_is_bool(data_0.c_str())) {TICK_DELAY_TASK_SERIAL_INFOCMD=atoi(data_0.c_str());}}
+            else if (tag_index==43) {if (str_is_long(data_0.c_str())) {DELAY_TASK_MULTIPLEXERS=strtol(data_0.c_str(), &endptr, 10);}}
+            else if (tag_index==44) {if (str_is_bool(data_0.c_str())) {TICK_DELAY_TASK_MULTIPLEXERS=atoi(data_0.c_str());}}
+            else if (tag_index==45) {if (str_is_long(data_0.c_str())) {DELAY_TASK_GYRO0=strtol(data_0.c_str(), &endptr, 10);}}
+            else if (tag_index==46) {if (str_is_bool(data_0.c_str())) {TICK_DELAY_TASK_GYRO0=atoi(data_0.c_str());}}
+            else if (tag_index==47) {if (str_is_long(data_0.c_str())) {DELAY_TASK_UNIVERSE=strtol(data_0.c_str(), &endptr, 10);}}
+            else if (tag_index==48) {if (str_is_bool(data_0.c_str())) {TICK_DELAY_TASK_UNIVERSE=atoi(data_0.c_str());}}
+            else if (tag_index==49) {if (str_is_long(data_0.c_str())) {DELAY_TASK_GPS=strtol(data_0.c_str(), &endptr, 10);}}
+            else if (tag_index==50) {if (str_is_bool(data_0.c_str())) {TICK_DELAY_TASK_GPS=atoi(data_0.c_str());}}
+            else if (tag_index==51) {if (str_is_long(data_0.c_str())) {DELAY_TASK_SWITCHES=strtol(data_0.c_str(), &endptr, 10);}}
+            else if (tag_index==52) {if (str_is_bool(data_0.c_str())) {TICK_DELAY_TASK_SWITCHES=atoi(data_0.c_str());}}
+            else if (tag_index==53) {if (str_is_long(data_0.c_str())) {DELAY_TASK_PORTCONTROLLER_INPUT=strtol(data_0.c_str(), &endptr, 10);}}
+            else if (tag_index==54) {if (str_is_bool(data_0.c_str())) {TICK_DELAY_TASK_PORTCONTROLLER_INPUT=atoi(data_0.c_str());}}
+            else if (tag_index==55) {if (str_is_long(data_0.c_str())) {DELAY_TASK_STORAGE=strtol(data_0.c_str(), &endptr, 10);}}
+            else if (tag_index==56) {if (str_is_bool(data_0.c_str())) {TICK_DELAY_TASK_STORAGE=atoi(data_0.c_str());}}
+            else if (tag_index==57) {if (str_is_long(data_0.c_str())) {DELAY_TASK_LOGGING=strtol(data_0.c_str(), &endptr, 10);}}
+            else if (tag_index==58) {if (str_is_bool(data_0.c_str())) {TICK_DELAY_TASK_LOGGING=atoi(data_0.c_str());}}
+            else if (tag_index==59) {if (str_is_bool(data_0.c_str())) {systemData.logging_enabled=atoi(data_0.c_str());}}
+            currentTag++;
+        }
+        f.close();
+        if (currentTag == 0) {Serial.println("$SYSTEMLOADFAILED"); return false;}
+        Serial.println("$SYSTEMLOADED");  // currently no checks
+        return true;
+    }
+    else {Serial.println("$SYSTEMLOADFAILED"); return false;}
+}
+
+bool deleteSystemFile(FS &fs, const char *filepath) {
+    if (fs.exists(filepath)) {if (fs.remove(filepath)) {Serial.println("$SYSTEMDELETED"); return true;}}
+    Serial.println("$SYSTEMDELETEFAILED");
+    return false;
+}
