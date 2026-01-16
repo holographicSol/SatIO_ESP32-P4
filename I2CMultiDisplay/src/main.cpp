@@ -240,7 +240,7 @@ void requestEvent() {
   // --------------------------
   if (request_event_id==301) {
     memset(I2CLink.TMP_BUFFER, 0, sizeof(I2CLink.TMP_BUFFER));
-    strcpy(I2CLink.TMP_BUFFER, "$DATA,");
+    strcpy(I2CLink.TMP_BUFFER, "301,");
     strcat(I2CLink.TMP_BUFFER, String(brightness_stage).c_str());
     Serial.printf("[requestEvent] data: %s\n", I2CLink.TMP_BUFFER);
     memset(I2CLink.OUTPUT_BUFFER, 0, sizeof(I2CLink.OUTPUT_BUFFER));
@@ -267,7 +267,7 @@ void receiveEvent(int howMany) {
   int len = Wire1.readBytes((char *)I2CLink.INPUT_BUFFER, howMany);
   if (len < 1) return;
   I2CLink.INPUT_BUFFER[len] = '\0';
-  Serial.printf("[RX] %s (%d bytes)\n", I2CLink.INPUT_BUFFER, len);
+  // Serial.printf("[RX] %s (%d bytes)\n", I2CLink.INPUT_BUFFER, len);
   // -----------------------------------------------------
   // Received request event id
   // -----------------------------------------------------
