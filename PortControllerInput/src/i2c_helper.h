@@ -32,20 +32,17 @@
 // #define SLAVE_ADDR_BUS1 0 // uncomment to set address if required.
 // #define SLAVE_ADDR_BUS2 0 // uncomment to set address if required.
 
-#define IIC_BUS0_SDA 2 // uncomment to set pin if required.
-#define IIC_BUS0_SCL 3 // uncomment to set pin if required.
+// #define IIC_BUS0_SDA 2 // uncomment to set pin if required.
+// #define IIC_BUS0_SCL 3 // uncomment to set pin if required.
 
-#define IIC_BUS1_SDA 4 // uncomment to set pin if required.
-#define IIC_BUS1_SCL 5 // uncomment to set pin if required.
+// #define IIC_BUS1_SDA 4 // uncomment to set pin if required.
+// #define IIC_BUS1_SCL 5 // uncomment to set pin if required.
 
-#define IIC_BUS2_SDA 7 // uncomment to set pin if required.
-#define IIC_BUS2_SCL 8 // uncomment to set pin if required.
+// #define IIC_BUS2_SDA 7 // uncomment to set pin if required.
+// #define IIC_BUS2_SCL 8 // uncomment to set pin if required.
 
 #define I2C_MAX_TOKENS 32
 #define MAX_IIC_BUFFER_SIZE 32
-#define I2C_ADDR_CONTROL_PAD 8
-#define I2C_ADDR_OUTPUT_PORTCONTROLLER 9
-#define I2C_ADDR_INPUT_PORTCONTROLLER  10
 
 // extern TwoWire iic_0; // Uncomment to use global I2C bus 0 wire instance
 // extern TwoWire iic_1; // Uncomment to use global I2C bus 0 wire instance
@@ -92,10 +89,6 @@ extern IICLink I2CLinkBus2; // uncomment to use default data structure instance 
 /**
  * @brief Uncomment to use built-in request and receive event handlers. 
  */
-// extern volatile long request_event_id_bus_0;
-// extern volatile long request_event_id_bus_1;
-// extern volatile long request_event_id_bus_2;
-
 // void requestEventBus0Chars();
 // void receiveEventBus0Chars(size_t n_bytes_received);
 

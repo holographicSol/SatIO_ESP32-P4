@@ -141,19 +141,6 @@ volatile int current_input_value=0;
 volatile uint8_t current_pin=0;
 
 // ------------------------------------------------------------
-// I2C Data
-// ------------------------------------------------------------
-struct I2CLinkStruct {
-  volatile int i_token;
-  char         * token;
-  volatile byte OUTPUT_BUFFER[32];
-  char          INPUT_BUFFER[32];
-  char          TMP_BUFFER[32];
-};
-I2CLinkStruct I2CLink;
-
-
-// ------------------------------------------------------------
 // Clear Data
 // ------------------------------------------------------------
 void clearMatrixSwitch() {
@@ -171,11 +158,10 @@ void clearMatrixSwitch() {
 /** ----------------------------------------------------------------------------
  * @brief Request binary event handler for Bus 0
  */
-volatile long request_event_id_bus_0;
 
 void requestEventBus0Bin() {
-  // Serial.println("[requestEventBus0Bin] id: " + String(request_event_id_bus_0));
-  switch (request_event_id_bus_0) {
+  // Serial.println("[requestEventBus0Bin] id: " + String(I2CLinkBus0.REQUEST_ID));
+  switch (I2CLinkBus0.REQUEST_ID) {
     // send pin reading
     case 0x1E: {
         // Serial.println("[requestEventBus0Bin] preparing to send requested data: input value");
@@ -187,7 +173,7 @@ void requestEventBus0Bin() {
         break;
       }
     default: {
-        Serial.println("[requestEventBus0Bin] event id is not defined: " + String(request_event_id_bus_0));
+        Serial.println("[requestEventBus0Bin] event id is not defined: " + String(I2CLinkBus0.REQUEST_ID));
         while (Wire.available()) {Wire.read();} // drain
         break;
     }
@@ -277,7 +263,7 @@ void receiveEventBus0Bin(int n_bytes_received) {
     // Command 30
     case 0x1E: {
       current_pin = 0;
-      request_event_id_bus_0 = 0x1E;
+      I2CLinkBus0.REQUEST_ID = 0x1E;
       while (Wire.available()) {Wire.read();}
       break;
     }

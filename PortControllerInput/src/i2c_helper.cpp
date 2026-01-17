@@ -153,17 +153,15 @@ IICLink I2CLinkBus2;
  * 
  * @warning Customize to use locally (backup first) or copy into project!
  */
-// volatile long request_event_id_bus_0;
-
 // void requestEventBus0Bin() {
-//   Serial.println("[requestEventBus0Bin] id: " + String(request_event_id_bus_0));
-//   switch (request_event_id_bus_0) {
+//   Serial.println("[requestEventBus0Bin] id: " + String(I2CLinkBus0.REQUEST_ID));
+//   switch (I2CLinkBus0.REQUEST_ID) {
 //     case 0x00: {
 //         Serial.println("[requestEventBus0Bin] preparing to send requested data: " + String());
 //         break;
 //     }
 //     default: {
-//         Serial.println("[requestEventBus0Bin] event id is not defined: " + String(request_event_id_bus_0));
+//         Serial.println("[requestEventBus0Bin] event id is not defined: " + String(I2CLinkBus0.REQUEST_ID));
 //         break;
 //     }
 //   }
@@ -174,17 +172,15 @@ IICLink I2CLinkBus2;
  * 
  * @warning Customize to use locally (backup first) or copy into project!
  */
-// volatile long request_event_id_bus_1;
-
 // void requestEventBus1Bin() {
-//   Serial.println("[requestEventBus1Bin] id: " + String(request_event_id_bus_1));
-//   switch (request_event_id_bus_1) {
+//   Serial.println("[requestEventBus1Bin] id: " + String(I2CLinkBus1.REQUEST_ID));
+//   switch (I2CLinkBus1.REQUEST_ID) {
 //     case 0x00: {
 //         Serial.println("[requestEventBus1Bin] preparing to send requested data: " + String());
 //         break;
 //     }
 //     default: {
-//         Serial.println("[requestEventBus1Bin] event id is not defined: " + String(request_event_id_bus_1));
+//         Serial.println("[requestEventBus1Bin] event id is not defined: " + String(I2CLinkBus1.REQUEST_ID));
 //         break;
 //     }
 //   }
@@ -195,17 +191,15 @@ IICLink I2CLinkBus2;
  * 
  * @warning Customize to use locally (backup first) or copy into project!
  */
-// volatile long request_event_id_bus_2;
-
 // void requestEventBus2Bin() {
-//   Serial.println("[requestEventBus2Bin] id: " + String(request_event_id_bus_2));
-//   switch (request_event_id_bus_2) {
+//   Serial.println("[requestEventBus2Bin] id: " + String(I2CLinkBus2.REQUEST_ID));
+//   switch (I2CLinkBus2.REQUEST_ID) {
 //     case 0x00: {
 //         Serial.println("[requestEventBus2Bin] preparing to send requested data: " + String());
 //         break;
 //     }
 //     default: {
-//         Serial.println("[requestEventBus2Bin] event id is not defined: " + String(request_event_id_bus_2));
+//         Serial.println("[requestEventBus2Bin] event id is not defined: " + String(I2CLinkBus2.REQUEST_ID));
 //         break;
 //     }
 //   }
