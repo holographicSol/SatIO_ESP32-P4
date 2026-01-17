@@ -1676,41 +1676,22 @@ void writeOutputPortControllerM1(TwoWire &wire, int address) {
     if (matrixData.matrix_switch_write_required[0][Mi]) {
       // Initialize packet pointer to OUTPUT_BUFFER_BYTES
       memset(IICLinkPCO.OUTPUT_PACKET, 0, sizeof(IICLinkPCO.OUTPUT_PACKET));
-      // ------------------------------------------------------------
-      // Determine which value to send (computer assist vs override)
-      // ------------------------------------------------------------
+
       int32_t value_to_send = matrixData.computer_assist[0][Mi]
-                              ? matrixData.output_value[0][Mi]
-                              : (int32_t)matrixData.override_output_value[0][Mi];
-      // ------------------------------------------------------------
-      // Build binary packet
-      // ------------------------------------------------------------
-      IICLinkPCO.OUTPUT_PACKET[0] = 0xB1;                                               // Command: M1 binary
-      IICLinkPCO.OUTPUT_PACKET[1] = (uint8_t)Mi;                                        // Matrix index (0–69)
-      IICLinkPCO.OUTPUT_PACKET[2] = (uint8_t)(int8_t)matrixData.matrix_port_map[0][Mi]; // Signed pin (-1 allowed!)
-      // ------------------------------------------------------------
-      // int32_t output value (4 bytes, little-endian)
-      // ------------------------------------------------------------
-      IICLinkPCO.OUTPUT_PACKET[3] = (uint8_t)(value_to_send & 0xFF);
-      IICLinkPCO.OUTPUT_PACKET[4] = (uint8_t)((value_to_send >> 8)  & 0xFF);
-      IICLinkPCO.OUTPUT_PACKET[5] = (uint8_t)((value_to_send >> 16) & 0xFF);
-      IICLinkPCO.OUTPUT_PACKET[6] = (uint8_t)((value_to_send >> 24) & 0xFF);
-      // ------------------------------------------------------------
-      // uint32_t OFF time µs (4 bytes)
-      // ------------------------------------------------------------
+                        ? matrixData.output_value[0][Mi]
+                        : (int32_t)matrixData.override_output_value[0][Mi];
+      
       uint32_t off_time = matrixData.output_pwm[0][Mi][0];
-      IICLinkPCO.OUTPUT_PACKET[7]  = (uint8_t)(off_time & 0xFF);
-      IICLinkPCO.OUTPUT_PACKET[8]  = (uint8_t)((off_time >> 8)  & 0xFF);
-      IICLinkPCO.OUTPUT_PACKET[9]  = (uint8_t)((off_time >> 16) & 0xFF);
-      IICLinkPCO.OUTPUT_PACKET[10] = (uint8_t)((off_time >> 24) & 0xFF);
-      // ------------------------------------------------------------
-      // uint16_t ON time µs (4 bytes)
-      // ------------------------------------------------------------
       uint32_t on_time = matrixData.output_pwm[0][Mi][1];
-      IICLinkPCO.OUTPUT_PACKET[11] = (uint8_t)(on_time & 0xFF);
-      IICLinkPCO.OUTPUT_PACKET[12] = (uint8_t)((on_time >> 8)  & 0xFF);
-      IICLinkPCO.OUTPUT_PACKET[13] = (uint8_t)((on_time >> 16) & 0xFF);
-      IICLinkPCO.OUTPUT_PACKET[14] = (uint8_t)((on_time >> 24) & 0xFF);
+      
+      // Build binary packet using helper functions
+      write_uint8_ToPacket(IICLinkPCO.OUTPUT_PACKET, 0, 0xB1);                                     // Command: M1 binary
+      write_uint8_ToPacket(IICLinkPCO.OUTPUT_PACKET, 1, (uint8_t)Mi);                              // Matrix index
+      write_int8_ToPacket(IICLinkPCO.OUTPUT_PACKET, 2, (int8_t)matrixData.matrix_port_map[0][Mi]); // Signed pin
+      write_int32_ToPacket(IICLinkPCO.OUTPUT_PACKET, 3, value_to_send);                            // Output value (4 bytes)
+      write_uint32_ToPacket(IICLinkPCO.OUTPUT_PACKET, 7, off_time);                                // OFF time (4 bytes)
+      write_uint32_ToPacket(IICLinkPCO.OUTPUT_PACKET, 11, on_time); 
+
       // ------------------------------------------------------------
       // Send over I2C
       // ------------------------------------------------------------

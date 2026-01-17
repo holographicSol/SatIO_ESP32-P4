@@ -479,6 +479,14 @@ void read_longlong_FromWire(TwoWire &wire, long long &value) {
 }
 
 /**
+ * @brief Read bool from I2C wire into specified value.
+ * @warning Specified value is expected to be bool.
+ */
+void read_bool_FromWire(TwoWire &wire, bool &value) {
+  value = (bool)wire.read();
+}
+
+/**
  * @brief Read char from I2C wire into specified value.
  * @warning Specified value is expected to be char.
  */
@@ -501,17 +509,127 @@ void read_nchars_FromWire(TwoWire &wire, char *value, size_t n_chars) {
 }
 
 /**
- * @brief Read bool from I2C wire into specified value.
- * @warning Specified value is expected to be bool.
- */
-void read_bool_FromWire(TwoWire &wire, bool &value) {
-  value = (bool)wire.read();
-}
-
-/**
  * @brief Read byte from I2C wire into specified value.
  * @warning Specified value is expected to be byte.
  */
 void read_byte_FromWire(TwoWire &wire, byte &value) {
   value = wire.read();
+}
+
+/**
+ * @brief Read N bytes from I2C wire into specified byte array.
+ * @param wire Specify TwoWire instance.
+ * @param value Pointer to byte array to store the read values.
+ * @param n_bytes Number of bytes to read.
+ * @warning Specified value is expected to be a byte array with at least n_bytes size.
+ * @warning Ensure the byte array is large enough to hold n_bytes values.
+ */
+void read_nbytes_FromWire(TwoWire &wire, byte *value, size_t n_bytes) {
+    for (size_t i = 0; i < n_bytes; i++) {
+        value[i] = wire.read();
+    }
+}
+
+void write_uint8_ToPacket(uint8_t *buffer, size_t offset, uint8_t value) {
+  buffer[offset] = value;
+}
+
+void write_int8_ToPacket(uint8_t *buffer, size_t offset, int8_t value) {
+  buffer[offset] = (uint8_t)value;
+}
+
+void write_uint16_ToPacket(uint8_t *buffer, size_t offset, uint16_t value) {
+  buffer[offset]     = (uint8_t)(value & 0xFF);
+  buffer[offset + 1] = (uint8_t)((value >> 8) & 0xFF);
+}
+
+void write_int16_ToPacket(uint8_t *buffer, size_t offset, int16_t value) {
+  buffer[offset]     = (uint8_t)(value & 0xFF);
+  buffer[offset + 1] = (uint8_t)((value >> 8) & 0xFF);
+}
+
+void write_uint32_ToPacket(uint8_t *buffer, size_t offset, uint32_t value) {
+  buffer[offset]     = (uint8_t)(value & 0xFF);
+  buffer[offset + 1] = (uint8_t)((value >> 8) & 0xFF);
+  buffer[offset + 2] = (uint8_t)((value >> 16) & 0xFF);
+  buffer[offset + 3] = (uint8_t)((value >> 24) & 0xFF);
+}
+
+void write_int32_ToPacket(uint8_t *buffer, size_t offset, int32_t value) {
+  buffer[offset]     = (uint8_t)(value & 0xFF);
+  buffer[offset + 1] = (uint8_t)((value >> 8) & 0xFF);
+  buffer[offset + 2] = (uint8_t)((value >> 16) & 0xFF);
+  buffer[offset + 3] = (uint8_t)((value >> 24) & 0xFF);
+}
+
+void write_uint64_ToPacket(uint8_t *buffer, size_t offset, uint64_t value) {
+  for (int i = 0; i < 8; i++) {
+    buffer[offset + i] = (uint8_t)((value >> (i * 8)) & 0xFF);
+  }
+}
+
+void write_int64_ToPacket(uint8_t *buffer, size_t offset, int64_t value) {
+  for (int i = 0; i < 8; i++) {
+    buffer[offset + i] = (uint8_t)((value >> (i * 8)) & 0xFF);
+  }
+}
+
+void write_long_ToPacket(uint8_t *buffer, size_t offset, long value) {
+  for (int i = 0; i < sizeof(long); i++) {
+    buffer[offset + i] = (uint8_t)((value >> (i * 8)) & 0xFF);
+  }
+}
+
+void write_longlong_ToPacket(uint8_t *buffer, size_t offset, long long value) {
+  for (int i = 0; i < 8; i++) {
+    buffer[offset + i] = (uint8_t)((value >> (i * 8)) & 0xFF);
+  }
+}
+
+void write_float_ToPacket(uint8_t *buffer, size_t offset, float value) {
+  union { float f; uint8_t bytes[4]; } u;
+  u.f = value;
+  for (int i = 0; i < 4; i++) {
+    buffer[offset + i] = u.bytes[i];
+  }
+}
+
+void write_double_ToPacket(uint8_t *buffer, size_t offset, double value) {
+  union { double d; uint8_t bytes[8]; } u;
+  u.d = value;
+  for (int i = 0; i < 8; i++) {
+    buffer[offset + i] = u.bytes[i];
+  }
+}
+
+void write_bool_ToPacket(uint8_t *buffer, size_t offset, bool value) {
+  buffer[offset] = (uint8_t)value;
+}
+
+void write_char_ToPacket(uint8_t *buffer, size_t offset, char value) {
+  buffer[offset] = (uint8_t)value;
+}
+
+void write_nchars_ToPacket(uint8_t *buffer, size_t offset, const char *value, size_t n_chars) {
+  for (size_t i = 0; i < n_chars; i++) {
+    buffer[offset + i] = (uint8_t)value[i];
+  }
+}
+
+void write_byte_ToPacket(uint8_t *buffer, size_t offset, byte value) {
+    buffer[offset] = value;
+}
+
+/**
+ * @brief Write N bytes to packet buffer at specified offset.
+ * @param buffer Pointer to packet buffer.
+ * @param offset Byte offset in buffer.
+ * @param value Pointer to byte array to write.
+ * @param n_bytes Number of bytes to write.
+ * @warning Ensure source array is at least n_bytes in size.
+ */
+void write_nbytes_ToPacket(uint8_t *buffer, size_t offset, const uint8_t *value, size_t n_bytes) {
+    for (size_t i = 0; i < n_bytes; i++) {
+        buffer[offset + i] = value[i];
+    }
 }
