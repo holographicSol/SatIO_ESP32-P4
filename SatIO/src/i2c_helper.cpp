@@ -3,6 +3,21 @@
 
   Intends to standardize I2C communication functions across
   multiple I2C buses, devices, and across multiple projects.
+
+  Reading & writing in binary over I2C is faster than sending bytes of char
+  arrays but less human readable, therefore this library also intends to make
+  r/w binary data over I2C both fast and human readable from a high/project level.
+
+  Includes binary packet building functions for:
+    int8 to int64.
+    uint8 to uint64.
+    long, long long.
+    float, double.
+    bool.
+    char, nchars.
+    byte, nbytes.
+
+  Includes binary packet reading functions for all of the above mentioned types.
 */
 
 #include <Arduino.h>
@@ -16,6 +31,248 @@ TwoWire iic_2(2);
 IICLink I2CLinkBus0;
 IICLink I2CLinkBus1;
 IICLink I2CLinkBus2;
+
+/** ----------------------------------------------------------------------------
+ * @brief Request event handler for Bus 0
+ * 
+ * @warning Customize to use locally (backup first) or copy into project!
+*/
+void requestEventBus0Chars() {
+  Serial.printf("[requestEventBus0Chars] %d\n", I2CLinkBus0.REQUEST_ID);
+  if (I2CLinkBus0.REQUEST_ID==0) {
+    memset(I2CLinkBus0.OUTPUT_BUFFER_CHARS, 0, sizeof(I2CLinkBus0.OUTPUT_BUFFER_CHARS));
+    strcpy(I2CLinkBus0.OUTPUT_BUFFER_CHARS, "0,value_from_slave");
+    writeI2CToMasterChars(iic_0, I2CLinkBus0, 0);
+  }
+}
+/** ----------------------------------------------------------------------------
+ * @brief Request event handler for Bus 1
+ * 
+ * @warning Customize to use locally (backup first) or copy into project!
+*/
+void requestEventBus1Chars() {
+  Serial.printf("[requestEventBus1Chars] %d\n", I2CLinkBus1.REQUEST_ID);
+  if (I2CLinkBus1.REQUEST_ID==0) {
+    memset(I2CLinkBus1.OUTPUT_BUFFER_CHARS, 0, sizeof(I2CLinkBus1.OUTPUT_BUFFER_CHARS));
+    strcpy(I2CLinkBus1.OUTPUT_BUFFER_CHARS, "0,value_from_slave");
+    writeI2CToMasterChars(iic_1, I2CLinkBus1, 0);
+  }
+}
+/** ----------------------------------------------------------------------------
+ * @brief Request event handler for Bus 2
+ * 
+ * @warning Customize to use locally (backup first) or copy into project!
+*/
+void requestEventBus2Chars() {
+  Serial.printf("[requestEventBus1Chars] %d\n", I2CLinkBus2.REQUEST_ID);
+  if (I2CLinkBus2.REQUEST_ID==0) {
+    memset(I2CLinkBus2.OUTPUT_BUFFER_CHARS, 0, sizeof(I2CLinkBus2.OUTPUT_BUFFER_CHARS));
+    strcpy(I2CLinkBus2.OUTPUT_BUFFER_CHARS, "0,value_from_slave");
+    writeI2CToMasterChars(iic_2, I2CLinkBus2, 0);
+  }
+}
+
+/** ----------------------------------------------------------------------------
+ * @brief Receive event handler for Bus 0
+ * 
+ * @warning Customize to use locally (backup first) or copy into project!
+*/
+void receiveEventBus0Chars(size_t n_bytes_received) {
+  int len = iic_0.readBytes((char *)I2CLinkBus0.INPUT_BUFFER, n_bytes_received);
+  if (len < 1) return;
+  I2CLinkBus0.INPUT_BUFFER[len] = '\0';
+  Serial.printf("[receiveEventBus0Chars] %s (%d bytes)\n", I2CLinkBus0.INPUT_BUFFER, len);
+  // -----------------------------------------------------
+  // Check for request ID's (no operation)
+  // -----------------------------------------------------
+  if (strcmp(I2CLinkBus0.INPUT_BUFFER, "0") == 0) {I2CLinkBus0.REQUEST_ID = 0; return;}
+  // -----------------------------------------------------
+  // Tokenize input
+  // -----------------------------------------------------
+  I2CLinkBus0.i_token=0;
+  I2CLinkBus0.token = strtok(I2CLinkBus0.INPUT_BUFFER, ",");
+  while (I2CLinkBus0.token != NULL) {
+    if (I2CLinkBus0.i_token == 0) {/* customize.. */}
+    I2CLinkBus0.i_token++;
+    I2CLinkBus0.token = strtok(NULL, ",");
+  }
+}
+/** ----------------------------------------------------------------------------
+ * @brief Receive event handler for Bus 1
+ * 
+ * @warning Customize to use locally (backup first) or copy into project!
+*/
+void receiveEventBus1Chars(size_t n_bytes_received) {
+  int len = iic_1.readBytes((char *)I2CLinkBus1.INPUT_BUFFER, n_bytes_received);
+  if (len < 1) return;
+  I2CLinkBus1.INPUT_BUFFER[len] = '\0';
+  Serial.printf("[receiveEventBus1Chars] %s (%d bytes)\n", I2CLinkBus1.INPUT_BUFFER, len);
+  // -----------------------------------------------------
+  // Check for request ID's (no operation)
+  // -----------------------------------------------------
+  if (strcmp(I2CLinkBus1.INPUT_BUFFER, "0") == 0) {I2CLinkBus1.REQUEST_ID = 0; return;}
+  // -----------------------------------------------------
+  // Tokenize input
+  // -----------------------------------------------------
+  I2CLinkBus1.i_token=0;
+  I2CLinkBus1.token = strtok(I2CLinkBus1.INPUT_BUFFER, ",");
+  while (I2CLinkBus1.token != NULL) {
+    if (I2CLinkBus1.i_token == 0) {/* customize.. */}
+    I2CLinkBus1.i_token++;
+    I2CLinkBus1.token = strtok(NULL, ",");
+  }
+}
+/** ----------------------------------------------------------------------------
+ * @brief Receive event handler for Bus 2
+ * 
+ * @warning Customize to use locally (backup first) or copy into project!
+*/
+void receiveEventBus2Chars(size_t n_bytes_received) {
+  int len = iic_2.readBytes((char *)I2CLinkBus2.INPUT_BUFFER, n_bytes_received);
+  if (len < 1) return;
+  I2CLinkBus2.INPUT_BUFFER[len] = '\0';
+  Serial.printf("[receiveEventBus2Chars] %s (%d bytes)\n", I2CLinkBus2.INPUT_BUFFER, len);
+  // -----------------------------------------------------
+  // Check for request ID's (no operation)
+  // -----------------------------------------------------
+  if (strcmp(I2CLinkBus2.INPUT_BUFFER, "0") == 0) {I2CLinkBus2.REQUEST_ID = 0; return;}
+  // -----------------------------------------------------
+  // Tokenize input
+  // -----------------------------------------------------
+  I2CLinkBus2.i_token=0;
+  I2CLinkBus2.token = strtok(I2CLinkBus2.INPUT_BUFFER, ",");
+  while (I2CLinkBus2.token != NULL) {
+    if (I2CLinkBus2.i_token == 0) {/* customize.. */}
+    I2CLinkBus2.i_token++;
+    I2CLinkBus2.token = strtok(NULL, ",");
+  }
+}
+
+/** ----------------------------------------------------------------------------
+ * @brief Request binary event handler for Bus 0
+ * 
+ * @warning Customize to use locally (backup first) or copy into project!
+ */
+volatile long request_event_id_bus_0;
+
+void requestEventBus0Bin() {
+  Serial.println("[requestEventBus0Bin] id: " + String(request_event_id_bus_0));
+  switch (request_event_id_bus_0) {
+    case 0x00: {
+        Serial.println("[requestEventBus0Bin] preparing to send requested data: " + String());
+        break;
+    }
+    default: {
+        Serial.println("[requestEventBus0Bin] event id is not defined: " + String(request_event_id_bus_0));
+        break;
+    }
+  }
+}
+
+/** ----------------------------------------------------------------------------
+ * @brief Request binary event handler for Bus 1
+ * 
+ * @warning Customize to use locally (backup first) or copy into project!
+ */
+volatile long request_event_id_bus_1;
+
+void requestEventBus1Bin() {
+  Serial.println("[requestEventBus1Bin] id: " + String(request_event_id_bus_1));
+  switch (request_event_id_bus_1) {
+    case 0x00: {
+        Serial.println("[requestEventBus1Bin] preparing to send requested data: " + String());
+        break;
+    }
+    default: {
+        Serial.println("[requestEventBus1Bin] event id is not defined: " + String(request_event_id_bus_1));
+        break;
+    }
+  }
+}
+
+/** ----------------------------------------------------------------------------
+ * @brief Request binary event handler for Bus 2
+ * 
+ * @warning Customize to use locally (backup first) or copy into project!
+ */
+volatile long request_event_id_bus_2;
+
+void requestEventBus2Bin() {
+  Serial.println("[requestEventBus2Bin] id: " + String(request_event_id_bus_2));
+  switch (request_event_id_bus_2) {
+    case 0x00: {
+        Serial.println("[requestEventBus2Bin] preparing to send requested data: " + String());
+        break;
+    }
+    default: {
+        Serial.println("[requestEventBus2Bin] event id is not defined: " + String(request_event_id_bus_2));
+        break;
+    }
+  }
+}
+
+/** ----------------------------------------------------------------------------
+ * @brief Receive binary event handler for Bus 0
+ * 
+ * @warning Customize to use locally (backup first) or copy into project!
+*/
+void receiveEventBus0Bin(size_t n_bytes_received) {
+  if (n_bytes_received < 1) return;
+  uint8_t cmd = Wire.read();
+  Serial.println("[receiveEventBus0Bin] " + String(cmd) + " (" + String(n_bytes_received) + " bytes)");
+  switch (cmd) {
+    case 0x00: {
+        Serial.println("[requestEvent] preparing to process command: " + String(cmd));
+        break;
+    }
+    default: {
+        Serial.println("[receiveEventBus0Bin] command is not defined: " + String(cmd));
+        break;
+    }
+  }
+}
+
+/** ----------------------------------------------------------------------------
+ * @brief Receive binary event handler for Bus 1
+ * 
+ * @warning Customize to use locally (backup first) or copy into project!
+*/
+void receiveEventBus1Bin(size_t n_bytes_received) {
+  if (n_bytes_received < 1) return;
+  uint8_t cmd = Wire.read();
+  Serial.println("[receiveEventBus1Bin] " + String(cmd) + " (" + String(n_bytes_received) + " bytes)");
+  switch (cmd) {
+    case 0x00: {
+        Serial.println("[receiveEventBus1Bin] preparing to process command: " + String(cmd));
+        break;
+    }
+    default: {
+        Serial.println("[receiveEventBus1Bin] command is not defined: " + String(cmd));
+        break;
+    }
+  }
+}
+
+/** ----------------------------------------------------------------------------
+ * @brief Receive binary event handler for Bus 2
+ * 
+ * @warning Customize to use locally (backup first) or copy into project!
+*/
+void receiveEventBus2Bin(size_t n_bytes_received) {
+  if (n_bytes_received < 1) return;
+  uint8_t cmd = Wire.read();
+  Serial.println("[receiveEventBus2Bin] " + String(cmd) + " (" + String(n_bytes_received) + " bytes)");
+  switch (cmd) {
+    case 0x00: {
+        Serial.println("[receiveEventBus2Bin] preparing to process command: " + String(cmd));
+        break;
+    }
+    default: {
+        Serial.println("[receiveEventBus2Bin] command is not defined: " + String(cmd));
+        break;
+    }
+  }
+}
 
 /** ----------------------------------------------------------------------------
  * Prints a human-readable description of Wire.endTransmission() error codes
@@ -189,46 +446,6 @@ void requestFromSlaveChars(TwoWire &wire,
   }
   delay(delayMs);
 }
-
-/** ----------------------------------------------------------------------------
- * @brief Request event handler for Bus 0.
- * @warning Uncomment and customize to use locally (backup first) or copy into project!
-*/
-void requestEventBus0Chars() {
-  Serial.printf("[requestEventBus0Chars] %d\n", I2CLinkBus0.REQUEST_ID);
-  if (I2CLinkBus0.REQUEST_ID==0) {
-    memset(I2CLinkBus0.OUTPUT_BUFFER_CHARS, 0, sizeof(I2CLinkBus0.OUTPUT_BUFFER_CHARS));
-    strcpy(I2CLinkBus0.OUTPUT_BUFFER_CHARS, "0,value_from_slave");
-    writeI2CToMasterChars(iic_0, I2CLinkBus0, 0);
-  }
-}
-
-/** ----------------------------------------------------------------------------
- * @brief Receive event handler for Bus 0
- * @warning Uncomment and customize to use locally (backup first) or copy into project!
-*/
-void receiveEventBus0Chars(size_t n_bytes_received) {
-  int len = iic_0.readBytes((char *)I2CLinkBus0.INPUT_BUFFER, n_bytes_received);
-  if (len < 1) return;
-  I2CLinkBus0.INPUT_BUFFER[len] = '\0';
-  // Serial.printf("[receiveEventBus0Chars] %s (%d bytes)\n", I2CLinkBus0.INPUT_BUFFER, len);
-  // -----------------------------------------------------
-  // Check for request ID's (no operation)
-  // -----------------------------------------------------
-  if (strcmp(I2CLinkBus0.INPUT_BUFFER, "0") == 0) {I2CLinkBus0.REQUEST_ID = 0; return;}
-  // -----------------------------------------------------
-  // Tokenize input
-  // -----------------------------------------------------
-  I2CLinkBus0.i_token=0;
-  I2CLinkBus0.token = strtok(I2CLinkBus0.INPUT_BUFFER, ",");
-  while (I2CLinkBus0.token != NULL) {
-    if (I2CLinkBus0.i_token == 0) {/* customize.. */}
-    I2CLinkBus0.i_token++;
-    I2CLinkBus0.token = strtok(NULL, ",");
-  }
-}
-
-// now write bytes versions (faster but less human readable)
 
 /** ----------------------------------------------------------------------------
  * @brief Writes binary data to an I2C slave device.

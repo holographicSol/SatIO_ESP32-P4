@@ -3,6 +3,21 @@
 
   Intends to standardize I2C communication functions across
   multiple I2C buses, devices, and across multiple projects.
+
+  Reading & writing in binary over I2C is faster than sending bytes of char
+  arrays but less human readable, therefore this library also intends to make
+  r/w binary data over I2C both fast and human readable from a high/project level.
+
+  Includes binary packet building functions for:
+    int8 to int64.
+    uint8 to uint64.
+    long, long long.
+    float, double.
+    bool.
+    char, nchars.
+    byte, nbytes.
+
+  Includes binary packet reading functions for all of the above mentioned types.
 */
 
 #ifndef I2C_HELPER_H
@@ -13,9 +28,9 @@
 #include <Arduino.h>
 #include <Wire.h>
 
-// #define SLAVE_ADDR_BUS0 0  // uncomment to set address if required.
+// #define SLAVE_ADDR_BUS0 0 // uncomment to set address if required.
 // #define SLAVE_ADDR_BUS1 0 // uncomment to set address if required.
-// #define SLAVE_ADDR_BUS2 0  // uncomment to set address if required.
+// #define SLAVE_ADDR_BUS2 0 // uncomment to set address if required.
 
 #define IIC_BUS0_SDA 2 // uncomment to set pin if required.
 #define IIC_BUS0_SCL 3 // uncomment to set pin if required.
@@ -32,10 +47,19 @@
 #define I2C_ADDR_OUTPUT_PORTCONTROLLER 9
 #define I2C_ADDR_INPUT_PORTCONTROLLER  10
 
-extern TwoWire iic_0;
-extern TwoWire iic_1;
-extern TwoWire iic_2;
+extern TwoWire iic_0; // Uncomment to use global I2C bus 0 wire instance
+extern TwoWire iic_1; // Uncomment to use global I2C bus 0 wire instance
+extern TwoWire iic_2; // Uncomment to use global I2C bus 0 wire instance
 
+/**
+ * @brief Creates a standard data structure that can be used per device.
+ * 
+ *        The intention here is to simplify value initialization for buffers &
+ *        other value types that may be useful when communicating with certain
+ *        devices, by only initializing variable(s) of type IICLink.
+ * 
+ *        Example: IICLink myCustomModule;
+ */
 typedef struct {
   int  i_token;
   char * token;
@@ -51,12 +75,41 @@ typedef struct {
 } IICLink;
 
 /** ----------------------------------------------------------------------------
- * @brief Global IIC wire instances and data struictures for each wire channel.
- * @warning Only to be used by receive event handlers! Make your own IICLink instances for other uses.
+ * @brief Global default I2C data struictures for each wire bus.
+ * 
+ * @warning Only to be used by receive event handlers! Make your own IICLink
+ *          instances for any other uses except if using for very simple projects
+ *          that only speak to 1 device per bus.
+ * 
+ *          This is because receive events could be from any device, and so a
+ *          default instance of IICLink is intended to be used only for receive events
+ *          and only if receive events benefit from the IICLink data structure.
  */
-extern IICLink I2CLinkBus0; // default data structure instance for I2C bus 0
-extern IICLink I2CLinkBus1; // default data structure instance for I2C bus 1
-extern IICLink I2CLinkBus2; // default data structure instance for I2C bus 2
+extern IICLink I2CLinkBus0; // uncomment to use default data structure instance for I2C bus 0
+extern IICLink I2CLinkBus1; // uncomment to use default data structure instance for I2C bus 1
+extern IICLink I2CLinkBus2; // uncomment to use default data structure instance for I2C bus 2
+
+/**
+ * @brief Uncomment to use built-in request and receive event handlers. 
+ */
+// void requestEventBus0Chars();
+// void receiveEventBus0Chars(size_t n_bytes_received);
+
+// void requestEventBus1Chars();
+// void receiveEventBus1Chars(size_t n_bytes_received);
+
+// void requestEventBus2Chars();
+// void receiveEventBus2Chars(size_t n_bytes_received);
+
+// void requestEventBus0Bin();
+// void receiveEventBus0Bin(size_t n_bytes_received);
+
+// void requestEventBus1Bin();
+// void receiveEventBus1Bin(size_t n_bytes_received);
+
+// void requestEventBus2Bin();
+// void receiveEventBus2Bin(size_t n_bytes_received);
+
 
 /** ----------------------------------------------------------------------------
  * @brief Clears the output buffer chars of the given IICLink structure.
