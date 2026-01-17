@@ -530,24 +530,54 @@ void read_nbytes_FromWire(TwoWire &wire, byte *value, size_t n_bytes) {
     }
 }
 
+/**
+ * @brief Write uint8_t to packet buffer at specified offset.
+ * @param buffer Pointer to packet buffer.
+ * @param offset Byte offset in buffer.
+ * @param value Value to write.
+ */
 void write_uint8_ToPacket(uint8_t *buffer, size_t offset, uint8_t value) {
   buffer[offset] = value;
 }
 
+/**
+ * @brief Write int8_t to packet buffer at specified offset.
+ * @param buffer Pointer to packet buffer.
+ * @param offset Byte offset in buffer.
+ * @param value Value to write.
+ */
 void write_int8_ToPacket(uint8_t *buffer, size_t offset, int8_t value) {
   buffer[offset] = (uint8_t)value;
 }
 
+/**
+ * @brief Write uint16_t to packet buffer at specified offset (2 bytes, little-endian).
+ * @param buffer Pointer to packet buffer.
+ * @param offset Byte offset in buffer.
+ * @param value Value to write.
+ */
 void write_uint16_ToPacket(uint8_t *buffer, size_t offset, uint16_t value) {
   buffer[offset]     = (uint8_t)(value & 0xFF);
   buffer[offset + 1] = (uint8_t)((value >> 8) & 0xFF);
 }
 
+/**
+ * @brief Write int16_t to packet buffer at specified offset (2 bytes, little-endian).
+ * @param buffer Pointer to packet buffer.
+ * @param offset Byte offset in buffer.
+ * @param value Value to write.
+ */
 void write_int16_ToPacket(uint8_t *buffer, size_t offset, int16_t value) {
   buffer[offset]     = (uint8_t)(value & 0xFF);
   buffer[offset + 1] = (uint8_t)((value >> 8) & 0xFF);
 }
 
+/**
+ * @brief Write uint32_t to packet buffer at specified offset (4 bytes, little-endian).
+ * @param buffer Pointer to packet buffer.
+ * @param offset Byte offset in buffer.
+ * @param value Value to write.
+ */
 void write_uint32_ToPacket(uint8_t *buffer, size_t offset, uint32_t value) {
   buffer[offset]     = (uint8_t)(value & 0xFF);
   buffer[offset + 1] = (uint8_t)((value >> 8) & 0xFF);
@@ -555,6 +585,12 @@ void write_uint32_ToPacket(uint8_t *buffer, size_t offset, uint32_t value) {
   buffer[offset + 3] = (uint8_t)((value >> 24) & 0xFF);
 }
 
+/**
+ * @brief Write int32_t to packet buffer at specified offset (4 bytes, little-endian).
+ * @param buffer Pointer to packet buffer.
+ * @param offset Byte offset in buffer.
+ * @param value Value to write.
+ */
 void write_int32_ToPacket(uint8_t *buffer, size_t offset, int32_t value) {
   buffer[offset]     = (uint8_t)(value & 0xFF);
   buffer[offset + 1] = (uint8_t)((value >> 8) & 0xFF);
@@ -562,30 +598,60 @@ void write_int32_ToPacket(uint8_t *buffer, size_t offset, int32_t value) {
   buffer[offset + 3] = (uint8_t)((value >> 24) & 0xFF);
 }
 
+/**
+ * @brief Write uint64_t to packet buffer at specified offset (8 bytes, little-endian).
+ * @param buffer Pointer to packet buffer.
+ * @param offset Byte offset in buffer.
+ * @param value Value to write.
+ */
 void write_uint64_ToPacket(uint8_t *buffer, size_t offset, uint64_t value) {
   for (int i = 0; i < 8; i++) {
     buffer[offset + i] = (uint8_t)((value >> (i * 8)) & 0xFF);
   }
 }
 
+/**
+ * @brief Write int64_t to packet buffer at specified offset (8 bytes, little-endian).
+ * @param buffer Pointer to packet buffer.
+ * @param offset Byte offset in buffer.
+ * @param value Value to write.
+ */
 void write_int64_ToPacket(uint8_t *buffer, size_t offset, int64_t value) {
   for (int i = 0; i < 8; i++) {
     buffer[offset + i] = (uint8_t)((value >> (i * 8)) & 0xFF);
   }
 }
 
+/**
+ * @brief Write long to packet buffer at specified offset (little-endian).
+ * @param buffer Pointer to packet buffer.
+ * @param offset Byte offset in buffer.
+ * @param value Value to write.
+ */
 void write_long_ToPacket(uint8_t *buffer, size_t offset, long value) {
   for (int i = 0; i < sizeof(long); i++) {
     buffer[offset + i] = (uint8_t)((value >> (i * 8)) & 0xFF);
   }
 }
 
+/**
+ * @brief Write long long to packet buffer at specified offset (8 bytes, little-endian).
+ * @param buffer Pointer to packet buffer.
+ * @param offset Byte offset in buffer.
+ * @param value Value to write.
+ */
 void write_longlong_ToPacket(uint8_t *buffer, size_t offset, long long value) {
   for (int i = 0; i < 8; i++) {
     buffer[offset + i] = (uint8_t)((value >> (i * 8)) & 0xFF);
   }
 }
 
+/**
+ * @brief Write float to packet buffer at specified offset (4 bytes, little-endian).
+ * @param buffer Pointer to packet buffer.
+ * @param offset Byte offset in buffer.
+ * @param value Value to write.
+ */
 void write_float_ToPacket(uint8_t *buffer, size_t offset, float value) {
   union { float f; uint8_t bytes[4]; } u;
   u.f = value;
@@ -594,6 +660,12 @@ void write_float_ToPacket(uint8_t *buffer, size_t offset, float value) {
   }
 }
 
+/**
+ * @brief Write double to packet buffer at specified offset (8 bytes, little-endian).
+ * @param buffer Pointer to packet buffer.
+ * @param offset Byte offset in buffer.
+ * @param value Value to write.
+ */
 void write_double_ToPacket(uint8_t *buffer, size_t offset, double value) {
   union { double d; uint8_t bytes[8]; } u;
   u.d = value;
@@ -602,20 +674,46 @@ void write_double_ToPacket(uint8_t *buffer, size_t offset, double value) {
   }
 }
 
+/**
+ * @brief Write bool to packet buffer at specified offset.
+ * @param buffer Pointer to packet buffer.
+ * @param offset Byte offset in buffer.
+ * @param value Value to write.
+ */
 void write_bool_ToPacket(uint8_t *buffer, size_t offset, bool value) {
   buffer[offset] = (uint8_t)value;
 }
 
+/**
+ * @brief Write char to packet buffer at specified offset.
+ * @param buffer Pointer to packet buffer.
+ * @param offset Byte offset in buffer.
+ * @param value Value to write.
+ */
 void write_char_ToPacket(uint8_t *buffer, size_t offset, char value) {
   buffer[offset] = (uint8_t)value;
 }
 
+/**
+ * @brief Write N chars to packet buffer at specified offset.
+ * @param buffer Pointer to packet buffer.
+ * @param offset Byte offset in buffer.
+ * @param value Pointer to char array to write.
+ * @param n_chars Number of chars to write.
+ * @warning Ensure source char array is at least n_chars in size.
+ */
 void write_nchars_ToPacket(uint8_t *buffer, size_t offset, const char *value, size_t n_chars) {
   for (size_t i = 0; i < n_chars; i++) {
     buffer[offset + i] = (uint8_t)value[i];
   }
 }
 
+/**
+ * @brief Write byte to packet buffer at specified offset.
+ * @param buffer Pointer to packet buffer.
+ * @param offset Byte offset in buffer.
+ * @param value Value to write.
+ */
 void write_byte_ToPacket(uint8_t *buffer, size_t offset, byte value) {
     buffer[offset] = value;
 }
