@@ -92,6 +92,10 @@ extern IICLink I2CLinkBus2; // uncomment to use default data structure instance 
 /**
  * @brief Uncomment to use built-in request and receive event handlers. 
  */
+// extern volatile long request_event_id_bus_0;
+// extern volatile long request_event_id_bus_1;
+// extern volatile long request_event_id_bus_2;
+
 // void requestEventBus0Chars();
 // void receiveEventBus0Chars(size_t n_bytes_received);
 
