@@ -37,7 +37,7 @@ void updateIndicator(TwoWire &wire, int address, int display_index, int r, int g
 void update7Segment4Digit(TwoWire &wire, int address, int display_index, char* value) {
   memset(IICLinkMultiDisplayController.OUTPUT_PACKET, 0, sizeof(IICLinkMultiDisplayController.OUTPUT_PACKET));
   write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 0, 0x14); // command 20
-  write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 1, DISPLAY_TYPE_7SEGMENT_4DIGIT); // dtype
+  write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 1, DISPLAY_TYPE_7SEGMENT_4DIGIT);
   write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 2, display_index);
   write_nchars_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 3, value, strlen(value));
   writeI2CToSlaveBin(wire, IICLinkMultiDisplayController, address, 3+strlen(value), 5, "update7Segment4Digit");
@@ -47,7 +47,7 @@ void update7Segment4Digit(TwoWire &wire, int address, int display_index, char* v
 void update7Segment6Digit(TwoWire &wire, int address, int display_index, char* value) {
   memset(IICLinkMultiDisplayController.OUTPUT_PACKET, 0, sizeof(IICLinkMultiDisplayController.OUTPUT_PACKET));
   write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 0, 0x1E); // command 30
-  write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 1, DISPLAY_TYPE_7SEGMENT_6DIGIT); // dtype
+  write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 1, DISPLAY_TYPE_7SEGMENT_6DIGIT);
   write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 2, display_index);
   write_nchars_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 3, value, strlen(value));
   writeI2CToSlaveBin(wire, IICLinkMultiDisplayController, address, 3+strlen(value), 5, "update7Segment6Digit");
@@ -57,7 +57,7 @@ void update7Segment6Digit(TwoWire &wire, int address, int display_index, char* v
 void updateSSD1306(TwoWire &wire, int address, int display_index, int value_index, int dx, int dy, char* value) {
   memset(IICLinkMultiDisplayController.OUTPUT_PACKET, 0, sizeof(IICLinkMultiDisplayController.OUTPUT_PACKET));
   write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 0, 0x28 ); // command 40
-  write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 1, DISPLAY_TYPE_SSD1306); // dtype
+  write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 1, DISPLAY_TYPE_SSD1306);
   write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 2, display_index);
   write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 3, value_index);
   write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 4, dx);
@@ -68,7 +68,7 @@ void updateSSD1306(TwoWire &wire, int address, int display_index, int value_inde
 
 /* Instruction Structure: EventID,DisplayIndex */
 void drawSSD1306Canvas(TwoWire &wire, int address, int display_index) {
-  write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 0, 0x32 ); // command 40
+  write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 0, 0x32 ); // command 50
   write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 1, display_index);
   writeI2CToSlaveBin(wire, IICLinkMultiDisplayController, address, 2, 5, "drawSSD1306Canvas");
 }

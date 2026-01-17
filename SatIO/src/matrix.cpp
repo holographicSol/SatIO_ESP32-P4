@@ -1663,20 +1663,18 @@ void writeI2COutputPortController(TwoWire &wire, int address) {
 }
 
 void writeOutputPortControllerM0(TwoWire &wire, int address) {
-  // Tag.
-  memset(IICLinkPCO.OUTPUT_BUFFER_CHARS, 0, sizeof(IICLinkPCO.OUTPUT_BUFFER_CHARS));
-  strcpy(IICLinkPCO.OUTPUT_BUFFER_CHARS, "M0");
-  // Write instruction.
-  writeI2COutputPortController(wire, address);
+  memset(IICLinkPCO.OUTPUT_PACKET, 0, sizeof(IICLinkPCO.OUTPUT_PACKET));
+  write_uint8_ToPacket(IICLinkPCO.OUTPUT_PACKET, 0, 0x0A); // command 10
+  writeI2CToSlaveBin(wire, IICLinkPCO, address, 5, 5, "writeOutputPortControllerM0");
   systemData.i_count_port_controller_output++;
 }
 
 void writeOutputPortControllerM1(TwoWire &wire, int address) {
   for (int Mi = 0; Mi < MAX_MATRIX_SWITCHES; Mi++) {
     if (matrixData.matrix_switch_write_required[0][Mi]) {
-      // Initialize packet pointer to OUTPUT_BUFFER_BYTES
       memset(IICLinkPCO.OUTPUT_PACKET, 0, sizeof(IICLinkPCO.OUTPUT_PACKET));
 
+      // Select value to send as either override value or output value 
       int32_t value_to_send = matrixData.computer_assist[0][Mi]
                         ? matrixData.output_value[0][Mi]
                         : (int32_t)matrixData.override_output_value[0][Mi];
@@ -1684,21 +1682,17 @@ void writeOutputPortControllerM1(TwoWire &wire, int address) {
       uint32_t off_time = matrixData.output_pwm[0][Mi][0];
       uint32_t on_time = matrixData.output_pwm[0][Mi][1];
       
-      // Build binary packet using helper functions
+      // Build binary packet with human readable helper functions
       write_uint8_ToPacket(IICLinkPCO.OUTPUT_PACKET, 0, 0xB1);                                     // Command: M1 binary
       write_uint8_ToPacket(IICLinkPCO.OUTPUT_PACKET, 1, (uint8_t)Mi);                              // Matrix index
       write_int8_ToPacket(IICLinkPCO.OUTPUT_PACKET, 2, (int8_t)matrixData.matrix_port_map[0][Mi]); // Signed pin
       write_int32_ToPacket(IICLinkPCO.OUTPUT_PACKET, 3, value_to_send);                            // Output value (4 bytes)
       write_uint32_ToPacket(IICLinkPCO.OUTPUT_PACKET, 7, off_time);                                // OFF time (4 bytes)
-      write_uint32_ToPacket(IICLinkPCO.OUTPUT_PACKET, 11, on_time); 
-
-      // ------------------------------------------------------------
-      // Send over I2C
-      // ------------------------------------------------------------
+      write_uint32_ToPacket(IICLinkPCO.OUTPUT_PACKET, 11, on_time);
+      // Write to slave
       writeI2CToSlaveBin(wire, IICLinkPCO, address, 15, 0, "writeOutputPortControllerM1");
-      // ------------------------------------------------------------
+
       // Clear flag after successful send (or retry logic if needed)
-      // ------------------------------------------------------------
       matrixData.matrix_switch_write_required[0][Mi] = false;
     }
   }
