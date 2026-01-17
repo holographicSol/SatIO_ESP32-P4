@@ -1651,21 +1651,10 @@ void setOutputValues(void) {
 IICLink IICLinkPCI; // IIC link data structure for input port controller
 IICLink IICLinkPCO; // IIC link data structure for output port controller
 
-void writeI2COutputPortController(TwoWire &wire, int address) {
-  // Compile bytes array.
-  memset(IICLinkPCO.OUTPUT_BUFFER_BYTES, 0, sizeof(IICLinkPCO.OUTPUT_BUFFER_BYTES));
-  for (byte i=0;i<sizeof(IICLinkPCO.OUTPUT_BUFFER_BYTES);i++)
-  {IICLinkPCO.OUTPUT_BUFFER_BYTES[i]=(byte)IICLinkPCO.OUTPUT_BUFFER_CHARS[i];}
-  wire.beginTransmission(address);
-  // Write bytes array.
-  wire.write(IICLinkPCO.OUTPUT_BUFFER_BYTES, sizeof(IICLinkPCO.OUTPUT_BUFFER_BYTES));
-  wire.endTransmission();
-}
-
 void writeOutputPortControllerM0(TwoWire &wire, int address) {
   memset(IICLinkPCO.OUTPUT_PACKET, 0, sizeof(IICLinkPCO.OUTPUT_PACKET));
   write_uint8_ToPacket(IICLinkPCO.OUTPUT_PACKET, 0, 0x0A); // command 10
-  writeI2CToSlaveBin(wire, IICLinkPCO, address, 5, 5, "writeOutputPortControllerM0");
+  writeI2CToSlaveBin(wire, IICLinkPCO, address, 1, 0, "writeOutputPortControllerM0");
   systemData.i_count_port_controller_output++;
 }
 
@@ -1683,7 +1672,7 @@ void writeOutputPortControllerM1(TwoWire &wire, int address) {
       uint32_t on_time = matrixData.output_pwm[0][Mi][1];
       
       // Build binary packet with human readable helper functions
-      write_uint8_ToPacket(IICLinkPCO.OUTPUT_PACKET, 0, 0xB1);                                     // Command: M1 binary
+      write_uint8_ToPacket(IICLinkPCO.OUTPUT_PACKET, 0, 0x14);                                     // Command: M1 binary
       write_uint8_ToPacket(IICLinkPCO.OUTPUT_PACKET, 1, (uint8_t)Mi);                              // Matrix index
       write_int8_ToPacket(IICLinkPCO.OUTPUT_PACKET, 2, (int8_t)matrixData.matrix_port_map[0][Mi]); // Signed pin
       write_int32_ToPacket(IICLinkPCO.OUTPUT_PACKET, 3, value_to_send);                            // Output value (4 bytes)
@@ -1703,7 +1692,7 @@ bool readInputPortControllerM1(TwoWire &wire, int address) {
 
   // Send event ID once to set a mode on receiver
   memset(IICLinkPCO.OUTPUT_PACKET, 0, sizeof(IICLinkPCO.OUTPUT_PACKET));
-  IICLinkPCO.OUTPUT_PACKET[0] = 0xB2; // M2
+  IICLinkPCO.OUTPUT_PACKET[0] = 0x1E; // command 30
   writeI2CToSlaveBin(wire, IICLinkPCO, address, 1, 0, "readInputPortControllerM1");
 
   // Custom request function: Keep making requests until complete
