@@ -264,11 +264,11 @@ uint8_t colorB;
 void receiveEventBus1Bin(size_t n_bytes_received) {
   if (n_bytes_received < 1) return;
   uint8_t cmd = Wire1.read();
-  // Serial.println("[receiveEventBus2Bin] " + String(cmd) + " (" + String(n_bytes_received) + " bytes)");
+  // Serial.println("[receiveEventBus1Bin] " + String(cmd) + " (" + String(n_bytes_received) + " bytes)");
   switch (cmd) {
     case 0x01: {
       // no sanitation
-      Serial.println("[receiveEventBus2Bin] preparing to process command: " + String(cmd));
+      Serial.println("[receiveEventBus1Bin] preparing to process command: " + String(cmd));
       request_event_id_bus_1=0x01;
       break;
     }
@@ -357,7 +357,7 @@ void receiveEventBus1Bin(size_t n_bytes_received) {
       break;
     }
     default: {
-        Serial.println("[receiveEventBus2Bin] command is not defined: " + String(cmd));
+        Serial.println("[receiveEventBus1Bin] command is not defined: " + String(cmd));
         while (Wire.available()) {Wire.read();}
         break;
     }
