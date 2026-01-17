@@ -43,9 +43,6 @@
 
 #define I2C_MAX_TOKENS 32
 #define MAX_IIC_BUFFER_SIZE 32
-#define I2C_ADDR_CONTROL_PAD 8
-#define I2C_ADDR_OUTPUT_PORTCONTROLLER 9
-#define I2C_ADDR_INPUT_PORTCONTROLLER    10
 
 extern TwoWire iic_0; // Uncomment to use global I2C bus 0 wire instance
 extern TwoWire iic_1; // Uncomment to use global I2C bus 0 wire instance
@@ -92,10 +89,6 @@ extern IICLink I2CLinkBus2; // uncomment to use default data structure instance 
 /**
  * @brief Uncomment to use built-in request and receive event handlers. 
  */
-// extern volatile long request_event_id_bus_0;
-// extern volatile long request_event_id_bus_1;
-// extern volatile long request_event_id_bus_2;
-
 // void requestEventBus0Chars();
 // void receiveEventBus0Chars(size_t n_bytes_received);
 

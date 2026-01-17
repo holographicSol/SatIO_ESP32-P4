@@ -227,12 +227,9 @@ void UpdateAllIndicators(int start, int end, CRGB color) {
  * @brief Request event handler for Bus 1.
  * @warning Uncomment and customize to use locally (backup first) or copy into project!
 */
-
-volatile long request_event_id_bus_1;
-
 void requestEventBus1Bin() {
-  Serial.println("[requestEventBus1Bin] id: " + String(request_event_id_bus_1));
-  switch (request_event_id_bus_1) {
+  Serial.println("[requestEventBus1Bin] id: " + String(I2CLinkBus1.REQUEST_ID));
+  switch (I2CLinkBus1.REQUEST_ID) {
     case 0x01: {
         Serial.println("[requestEventBus1Bin] preparing to send requested data (brightness_stage): " + String(brightness_stage));
         memset(I2CLinkBus1.OUTPUT_PACKET, 0, sizeof(I2CLinkBus1.OUTPUT_PACKET));
@@ -241,7 +238,7 @@ void requestEventBus1Bin() {
         break;
     }
     default: {
-        Serial.println("[requestEventBus1Bin] event id is not defined: " + String(request_event_id_bus_1));
+        Serial.println("[requestEventBus1Bin] event id is not defined: " + String(I2CLinkBus1.REQUEST_ID));
         break;
     }
   }
@@ -269,7 +266,7 @@ void receiveEventBus1Bin(size_t n_bytes_received) {
     case 0x01: {
       // no sanitation
       Serial.println("[receiveEventBus1Bin] preparing to process command: " + String(cmd));
-      request_event_id_bus_1=0x01;
+      I2CLinkBus1.REQUEST_ID=0x01;
       break;
     }
     // Indicators
@@ -358,7 +355,7 @@ void receiveEventBus1Bin(size_t n_bytes_received) {
     }
     default: {
         Serial.println("[receiveEventBus1Bin] command is not defined: " + String(cmd));
-        while (Wire.available()) {Wire.read();}
+        while (Wire.available()) {Wire.read();} // drain
         break;
     }
   }
