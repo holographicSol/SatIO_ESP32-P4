@@ -170,29 +170,44 @@ void clearMatrixSwitch() {
   }
 }
 
-// ------------------------------------------------------------
-// I2C Event: sends binary data to master
-// ------------------------------------------------------------
+/** ----------------------------------------------------------------------------
+ * @brief Request event handler for Bus 1.
+ * @warning Uncomment and customize to use locally (backup first) or copy into project!
+*/
+volatile int request_event_id=0;
+
 void requestEvent() {
-  // if (!multi_read_mode) return;
-  float value = (float)input_value[current_pin];   // your original double → float (safe!)
-  // Union = fastest way to get raw bytes of a float
-  union {
-    float    f;
-    uint8_t  bytes[4];
-  } u;
-  u.f = value;
-  uint8_t packet[5] = {
-    (uint8_t)current_pin,
-    u.bytes[0],
-    u.bytes[1],
-    u.bytes[2],
-    u.bytes[3]
-  };
-  Wire.write(packet, 5);
-  if (++current_pin >= NUM_ANALOG + NUM_DIGITAL) {
-    current_pin = 0;
-    multi_read_mode = false;
+  Serial.println("[requestEvent] id: " + String(request_event_id));
+  switch (request_event_id) {
+
+    case 0xB2: {
+      float value = (float)input_value[current_pin];   // your original double → float (safe!)
+      // Serial.println("[requestEvent] current value: " + String(value) + " (pin" + String(current_pin) + ")");
+      // Union = fastest way to get raw bytes of a float
+      union {
+        float    f;
+        uint8_t  bytes[4];
+      } u;
+      u.f = value;
+      uint8_t packet[5] = {
+        (uint8_t)current_pin,
+        u.bytes[0],
+        u.bytes[1],
+        u.bytes[2],
+        u.bytes[3]
+      };
+      Wire.write(packet, 5);
+      if (++current_pin >= NUM_ANALOG + NUM_DIGITAL) {
+        current_pin = 0;
+        multi_read_mode = false;
+      }
+      break;
+    }
+
+    default: {
+      Serial.println("[requestEvent] event id: " + String(request_event_id) + " is not defined.");
+      break;
+    }
   }
 }
 
@@ -296,8 +311,8 @@ void receiveEvent(int howMany) {
     // Instruction: M2
     // ------------------------------------------------------------
     case 0xB2: {
-    // Serial.println("[Resuest] M2"); 
-      multi_read_mode = true;
+      Serial.println("[Resuest] M2"); 
+      request_event_id = 0xB2;
       current_pin = 0;
       while (Wire.available()) {Wire.read();}
       break;
