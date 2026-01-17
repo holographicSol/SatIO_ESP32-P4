@@ -22,8 +22,6 @@ PortController - IIC I/O device.
 #include <Wire.h>
 #include <i2c_helper.h>
 
-#define SLAVE_ADDR 10 // set address as required.
-
 // ------------------------------------------------------------
 // Set expected pins for a board
 // ------------------------------------------------------------
@@ -141,7 +139,6 @@ volatile int input_value[MAX_MATRIX_SWITCHES]={
 
 volatile int current_input_value=0;
 volatile uint8_t current_pin=0;
-volatile bool multi_read_mode=false;
 
 // ------------------------------------------------------------
 // I2C Data
@@ -180,7 +177,7 @@ void requestEventBus0Bin() {
   // Serial.println("[requestEventBus0Bin] id: " + String(request_event_id_bus_0));
   switch (request_event_id_bus_0) {
     // send pin reading
-    case 0xB2: {
+    case 0x1E: {
         // Serial.println("[requestEventBus0Bin] preparing to send requested data: input value");
         memset(I2CLinkBus0.OUTPUT_PACKET, 0, sizeof(I2CLinkBus0.OUTPUT_PACKET));
         write_uint8_ToPacket(I2CLinkBus0.OUTPUT_PACKET, 0, (uint8_t)current_pin);
@@ -205,11 +202,9 @@ void receiveEventBus0Bin(int n_bytes_received) {
   uint8_t cmd = Wire.read();
   Serial.println("[receiveEventBus0Bin] " + String(cmd) + " (" + String(n_bytes_received) + " bytes)");
   switch (cmd) {
-    // ------------------------------------------------------------
-    // Instruction: M0
-    // ------------------------------------------------------------
-    case 0xB0: {
-    // Serial.println("[Resuest] M0");
+
+    // Command 10
+    case 0x0A: {
       for (int i = 0; i < MAX_MATRIX_SWITCHES; i++) {
         matrix_port_map[i] = -1;
         output_value[i] = 0;
@@ -218,58 +213,46 @@ void receiveEventBus0Bin(int n_bytes_received) {
         matrix_modulation_time[i][2] = 0;
         matrix_modulation_switch_state[i] = false;
       }
-      multi_read_mode = false;
       current_pin = 0;
       while (Wire.available()) Wire.read();  // flush
       break;
     }
-    // ------------------------------------------------------------
-    // Instruction: M1
-    // ------------------------------------------------------------
-    case 0xB1: {
-      // Serial.println("[Resuest] M1");
-      if (n_bytes_received != 15) { while (Wire.available()) Wire.read(); Serial.println("!=15"); return; }
-      uint8_t  idx      = Wire.read();
-      int8_t   pin      = (int8_t)Wire.read();  // correctly handles -1
 
-      int32_t  value =    (uint32_t)Wire.read() |
-                          (int32_t)Wire.read() << 8 |
-                          (int32_t)Wire.read() << 16 |
-                          (int32_t)Wire.read() << 24;
+    // Command 20
+    case 0x14: {
+      if (n_bytes_received != 15) { while (Wire.available()) Wire.read(); Serial.println("!=15"); return;}
 
-      uint32_t off_time = (uint32_t)Wire.read() |
-                          (uint32_t)Wire.read() << 8 |
-                          (uint32_t)Wire.read() << 16 |
-                          (uint32_t)Wire.read() << 24;
+      uint8_t idx;
+      read_uint8_FromWire(Wire, idx);
 
-      uint32_t on_time  = (uint32_t)Wire.read() |
-                          (uint32_t)Wire.read() << 8 |
-                          (uint32_t)Wire.read() << 16 |
-                          (uint32_t)Wire.read() << 24;
+      int8_t pin;
+      read_int8_FromWire(Wire, pin);
+
+      int32_t value;
+      read_int32_FromWire(Wire, value);
+
+      uint32_t off_time;
+      read_uint32_FromWire(Wire, off_time);
+
+      uint32_t on_time;
+      read_uint32_FromWire(Wire, on_time);
 
       if (idx >= MAX_MATRIX_SWITCHES) return;
-      // ------------------------------------------------------------
-      // Store
-      // ------------------------------------------------------------
+
       matrix_port_map[idx]           = pin;
       output_value[idx]              = value;
       matrix_modulation_time[idx][0] = off_time;
       matrix_modulation_time[idx][1] = on_time;
-      // ------------------------------------------------------------
+
       // Debug: I2C timeouts may occur if blocking with serial prints 
-      // ------------------------------------------------------------
-      Serial.println("pin  " + String(matrix_port_map[idx]));
-      Serial.println("outv " + String(output_value[idx]));
-      Serial.println("pwm0 " + String(matrix_modulation_time[idx][0]));
-      Serial.println("pwm1 " + String(matrix_modulation_time[idx][1]));
+      // Serial.println("pin  " + String(matrix_port_map[idx]));
+      // Serial.println("outv " + String(output_value[idx]));
+      // Serial.println("pwm0 " + String(matrix_modulation_time[idx][0]));
+      // Serial.println("pwm1 " + String(matrix_modulation_time[idx][1]));
       // Serial.println("pwm2 " + String(matrix_modulation_time[idx][2]));
       // Serial.println("pwm3 " + String(matrix_modulation_switch_state[idx] ? "true" : "false"));
-      // ------------------------------------------------------------
-      // Apply
-      // ------------------------------------------------------------
-      // -----------------------
-      // Digital
-      // -----------------------
+
+      // Set digital pin
       if (isDigitalPin(matrix_port_map[port_index])) {
         current_input_value=digitalRead(matrix_port_map[port_index]);
         if ( (current_input_value==1) && (output_value[port_index]==0) ) {
@@ -283,29 +266,22 @@ void receiveEventBus0Bin(int n_bytes_received) {
           matrix_modulation_time[port_index][2]=0;
         }
       }
-      // -----------------------
-      // Analog
-      // -----------------------
+      // Set analog pin
       else if (isAnalogPin(matrix_port_map[port_index])) {
         pinMode(matrix_port_map[port_index], OUTPUT); // new
         analogWrite(matrix_port_map[port_index], output_value[port_index]);
-        // matrix_modulation_time[port_index][2]=0;
       }
       break;
     }
-    // ------------------------------------------------------------
-    // Instruction: M2
-    // ------------------------------------------------------------
-    case 0xB2: {
-      Serial.println("[Resuest] M2"); 
-      request_event_id_bus_0 = 0xB2;
+
+    // Command 30
+    case 0x1E: {
       current_pin = 0;
+      request_event_id_bus_0 = 0x1E;
       while (Wire.available()) {Wire.read();}
       break;
     }
-    // ------------------------------------------------------------
-    // Default case: flush
-    // ------------------------------------------------------------
+    // Default: flush
     default: {
       while (Wire.available()) {Wire.read();}
       break;
@@ -405,8 +381,8 @@ void setup() {
   // ------------------------------------------------------------
   // I2C
   // ------------------------------------------------------------
-  Wire.begin(SLAVE_ADDR); 
-  Serial.println("[IIC] Starting IIC as slave address: " + String(SLAVE_ADDR));
+  Wire.begin(SLAVE_ADDR_BUS0); 
+  Serial.println("[IIC] Starting IIC as slave address: " + String(SLAVE_ADDR_BUS0));
   // ------------------------------------------------------------
   // Function to run when data requested from master
   // ------------------------------------------------------------

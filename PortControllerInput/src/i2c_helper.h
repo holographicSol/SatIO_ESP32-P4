@@ -28,7 +28,7 @@
 #include <Arduino.h>
 #include <Wire.h>
 
-// #define SLAVE_ADDR_BUS0 0 // uncomment to set address if required.
+#define SLAVE_ADDR_BUS0 10 // uncomment to set address if required.
 // #define SLAVE_ADDR_BUS1 0 // uncomment to set address if required.
 // #define SLAVE_ADDR_BUS2 0 // uncomment to set address if required.
 
