@@ -426,7 +426,7 @@ void taskPortControllerInput(void * pvParameters) {
     // ------------------------------------------------
     // Read Input Port Controller.
     // ------------------------------------------------
-    if (readInputPortControllerM1(iic_2, I2C_ADDR_INPUT_PORTCONTROLLER)==true) {
+    if (readInputPortControllerReadPins(iic_2, I2C_ADDR_INPUT_PORTCONTROLLER)==true) {
       systemData.i_count_portcontroller_input++;
       if (systemData.i_count_portcontroller_input>=UINT64_MAX-2)
         {systemData.i_count_portcontroller_input=0;}
@@ -481,7 +481,7 @@ void taskSwitches(void * pvParameters) {
     // Output.
     // ------------------------------------------------
     setOutputValues();
-    writeOutputPortControllerM1(iic_1, I2C_ADDR_OUTPUT_PORTCONTROLLER);
+    writeOutputPortControllerSetPins(iic_1, I2C_ADDR_OUTPUT_PORTCONTROLLER);
     // SwitchStat();
     // ------------------------------------------------
     // Delay next iteration of task.

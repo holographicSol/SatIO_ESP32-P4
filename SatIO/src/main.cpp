@@ -233,7 +233,7 @@ void setup() {
   // iic_1.setClock(200000); // ESP32 2.2k resistor         good
   // iic_1.setClock(250000); // ATMEGA2560 2.2k resistor    good
   iic_1.setClock(800000); // ATMEGA2560 2.2k resistor       good (+-4ns rise time)
-  writeOutputPortControllerM0(iic_1, I2C_ADDR_OUTPUT_PORTCONTROLLER);
+  writeOutputPortControllerClear(iic_1, I2C_ADDR_OUTPUT_PORTCONTROLLER);
 
   // --------------------------------------------------------------
   // Initialize I2C BUS 2: Input port controller

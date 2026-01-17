@@ -252,7 +252,7 @@ void override_all_computer_assists();
  * @param address I2C address of output portcontroller.
  * @return Returns None
  */
-void writeOutputPortControllerM0(TwoWire &wire, int address);
+void writeOutputPortControllerClear(TwoWire &wire, int address);
 
 /**
  * @brief Write all stored instructions to output portcontroller.
@@ -260,7 +260,7 @@ void writeOutputPortControllerM0(TwoWire &wire, int address);
  * @param address I2C address of output portcontroller.
  * @return Returns None
  */
-void writeOutputPortControllerM1(TwoWire &wire, int address);
+void writeOutputPortControllerSetPins(TwoWire &wire, int address);
 
 /**
  * @brief Read all input states from input portcontroller.
@@ -268,7 +268,7 @@ void writeOutputPortControllerM1(TwoWire &wire, int address);
  * @param address I2C address of input portcontroller.
  * @return Returns true if successful.
  */
-bool readInputPortControllerM1(TwoWire &wire,
-                               int address);
+bool readInputPortControllerReadPins(TwoWire &wire,
+                                 int address);
 
 #endif
