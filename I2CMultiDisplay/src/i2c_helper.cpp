@@ -3,6 +3,21 @@
 
   Intends to standardize I2C communication functions across
   multiple I2C buses, devices, and across multiple projects.
+
+  Reading & writing in binary over I2C is faster than sending bytes of char
+  arrays but less human readable, therefore this library also intends to make
+  r/w binary data over I2C both fast and human readable from a high/project level.
+
+  Includes binary packet building functions for:
+    int8 to int64.
+    uint8 to uint64.
+    long, long long.
+    float, double.
+    bool.
+    char, nchars.
+    byte, nbytes.
+
+  Includes binary packet reading functions for all of the above mentioned types.
 */
 
 #include <Arduino.h>
@@ -16,6 +31,248 @@ TwoWire iic_2(2);
 IICLink I2CLinkBus0;
 IICLink I2CLinkBus1;
 IICLink I2CLinkBus2;
+
+/** ----------------------------------------------------------------------------
+ * @brief Request event handler for Bus 0
+ * 
+ * @warning Customize to use locally (backup first) or copy into project!
+*/
+// void requestEventBus0Chars() {
+//   Serial.printf("[requestEventBus0Chars] %d\n", I2CLinkBus0.REQUEST_ID);
+//   if (I2CLinkBus0.REQUEST_ID==0) {
+//     memset(I2CLinkBus0.OUTPUT_BUFFER_CHARS, 0, sizeof(I2CLinkBus0.OUTPUT_BUFFER_CHARS));
+//     strcpy(I2CLinkBus0.OUTPUT_BUFFER_CHARS, "0,value_from_slave");
+//     writeI2CToMasterChars(iic_0, I2CLinkBus0, 0);
+//   }
+// }
+/** ----------------------------------------------------------------------------
+ * @brief Request event handler for Bus 1
+ * 
+ * @warning Customize to use locally (backup first) or copy into project!
+*/
+// void requestEventBus1Chars() {
+//   Serial.printf("[requestEventBus1Chars] %d\n", I2CLinkBus1.REQUEST_ID);
+//   if (I2CLinkBus1.REQUEST_ID==0) {
+//     memset(I2CLinkBus1.OUTPUT_BUFFER_CHARS, 0, sizeof(I2CLinkBus1.OUTPUT_BUFFER_CHARS));
+//     strcpy(I2CLinkBus1.OUTPUT_BUFFER_CHARS, "0,value_from_slave");
+//     writeI2CToMasterChars(iic_1, I2CLinkBus1, 0);
+//   }
+// }
+/** ----------------------------------------------------------------------------
+ * @brief Request event handler for Bus 2
+ * 
+ * @warning Customize to use locally (backup first) or copy into project!
+*/
+// void requestEventBus2Chars() {
+//   Serial.printf("[requestEventBus1Chars] %d\n", I2CLinkBus2.REQUEST_ID);
+//   if (I2CLinkBus2.REQUEST_ID==0) {
+//     memset(I2CLinkBus2.OUTPUT_BUFFER_CHARS, 0, sizeof(I2CLinkBus2.OUTPUT_BUFFER_CHARS));
+//     strcpy(I2CLinkBus2.OUTPUT_BUFFER_CHARS, "0,value_from_slave");
+//     writeI2CToMasterChars(iic_2, I2CLinkBus2, 0);
+//   }
+// }
+
+/** ----------------------------------------------------------------------------
+ * @brief Receive event handler for Bus 0
+ * 
+ * @warning Customize to use locally (backup first) or copy into project!
+*/
+// void receiveEventBus0Chars(size_t n_bytes_received) {
+//   int len = iic_0.readBytes((char *)I2CLinkBus0.INPUT_BUFFER, n_bytes_received);
+//   if (len < 1) return;
+//   I2CLinkBus0.INPUT_BUFFER[len] = '\0';
+//   Serial.printf("[receiveEventBus0Chars] %s (%d bytes)\n", I2CLinkBus0.INPUT_BUFFER, len);
+//   // -----------------------------------------------------
+//   // Check for request ID's (no operation)
+//   // -----------------------------------------------------
+//   if (strcmp(I2CLinkBus0.INPUT_BUFFER, "0") == 0) {I2CLinkBus0.REQUEST_ID = 0; return;}
+//   // -----------------------------------------------------
+//   // Tokenize input
+//   // -----------------------------------------------------
+//   I2CLinkBus0.i_token=0;
+//   I2CLinkBus0.token = strtok(I2CLinkBus0.INPUT_BUFFER, ",");
+//   while (I2CLinkBus0.token != NULL) {
+//     if (I2CLinkBus0.i_token == 0) {/* customize.. */}
+//     I2CLinkBus0.i_token++;
+//     I2CLinkBus0.token = strtok(NULL, ",");
+//   }
+// }
+/** ----------------------------------------------------------------------------
+ * @brief Receive event handler for Bus 1
+ * 
+ * @warning Customize to use locally (backup first) or copy into project!
+*/
+// void receiveEventBus1Chars(size_t n_bytes_received) {
+//   int len = iic_1.readBytes((char *)I2CLinkBus1.INPUT_BUFFER, n_bytes_received);
+//   if (len < 1) return;
+//   I2CLinkBus1.INPUT_BUFFER[len] = '\0';
+//   Serial.printf("[receiveEventBus1Chars] %s (%d bytes)\n", I2CLinkBus1.INPUT_BUFFER, len);
+//   // -----------------------------------------------------
+//   // Check for request ID's (no operation)
+//   // -----------------------------------------------------
+//   if (strcmp(I2CLinkBus1.INPUT_BUFFER, "0") == 0) {I2CLinkBus1.REQUEST_ID = 0; return;}
+//   // -----------------------------------------------------
+//   // Tokenize input
+//   // -----------------------------------------------------
+//   I2CLinkBus1.i_token=0;
+//   I2CLinkBus1.token = strtok(I2CLinkBus1.INPUT_BUFFER, ",");
+//   while (I2CLinkBus1.token != NULL) {
+//     if (I2CLinkBus1.i_token == 0) {/* customize.. */}
+//     I2CLinkBus1.i_token++;
+//     I2CLinkBus1.token = strtok(NULL, ",");
+//   }
+// }
+/** ----------------------------------------------------------------------------
+ * @brief Receive event handler for Bus 2
+ * 
+ * @warning Customize to use locally (backup first) or copy into project!
+*/
+// void receiveEventBus2Chars(size_t n_bytes_received) {
+//   int len = iic_2.readBytes((char *)I2CLinkBus2.INPUT_BUFFER, n_bytes_received);
+//   if (len < 1) return;
+//   I2CLinkBus2.INPUT_BUFFER[len] = '\0';
+//   Serial.printf("[receiveEventBus2Chars] %s (%d bytes)\n", I2CLinkBus2.INPUT_BUFFER, len);
+//   // -----------------------------------------------------
+//   // Check for request ID's (no operation)
+//   // -----------------------------------------------------
+//   if (strcmp(I2CLinkBus2.INPUT_BUFFER, "0") == 0) {I2CLinkBus2.REQUEST_ID = 0; return;}
+//   // -----------------------------------------------------
+//   // Tokenize input
+//   // -----------------------------------------------------
+//   I2CLinkBus2.i_token=0;
+//   I2CLinkBus2.token = strtok(I2CLinkBus2.INPUT_BUFFER, ",");
+//   while (I2CLinkBus2.token != NULL) {
+//     if (I2CLinkBus2.i_token == 0) {/* customize.. */}
+//     I2CLinkBus2.i_token++;
+//     I2CLinkBus2.token = strtok(NULL, ",");
+//   }
+// }
+
+/** ----------------------------------------------------------------------------
+ * @brief Request binary event handler for Bus 0
+ * 
+ * @warning Customize to use locally (backup first) or copy into project!
+ */
+// volatile long request_event_id_bus_0;
+
+// void requestEventBus0Bin() {
+//   Serial.println("[requestEventBus0Bin] id: " + String(request_event_id_bus_0));
+//   switch (request_event_id_bus_0) {
+//     case 0x00: {
+//         Serial.println("[requestEventBus0Bin] preparing to send requested data: " + String());
+//         break;
+//     }
+//     default: {
+//         Serial.println("[requestEventBus0Bin] event id is not defined: " + String(request_event_id_bus_0));
+//         break;
+//     }
+//   }
+// }
+
+/** ----------------------------------------------------------------------------
+ * @brief Request binary event handler for Bus 1
+ * 
+ * @warning Customize to use locally (backup first) or copy into project!
+ */
+// volatile long request_event_id_bus_1;
+
+// void requestEventBus1Bin() {
+//   Serial.println("[requestEventBus1Bin] id: " + String(request_event_id_bus_1));
+//   switch (request_event_id_bus_1) {
+//     case 0x00: {
+//         Serial.println("[requestEventBus1Bin] preparing to send requested data: " + String());
+//         break;
+//     }
+//     default: {
+//         Serial.println("[requestEventBus1Bin] event id is not defined: " + String(request_event_id_bus_1));
+//         break;
+//     }
+//   }
+// }
+
+/** ----------------------------------------------------------------------------
+ * @brief Request binary event handler for Bus 2
+ * 
+ * @warning Customize to use locally (backup first) or copy into project!
+ */
+// volatile long request_event_id_bus_2;
+
+// void requestEventBus2Bin() {
+//   Serial.println("[requestEventBus2Bin] id: " + String(request_event_id_bus_2));
+//   switch (request_event_id_bus_2) {
+//     case 0x00: {
+//         Serial.println("[requestEventBus2Bin] preparing to send requested data: " + String());
+//         break;
+//     }
+//     default: {
+//         Serial.println("[requestEventBus2Bin] event id is not defined: " + String(request_event_id_bus_2));
+//         break;
+//     }
+//   }
+// }
+
+/** ----------------------------------------------------------------------------
+ * @brief Receive binary event handler for Bus 0
+ * 
+ * @warning Customize to use locally (backup first) or copy into project!
+*/
+// void receiveEventBus0Bin(size_t n_bytes_received) {
+//   if (n_bytes_received < 1) return;
+//   uint8_t cmd = Wire.read();
+//   Serial.println("[receiveEventBus0Bin] " + String(cmd) + " (" + String(n_bytes_received) + " bytes)");
+//   switch (cmd) {
+//     case 0x00: {
+//         Serial.println("[requestEvent] preparing to process command: " + String(cmd));
+//         break;
+//     }
+//     default: {
+//         Serial.println("[receiveEventBus0Bin] command is not defined: " + String(cmd));
+//         break;
+//     }
+//   }
+// }
+
+/** ----------------------------------------------------------------------------
+ * @brief Receive binary event handler for Bus 1
+ * 
+ * @warning Customize to use locally (backup first) or copy into project!
+*/
+// void receiveEventBus1Bin(size_t n_bytes_received) {
+//   if (n_bytes_received < 1) return;
+//   uint8_t cmd = Wire.read();
+//   Serial.println("[receiveEventBus1Bin] " + String(cmd) + " (" + String(n_bytes_received) + " bytes)");
+//   switch (cmd) {
+//     case 0x00: {
+//         Serial.println("[receiveEventBus1Bin] preparing to process command: " + String(cmd));
+//         break;
+//     }
+//     default: {
+//         Serial.println("[receiveEventBus1Bin] command is not defined: " + String(cmd));
+//         break;
+//     }
+//   }
+// }
+
+/** ----------------------------------------------------------------------------
+ * @brief Receive binary event handler for Bus 2
+ * 
+ * @warning Customize to use locally (backup first) or copy into project!
+*/
+// void receiveEventBus2Bin(size_t n_bytes_received) {
+//   if (n_bytes_received < 1) return;
+//   uint8_t cmd = Wire.read();
+//   Serial.println("[receiveEventBus2Bin] " + String(cmd) + " (" + String(n_bytes_received) + " bytes)");
+//   switch (cmd) {
+//     case 0x00: {
+//         Serial.println("[receiveEventBus2Bin] preparing to process command: " + String(cmd));
+//         break;
+//     }
+//     default: {
+//         Serial.println("[receiveEventBus2Bin] command is not defined: " + String(cmd));
+//         break;
+//     }
+//   }
+// }
 
 /** ----------------------------------------------------------------------------
  * Prints a human-readable description of Wire.endTransmission() error codes
@@ -191,41 +448,504 @@ void requestFromSlaveChars(TwoWire &wire,
 }
 
 /** ----------------------------------------------------------------------------
- * @brief Request event handler for Bus 0.
- * @warning Uncomment and customize to use locally (backup first) or copy into project!
-*/
-void requestEventBus0Chars() {
-  Serial.printf("[requestEventBus0Chars] %d\n", I2CLinkBus0.REQUEST_ID);
-  if (I2CLinkBus0.REQUEST_ID==0) {
-    memset(I2CLinkBus0.OUTPUT_BUFFER_CHARS, 0, sizeof(I2CLinkBus0.OUTPUT_BUFFER_CHARS));
-    strcpy(I2CLinkBus0.OUTPUT_BUFFER_CHARS, "0,value_from_slave");
-    writeI2CToMasterChars(iic_0, I2CLinkBus0, 0);
-  }
+ * @brief Writes binary data to an I2C slave device.
+ * @param wire Specify TwoWire instance.
+ * @param iic_link Specify IICLink instance.
+ * @param address I2C address of the slave device.
+ * @param len_packet Length of the packet to write in bytes.
+ * @param delayMs Delay in milliseconds after writing.
+ * @param debugTag Tag to identify the source of the error (recommend using caller function name).
+ */
+void writeI2CToSlaveBin(TwoWire &wire,
+                        IICLink &iic_link,
+                        int address,
+                        size_t len_packet,
+                        long delayMs,
+                        String debugTag) {
+  
+  wire.beginTransmission(address);
+  wire.write(iic_link.OUTPUT_PACKET, len_packet);
+  printI2CError(wire.endTransmission(), debugTag);
+  delay(delayMs); // Allow time for receiving device to process data.
 }
 
 /** ----------------------------------------------------------------------------
- * @brief Receive event handler for Bus 0.
- * @warning Uncomment and customize to use locally (backup first) or copy into project!
-*/
-void receiveEventBus0Chars(size_t n_bytes_received) {
-  int len = iic_0.readBytes((char *)I2CLinkBus0.INPUT_BUFFER, n_bytes_received);
-  if (len < 1) return;
-  I2CLinkBus0.INPUT_BUFFER[len] = '\0';
-  // Serial.printf("[receiveEventBus0Chars] %s (%d bytes)\n", I2CLinkBus0.INPUT_BUFFER, len);
-  // -----------------------------------------------------
-  // Check for request ID's (no operation)
-  // -----------------------------------------------------
-  if (strcmp(I2CLinkBus0.INPUT_BUFFER, "0") == 0) {I2CLinkBus0.REQUEST_ID = 0; return;}
-  // -----------------------------------------------------
-  // Tokenize input
-  // -----------------------------------------------------
-  I2CLinkBus0.i_token=0;
-  I2CLinkBus0.token = strtok(I2CLinkBus0.INPUT_BUFFER, ",");
-  while (I2CLinkBus0.token != NULL) {
-    if (I2CLinkBus0.i_token == 0) {/* customize.. */}
-    I2CLinkBus0.i_token++;
-    I2CLinkBus0.token = strtok(NULL, ",");
+ * @brief Writes binary data to an I2C master device.
+ * @param wire Specify TwoWire instance.
+ * @param iic_link Specify IICLink instance.
+ * @param len_packet Length of the packet to write in bytes.
+ * @param delayMs Delay in milliseconds after writing.
+ */
+void writeI2CToMasterBin(TwoWire &wire,
+                         IICLink &iic_link,
+                         size_t len_packet,
+                         long delayMs) {
+  wire.write(iic_link.OUTPUT_PACKET, len_packet);
+  delay(delayMs); // Allow time for receiving device to process data.
+}
+
+/** ----------------------------------------------------------------------------
+ * @brief Requests binary data from an I2C slave device.
+ * @param wire Specify TwoWire instance.
+ * @param iic_link Specify IICLink instance.
+ * @param address I2C address of the slave device.
+ * @param request_id Request ID to send to the slave so that slave knows what is being requested.
+ * @param len_expected Expected length of the response in bytes.
+ * @param delayMs Delay in milliseconds after writing.
+ * @param debugTag Tag to identify the source of the error (recommend using caller function name).
+ */
+void requestFromSlaveBin(TwoWire &wire,
+                         IICLink &iic_link,
+                         int address,
+                         size_t len_packet,
+                         long request_id,
+                         size_t len_expected,
+                         long delayMs,
+                         String debugTag) {
+  // Send request ID
+  memset(iic_link.OUTPUT_PACKET, 0, sizeof(iic_link.OUTPUT_PACKET));
+  iic_link.OUTPUT_PACKET[0] = (uint8_t)(request_id & 0xFF);
+  iic_link.OUTPUT_PACKET[1] = (uint8_t)((request_id >> 8) & 0xFF);
+  iic_link.OUTPUT_PACKET[2] = (uint8_t)((request_id >> 16) & 0xFF);
+  iic_link.OUTPUT_PACKET[3] = (uint8_t)((request_id >> 24) & 0xFF);
+  writeI2CToSlaveBin(wire, iic_link, address, 4, delayMs, debugTag);
+
+  // Send request
+  int len_req = wire.requestFrom(address, len_expected);
+//   Serial.printf("[requestFromSlaveBin] received %d bytes. Function: %s\n",
+//                 len_req,
+//                 debugTag.c_str());
+  
+  // Check response length
+  if (len_req != len_expected) {
+    Serial.printf("[requestFromSlaveBin] Warning: Expected %d bytes. Function: %s\n",
+                  len_expected,
+                  debugTag.c_str());
+    return;
+  }
+
+  // Read response
+  memset(iic_link.INPUT_PACKET, 0, sizeof(iic_link.INPUT_PACKET));
+  for (int i=0;i<len_req;i++) {iic_link.INPUT_PACKET[i] = wire.read();}
+  
+  // Debug
+//   Serial.printf("[requestFromSlaveBin] bin: ");
+//   for (int i = 0; i < len_req; i++) {Serial.printf("%02X ", iic_link.INPUT_PACKET[i]);}
+//   Serial.printf("Function: %s\n", debugTag.c_str());
+
+  delay(delayMs);
+}
+
+/** ----------------------------------------------------------------------------
+ * @brief Requests binary data from an I2C slave device.
+ * @param wire Specify TwoWire instance.
+ * @param iic_link Specify IICLink instance.
+ * @param address I2C address of the slave device.
+ * @param len_expected Expected length of the response in bytes.
+ * @param delayMs Delay in milliseconds after writing.
+ * @param debugTag Tag to identify the source of the error (recommend using caller function name).
+ */
+bool requestFromSlaveBinNoID(TwoWire &wire,
+                         IICLink &iic_link,
+                         int address,
+                         size_t len_expected,
+                         long delayMs,
+                         String debugTag) {
+  // Send request
+  int len_req = wire.requestFrom(address, len_expected);
+//   Serial.printf("[requestFromSlaveBin] received %d bytes. Function: %s\n",
+//                 len_req,
+//                 debugTag.c_str());
+  
+  // Check response length
+  if (len_req != len_expected) {
+    Serial.printf("[requestFromSlaveBin] Warning: Expected %d bytes. Function: %s\n",
+                  len_expected,
+                  debugTag.c_str());
+    return false;
+  }
+  delay(delayMs);
+  return true;
+}
+
+/**
+ * @brief Read uint8_t from I2C wire into specified value.
+ * @warning Specified value is expected to be uint8_t.
+ */
+void read_uint8_FromWire(TwoWire &wire, uint8_t &value) {
+  value = wire.read(); 
+}
+
+/**
+ * @brief Read int8_t from I2C wire into specified value.
+ * @warning Specified value is expected to be int8_t.
+ */
+void read_int8_FromWire(TwoWire &wire, int8_t &value) {
+  value = (int8_t)wire.read();
+}
+
+/**
+ * @brief Read uint16_t from I2C wire into specified value (2 bytes, little-endian).
+ * @warning Specified value is expected to be uint16_t.
+ */
+void read_uint16_FromWire(TwoWire &wire, uint16_t &value) {
+  union { uint16_t u; uint8_t bytes[2]; } un;
+  un.bytes[0] = wire.read();
+  un.bytes[1] = wire.read();
+  value = un.u;
+}
+
+/**
+ * @brief Read int16_t from I2C wire into specified value (2 bytes, little-endian).
+ * @warning Specified value is expected to be int16_t.
+ */
+void read_int16_FromWire(TwoWire &wire, int16_t &value) {
+  union { int16_t i; uint8_t bytes[2]; } un;
+  un.bytes[0] = wire.read();
+  un.bytes[1] = wire.read();
+  value = un.i;
+}
+
+/**
+ * @brief Read uint32_t from I2C wire into specified value (4 bytes, little-endian).
+ * @warning Specified value is expected to be uint32_t.
+ */
+void read_uint32_FromWire(TwoWire &wire, uint32_t &value) {
+  union { uint32_t u; uint8_t bytes[4]; } un;
+  un.bytes[0] = wire.read();
+  un.bytes[1] = wire.read();
+  un.bytes[2] = wire.read();
+  un.bytes[3] = wire.read();
+  value = un.u;
+}
+
+/**
+ * @brief Read int32_t from I2C wire into specified value (4 bytes, little-endian).
+ * @warning Specified value is expected to be int32_t.
+ */
+void read_int32_FromWire(TwoWire &wire, int32_t &value) {
+  union { int32_t i; uint8_t bytes[4]; } un;
+  un.bytes[0] = wire.read();
+  un.bytes[1] = wire.read();
+  un.bytes[2] = wire.read();
+  un.bytes[3] = wire.read();
+  value = un.i;
+}
+
+/**
+ * @brief Read uint64_t from I2C wire into specified value (8 bytes, little-endian).
+ * @warning Specified value is expected to be uint64_t.
+ */
+void read_uint64_FromWire(TwoWire &wire, uint64_t &value) {
+  union { uint64_t u; uint8_t bytes[8]; } un;
+  for (int i = 0; i < 8; i++) un.bytes[i] = wire.read();
+  value = un.u;
+}
+
+/**
+ * @brief Read int64_t from I2C wire into specified value (8 bytes, little-endian).
+ * @warning Specified value is expected to be int64_t.
+ */
+void read_int64_FromWire(TwoWire &wire, int64_t &value) {
+  union { int64_t i; uint8_t bytes[8]; } un;
+  for (int i = 0; i < 8; i++) un.bytes[i] = wire.read();
+  value = un.i;
+}
+
+/**
+ * @brief Read float from I2C wire into specified value (4 bytes, little-endian).
+ * @warning Specified value is expected to be float.
+ */
+void read_float_FromWire(TwoWire &wire, float &value) {
+  union { float f; uint8_t bytes[4]; } u;
+  u.bytes[0] = wire.read();
+  u.bytes[1] = wire.read();
+  u.bytes[2] = wire.read();
+  u.bytes[3] = wire.read();
+  value = u.f;
+}
+
+/**
+ * @brief Read double from I2C wire into specified value (8 bytes, little-endian).
+ * @warning Specified value is expected to be double.
+ */
+void read_double_FromWire(TwoWire &wire, double &value) {
+  union { double d; uint8_t bytes[8]; } u;
+  for (int i = 0; i < 8; i++) u.bytes[i] = wire.read();
+  value = u.d;
+}
+
+/**
+ * @brief Read long from I2C wire into specified value (little-endian).
+ * @warning Specified value is expected to be long.
+ */
+void read_long_FromWire(TwoWire &wire, long &value) {
+  union { long l; uint8_t bytes[sizeof(long)]; } un;
+  for (int i = 0; i < sizeof(long); i++) un.bytes[i] = wire.read();
+  value = un.l;
+}
+
+/**
+ * @brief Read long long from I2C wire into specified value (8 bytes, little-endian).
+ * @warning Specified value is expected to be long long.
+ */
+void read_longlong_FromWire(TwoWire &wire, long long &value) {
+  union { long long ll; uint8_t bytes[8]; } un;
+  for (int i = 0; i < 8; i++) un.bytes[i] = wire.read();
+  value = un.ll;
+}
+
+/**
+ * @brief Read bool from I2C wire into specified value.
+ * @warning Specified value is expected to be bool.
+ */
+void read_bool_FromWire(TwoWire &wire, bool &value) {
+  value = (bool)wire.read();
+}
+
+/**
+ * @brief Read char from I2C wire into specified value.
+ * @warning Specified value is expected to be char.
+ */
+void read_char_FromWire(TwoWire &wire, char &value) {
+  value = (char)wire.read();
+}
+
+/**
+ * @brief Read N chars from I2C wire into specified char array.
+ * @param wire Specify TwoWire instance.
+ * @param value Pointer to char array to store the read values.
+ * @param n_chars Number of chars to read.
+ * @warning Specified value is expected to be a char array with at least n_chars size.
+ * @warning Ensure the char array is large enough to hold n_chars values.
+ */
+void read_nchars_FromWire(TwoWire &wire, char *value, size_t n_chars) {
+  memset(value, 0, sizeof(value));
+  for (size_t i = 0; i < n_chars; i++) {
+    value[i] = (char)wire.read();
   }
 }
 
-// now write bytes versions (faster but less human readable)
+/**
+ * @brief Read byte from I2C wire into specified value.
+ * @warning Specified value is expected to be byte.
+ */
+void read_byte_FromWire(TwoWire &wire, byte &value) {
+  value = wire.read();
+}
+
+/**
+ * @brief Read N bytes from I2C wire into specified byte array.
+ * @param wire Specify TwoWire instance.
+ * @param value Pointer to byte array to store the read values.
+ * @param n_bytes Number of bytes to read.
+ * @warning Specified value is expected to be a byte array with at least n_bytes size.
+ * @warning Ensure the byte array is large enough to hold n_bytes values.
+ */
+void read_nbytes_FromWire(TwoWire &wire, byte *value, size_t n_bytes) {
+    for (size_t i = 0; i < n_bytes; i++) {
+        value[i] = wire.read();
+    }
+}
+
+/**
+ * @brief Write uint8_t to packet buffer at specified offset.
+ * @param buffer Pointer to packet buffer.
+ * @param offset Byte offset in buffer.
+ * @param value Value to write.
+ */
+void write_uint8_ToPacket(uint8_t *buffer, size_t offset, uint8_t value) {
+  buffer[offset] = value;
+}
+
+/**
+ * @brief Write int8_t to packet buffer at specified offset.
+ * @param buffer Pointer to packet buffer.
+ * @param offset Byte offset in buffer.
+ * @param value Value to write.
+ */
+void write_int8_ToPacket(uint8_t *buffer, size_t offset, int8_t value) {
+  buffer[offset] = (uint8_t)value;
+}
+
+/**
+ * @brief Write uint16_t to packet buffer at specified offset (2 bytes, little-endian).
+ * @param buffer Pointer to packet buffer.
+ * @param offset Byte offset in buffer.
+ * @param value Value to write.
+ */
+void write_uint16_ToPacket(uint8_t *buffer, size_t offset, uint16_t value) {
+  buffer[offset]     = (uint8_t)(value & 0xFF);
+  buffer[offset + 1] = (uint8_t)((value >> 8) & 0xFF);
+}
+
+/**
+ * @brief Write int16_t to packet buffer at specified offset (2 bytes, little-endian).
+ * @param buffer Pointer to packet buffer.
+ * @param offset Byte offset in buffer.
+ * @param value Value to write.
+ */
+void write_int16_ToPacket(uint8_t *buffer, size_t offset, int16_t value) {
+  buffer[offset]     = (uint8_t)(value & 0xFF);
+  buffer[offset + 1] = (uint8_t)((value >> 8) & 0xFF);
+}
+
+/**
+ * @brief Write uint32_t to packet buffer at specified offset (4 bytes, little-endian).
+ * @param buffer Pointer to packet buffer.
+ * @param offset Byte offset in buffer.
+ * @param value Value to write.
+ */
+void write_uint32_ToPacket(uint8_t *buffer, size_t offset, uint32_t value) {
+  buffer[offset]     = (uint8_t)(value & 0xFF);
+  buffer[offset + 1] = (uint8_t)((value >> 8) & 0xFF);
+  buffer[offset + 2] = (uint8_t)((value >> 16) & 0xFF);
+  buffer[offset + 3] = (uint8_t)((value >> 24) & 0xFF);
+}
+
+/**
+ * @brief Write int32_t to packet buffer at specified offset (4 bytes, little-endian).
+ * @param buffer Pointer to packet buffer.
+ * @param offset Byte offset in buffer.
+ * @param value Value to write.
+ */
+void write_int32_ToPacket(uint8_t *buffer, size_t offset, int32_t value) {
+  buffer[offset]     = (uint8_t)(value & 0xFF);
+  buffer[offset + 1] = (uint8_t)((value >> 8) & 0xFF);
+  buffer[offset + 2] = (uint8_t)((value >> 16) & 0xFF);
+  buffer[offset + 3] = (uint8_t)((value >> 24) & 0xFF);
+}
+
+/**
+ * @brief Write uint64_t to packet buffer at specified offset (8 bytes, little-endian).
+ * @param buffer Pointer to packet buffer.
+ * @param offset Byte offset in buffer.
+ * @param value Value to write.
+ */
+void write_uint64_ToPacket(uint8_t *buffer, size_t offset, uint64_t value) {
+  for (int i = 0; i < 8; i++) {
+    buffer[offset + i] = (uint8_t)((value >> (i * 8)) & 0xFF);
+  }
+}
+
+/**
+ * @brief Write int64_t to packet buffer at specified offset (8 bytes, little-endian).
+ * @param buffer Pointer to packet buffer.
+ * @param offset Byte offset in buffer.
+ * @param value Value to write.
+ */
+void write_int64_ToPacket(uint8_t *buffer, size_t offset, int64_t value) {
+  for (int i = 0; i < 8; i++) {
+    buffer[offset + i] = (uint8_t)((value >> (i * 8)) & 0xFF);
+  }
+}
+
+/**
+ * @brief Write long to packet buffer at specified offset (little-endian).
+ * @param buffer Pointer to packet buffer.
+ * @param offset Byte offset in buffer.
+ * @param value Value to write.
+ */
+void write_long_ToPacket(uint8_t *buffer, size_t offset, long value) {
+  for (int i = 0; i < sizeof(long); i++) {
+    buffer[offset + i] = (uint8_t)((value >> (i * 8)) & 0xFF);
+  }
+}
+
+/**
+ * @brief Write long long to packet buffer at specified offset (8 bytes, little-endian).
+ * @param buffer Pointer to packet buffer.
+ * @param offset Byte offset in buffer.
+ * @param value Value to write.
+ */
+void write_longlong_ToPacket(uint8_t *buffer, size_t offset, long long value) {
+  for (int i = 0; i < 8; i++) {
+    buffer[offset + i] = (uint8_t)((value >> (i * 8)) & 0xFF);
+  }
+}
+
+/**
+ * @brief Write float to packet buffer at specified offset (4 bytes, little-endian).
+ * @param buffer Pointer to packet buffer.
+ * @param offset Byte offset in buffer.
+ * @param value Value to write.
+ */
+void write_float_ToPacket(uint8_t *buffer, size_t offset, float value) {
+  union { float f; uint8_t bytes[4]; } u;
+  u.f = value;
+  for (int i = 0; i < 4; i++) {
+    buffer[offset + i] = u.bytes[i];
+  }
+}
+
+/**
+ * @brief Write double to packet buffer at specified offset (8 bytes, little-endian).
+ * @param buffer Pointer to packet buffer.
+ * @param offset Byte offset in buffer.
+ * @param value Value to write.
+ */
+void write_double_ToPacket(uint8_t *buffer, size_t offset, double value) {
+  union { double d; uint8_t bytes[8]; } u;
+  u.d = value;
+  for (int i = 0; i < 8; i++) {
+    buffer[offset + i] = u.bytes[i];
+  }
+}
+
+/**
+ * @brief Write bool to packet buffer at specified offset.
+ * @param buffer Pointer to packet buffer.
+ * @param offset Byte offset in buffer.
+ * @param value Value to write.
+ */
+void write_bool_ToPacket(uint8_t *buffer, size_t offset, bool value) {
+  buffer[offset] = (uint8_t)value;
+}
+
+/**
+ * @brief Write char to packet buffer at specified offset.
+ * @param buffer Pointer to packet buffer.
+ * @param offset Byte offset in buffer.
+ * @param value Value to write.
+ */
+void write_char_ToPacket(uint8_t *buffer, size_t offset, char value) {
+  buffer[offset] = (uint8_t)value;
+}
+
+/**
+ * @brief Write N chars to packet buffer at specified offset.
+ * @param buffer Pointer to packet buffer.
+ * @param offset Byte offset in buffer.
+ * @param value Pointer to char array to write.
+ * @param n_chars Number of chars to write.
+ * @warning Ensure source char array is at least n_chars in size.
+ */
+void write_nchars_ToPacket(uint8_t *buffer, size_t offset, const char *value, size_t n_chars) {
+  for (size_t i = 0; i < n_chars; i++) {
+    buffer[offset + i] = (uint8_t)value[i];
+  }
+}
+
+/**
+ * @brief Write byte to packet buffer at specified offset.
+ * @param buffer Pointer to packet buffer.
+ * @param offset Byte offset in buffer.
+ * @param value Value to write.
+ */
+void write_byte_ToPacket(uint8_t *buffer, size_t offset, byte value) {
+    buffer[offset] = value;
+}
+
+/**
+ * @brief Write N bytes to packet buffer at specified offset.
+ * @param buffer Pointer to packet buffer.
+ * @param offset Byte offset in buffer.
+ * @param value Pointer to byte array to write.
+ * @param n_bytes Number of bytes to write.
+ * @warning Ensure source array is at least n_bytes in size.
+ */
+void write_nbytes_ToPacket(uint8_t *buffer, size_t offset, const uint8_t *value, size_t n_bytes) {
+    for (size_t i = 0; i < n_bytes; i++) {
+        buffer[offset + i] = value[i];
+    }
+}

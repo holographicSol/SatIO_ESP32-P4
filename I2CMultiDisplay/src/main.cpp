@@ -164,7 +164,7 @@ uint8_t dot_colon_select_7seg_6digit[32] = {
  * Display Brightness.
  */
 #define MAX_BRIGHTNESS_STAGE 6
-int brightness_stage = 5;
+uint8_t brightness_stage = 5;
 const int LED_BRIGHTNESS_LEVELS[MAX_BRIGHTNESS_STAGE]  = {0, 1, 50, 100, 200, 255}; // adjust as required (0-255)
 const int SEG_BRIGHTNESS_LEVELS[MAX_BRIGHTNESS_STAGE]  = {0, 1, 2, 3, 4, 7}; // adjust as required (0-7)
 
@@ -224,153 +224,142 @@ void UpdateAllIndicators(int start, int end, CRGB color) {
 }
 
 /** ----------------------------------------------------------------------------
- * requestEvent.
- */
-volatile int request_event_id=0;
+ * @brief Request event handler for Bus 1.
+ * @warning Uncomment and customize to use locally (backup first) or copy into project!
+*/
 
-void requestEventBus1Chars() {
-  // --------------------------
-  // brightness level
-  // --------------------------
-  if (request_event_id==301) {
-    request_event_id=0;
-    clearI2CLinkOutputChars(I2CLinkBus1);
-    strcpy(I2CLinkBus1.OUTPUT_BUFFER_CHARS, "301,");
-    strcat(I2CLinkBus1.OUTPUT_BUFFER_CHARS, String(brightness_stage).c_str());
-    Serial.printf("[requestEventBus1Chars] data: %s\n", I2CLinkBus1.OUTPUT_BUFFER_CHARS);
-    writeI2CToMasterChars(iic_1, I2CLinkBus1, 0);
+volatile long request_event_id_bus_1;
+
+void requestEventBus1Bin() {
+  Serial.println("[requestEventBus1Bin] id: " + String(request_event_id_bus_1));
+  switch (request_event_id_bus_1) {
+    case 0x01: {
+        Serial.println("[requestEventBus1Bin] preparing to send requested data (brightness_stage): " + String(brightness_stage));
+        memset(I2CLinkBus1.OUTPUT_PACKET, 0, sizeof(I2CLinkBus1.OUTPUT_PACKET));
+        write_uint8_ToPacket(I2CLinkBus1.OUTPUT_PACKET, 0, brightness_stage);
+        writeI2CToMasterBin(Wire1, I2CLinkBus1, 1, 0);
+        break;
+    }
+    default: {
+        Serial.println("[requestEventBus1Bin] event id is not defined: " + String(request_event_id_bus_1));
+        break;
+    }
   }
 }
 
 /** ----------------------------------------------------------------------------
- * receiveEvent.
- */
-int     display_index;
-int     value_idx;
+ * @brief Receive event handler for Bus 1.
+ * @warning Uncomment and customize to use locally (backup first) or copy into project!
+*/
+uint8_t display_index;
+uint8_t value_idx;
 char    value_char[32];
-int     dtype;
-long    dx;
-long    dy;
+uint8_t dtype;
+uint8_t dx;
+uint8_t dy;
 uint8_t colorR;
 uint8_t colorG;
 uint8_t colorB;
 
-void receiveEventBus1Chars(size_t n_bytes_received) {
-  int len = Wire1.readBytes((char *)I2CLinkBus1.INPUT_BUFFER, n_bytes_received);
-  if (len < 1) return;
-  I2CLinkBus1.INPUT_BUFFER[len] = '\0';
-  // Serial.printf("[RX] %s (%d bytes)\n", I2CLinkBus1.INPUT_BUFFER, len);
-  // -----------------------------------------------------
-  // Check for request ID's (no operation)
-  // -----------------------------------------------------
-  if (strcmp(I2CLinkBus1.INPUT_BUFFER, "301")==0) {request_event_id=301; return;}
-  // -----------------------------------------------------
-  // Tokenize input
-  // -----------------------------------------------------
-  I2CLinkBus1.i_token = 0;
-  I2CLinkBus1.token   = strtok(I2CLinkBus1.INPUT_BUFFER, ",");
-  dtype = atoi(I2CLinkBus1.token);
-  // -----------------------------------------------------
-  // Parse Command: Draw Canvas
-  // -----------------------------------------------------
-  if (dtype==101) {
-    while (I2CLinkBus1.token != NULL) {
-      switch (I2CLinkBus1.i_token) {
-          case 1: ssd1306_displays[atoi(I2CLinkBus1.token)].draw=true; break;
-      }
-      I2CLinkBus1.token = strtok(NULL, ",");
-      I2CLinkBus1.i_token = I2CLinkBus1.i_token + 1;
+void receiveEventBus1Bin(size_t n_bytes_received) {
+  if (n_bytes_received < 1) return;
+  uint8_t cmd = Wire1.read();
+  // Serial.println("[receiveEventBus2Bin] " + String(cmd) + " (" + String(n_bytes_received) + " bytes)");
+  switch (cmd) {
+    case 0x01: {
+      // no sanitation
+      Serial.println("[receiveEventBus2Bin] preparing to process command: " + String(cmd));
+      request_event_id_bus_1=0x01;
+      break;
     }
-  }
-  else {
-    // -----------------------------------------------------
-    // Parse Command: Addressable LEDs
-    // -----------------------------------------------------
-    if (dtype==0) {
-      int i_san = 0;
-      while (I2CLinkBus1.token != NULL) {
-        switch (I2CLinkBus1.i_token) {
-            case 1: display_index = atoi(I2CLinkBus1.token); i_san++; break;
-            case 2: colorR        = atoi(I2CLinkBus1.token); i_san++; break;
-            case 3: colorG        = atoi(I2CLinkBus1.token); i_san++; break;
-            case 4: colorB        = atoi(I2CLinkBus1.token); i_san++; break;
-        }
-        I2CLinkBus1.token = strtok(NULL, ",");
-        I2CLinkBus1.i_token = I2CLinkBus1.i_token + 1;
-      }
-      // Serial.printf("[RX] led %d: r=%d g=%d b=%d sanitized=%d/4\n",
+    // Indicators
+    case 0x0A: {
+      if (n_bytes_received!=5) {return;}
+      read_uint8_FromWire(Wire1, display_index);
+      read_uint8_FromWire(Wire1, colorR);
+      read_uint8_FromWire(Wire1, colorG);
+      read_uint8_FromWire(Wire1, colorB);
+      led_color_values[display_index][INDEX_LED_COLOR_VALUE_RED]   = colorR;
+      led_color_values[display_index][INDEX_LED_COLOR_VALUE_GREEN] = colorG;
+      led_color_values[display_index][INDEX_LED_COLOR_VALUE_BLUE]  = colorB;
+      // Serial.printf("[RX] led %d: r=%d g=%d b=%d\n",
       //               display_index,
       //               colorR,
       //               colorG,
-      //               colorB,
-      //               i_san
+      //               colorB
       //             );
-      if (i_san==4) {
-        led_color_values[display_index][INDEX_LED_COLOR_VALUE_RED]   = colorR;
-        led_color_values[display_index][INDEX_LED_COLOR_VALUE_GREEN] = colorG;
-        led_color_values[display_index][INDEX_LED_COLOR_VALUE_BLUE]  = colorB;
-      }
+      break;
     }
-    // -----------------------------------------------------
-    // Parse Command: 7 Segment Display Data
-    // -----------------------------------------------------
-    else if (dtype >= 1 && dtype <=5) {
-      int i_san = 0;
-      while (I2CLinkBus1.token != NULL) {
-        switch (I2CLinkBus1.i_token) {
-            case 1: display_index = atoi(I2CLinkBus1.token); i_san++; break;
-            case 2: memset(value_char, 0, sizeof(value_char)); strcpy(value_char, I2CLinkBus1.token); i_san++; break;
-        }
-        I2CLinkBus1.token = strtok(NULL, ",");
-        I2CLinkBus1.i_token = I2CLinkBus1.i_token + 1;
-      }
-      // Serial.printf("[RX] 7seg %d: value=%s sanitized=%d/2\n",
+    // 4 Digit 7 Segment Displays
+    case 0x14: {
+      read_uint8_FromWire(Wire1, dtype);
+      read_uint8_FromWire(Wire1, display_index);
+      size_t str_len = n_bytes_received - 3; // deduct 3 bytes to find strlen
+      if (str_len >= sizeof(value_char)) {str_len = sizeof(value_char) - 1;}
+      read_nchars_FromWire(Wire1, value_char, str_len);
+      value_char[str_len] = '\0'; // null terminate
+      auto& disp = seven_seg_displays[display_index];
+      memset(disp.value, 0, sizeof(disp.value));
+      strcpy(disp.value, value_char);
+      // Serial.printf("[RX] 7seg4Digit: display_index=%d value=%s\n",
       //               display_index,
-      //               value_char,
-      //               i_san
+      //               value_char
       //             );
-      if (i_san==2) {
-        auto& disp = seven_seg_displays[display_index];
-        memset(disp.value, 0, sizeof(disp.value));
-        strcpy(disp.value, value_char);
-      }
+      break;
     }
-    // -----------------------------------------------------
-    // Parse Command: SSD1306 Display Data
-    // -----------------------------------------------------
-    else if (dtype == 6) {
-      int i_san = 0;
-      while (I2CLinkBus1.token != NULL) {
-        switch (I2CLinkBus1.i_token) {
-            case 1: display_index = atoi(I2CLinkBus1.token); i_san++; break;
-            case 2: value_idx     = atoi(I2CLinkBus1.token); i_san++; break;
-            case 3: dx            = atoi(I2CLinkBus1.token); i_san++; break;
-            case 4: dy            = atoi(I2CLinkBus1.token); i_san++; break;
-            case 5:
-              memset(value_char, 0, sizeof(value_char));
-              strcpy(value_char, I2CLinkBus1.token);
-              i_san++;
-              break;
-        }
-        I2CLinkBus1.token = strtok(NULL, ",");
-        I2CLinkBus1.i_token = I2CLinkBus1.i_token + 1;
-      }
-      // Serial.printf("[RX] SSD1306 %d: value_index=%d dx=%d dy%d value=%s sanitized=%d/5\n",
+    // 6 Digit 7 Segment Displays
+    case 0x1E: {
+      read_uint8_FromWire(Wire1, dtype);
+      read_uint8_FromWire(Wire1, display_index);
+      size_t str_len = n_bytes_received - 3; // deduct 3 bytes to find strlen
+      if (str_len >= sizeof(value_char)) {str_len = sizeof(value_char) - 1;}
+      read_nchars_FromWire(Wire1, value_char, str_len);
+      value_char[str_len] = '\0'; // null terminate
+      auto& disp = seven_seg_displays[display_index];
+      memset(disp.value, 0, sizeof(disp.value));
+      strcpy(disp.value, value_char);
+      // Serial.printf("[RX] 7seg6Digit: display_index=%d value=%s\n",
+      //               display_index,
+      //               value_char
+      //             );
+      break;
+    }
+    // SSD1306 Displays
+    case 0x28: {
+      read_uint8_FromWire(Wire1, dtype);
+      read_uint8_FromWire(Wire1, display_index);
+      read_uint8_FromWire(Wire1, value_idx);
+      read_uint8_FromWire(Wire1, dx);
+      read_uint8_FromWire(Wire1, dy);
+      size_t str_len = n_bytes_received - 6; // deduct 6 bytes to find strlen
+      if (str_len >= sizeof(value_char)) {str_len = sizeof(value_char) - 1;}
+      read_nchars_FromWire(Wire1, value_char, str_len);
+      value_char[str_len] = '\0'; // null terminate
+      ssd1306_displays[display_index].dx[value_idx] = dx;
+      ssd1306_displays[display_index].dy[value_idx] = dy;
+      memset(ssd1306_displays[display_index].value[value_idx], 0, sizeof(ssd1306_displays[display_index].value[value_idx]));
+      strcpy(ssd1306_displays[display_index].value[value_idx], value_char);
+      // Serial.printf("[RX] SSD1306 %d: value_index=%d dx=%d dy=%d value=%s\n",
       //               display_index,
       //               value_idx,
       //               dx,
       //               dy,
-      //               value_char,
-      //               i_san
+      //               value_char
       //             );
-      if (i_san==5) {
-        ssd1306_displays[display_index].dx[value_idx] = dx;
-        ssd1306_displays[display_index].dy[value_idx] = dy;
-        memset(ssd1306_displays[display_index].value[value_idx],
-                0,
-                sizeof(ssd1306_displays[display_index].value[value_idx]));
-        strcpy(ssd1306_displays[display_index].value[value_idx], value_char);
-      }
+      break;
+    }
+    case 0x32: {
+      read_uint8_FromWire(Wire1, display_index);
+      ssd1306_displays[display_index].draw=true;
+      // Serial.printf("[RX] SSD1306 %d: draw canvas.\n",
+      //               display_index
+      //             );
+      break;
+    }
+    default: {
+        Serial.println("[receiveEventBus2Bin] command is not defined: " + String(cmd));
+        while (Wire.available()) {Wire.read();}
+        break;
     }
   }
 }
@@ -745,11 +734,11 @@ void setup() {
   // ------------------------------------------------------------
   // Function to run when data requested from master
   // ------------------------------------------------------------
-  Wire1.onRequest(requestEventBus1Chars);
+  Wire1.onRequest(requestEventBus1Bin);
   // ------------------------------------------------------------
   // Function to run when data received from master
   // ------------------------------------------------------------
-  Wire1.onReceive(receiveEventBus1Chars);
+  Wire1.onReceive(receiveEventBus1Bin);
 }
 
 /** ----------------------------------------------------------------------------
