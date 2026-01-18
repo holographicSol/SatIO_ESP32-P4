@@ -24,7 +24,7 @@ IICLink IICLinkMultiDisplayController; // IIC link data structure for Multi Disp
 
 /* Instruction Structure: DisplayType,DisplayIndex,R,G,B */
 void updateIndicator(TwoWire &wire, int address, int display_index, int r, int g, int b) {
-  memset(IICLinkMultiDisplayController.OUTPUT_PACKET, 0, sizeof(IICLinkMultiDisplayController.OUTPUT_PACKET));
+  clearI2CLinkOutputPacket(IICLinkMultiDisplayController);
   write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 0, 0x0A); // command 10
   write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 1, display_index);
   write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 2, r);
@@ -35,7 +35,7 @@ void updateIndicator(TwoWire &wire, int address, int display_index, int r, int g
 
 /* Instruction Structure: DisplayType,DisplayIndex,Value */
 void update7Segment4Digit(TwoWire &wire, int address, int display_index, char* value) {
-  memset(IICLinkMultiDisplayController.OUTPUT_PACKET, 0, sizeof(IICLinkMultiDisplayController.OUTPUT_PACKET));
+  clearI2CLinkOutputPacket(IICLinkMultiDisplayController);
   write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 0, 0x14); // command 20
   write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 1, DISPLAY_TYPE_7SEGMENT_4DIGIT);
   write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 2, display_index);
@@ -45,7 +45,7 @@ void update7Segment4Digit(TwoWire &wire, int address, int display_index, char* v
 
 /* Instruction Structure: DisplayType,DisplayIndex,Value */
 void update7Segment6Digit(TwoWire &wire, int address, int display_index, char* value) {
-  memset(IICLinkMultiDisplayController.OUTPUT_PACKET, 0, sizeof(IICLinkMultiDisplayController.OUTPUT_PACKET));
+  clearI2CLinkOutputPacket(IICLinkMultiDisplayController);
   write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 0, 0x1E); // command 30
   write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 1, DISPLAY_TYPE_7SEGMENT_6DIGIT);
   write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 2, display_index);
@@ -55,7 +55,7 @@ void update7Segment6Digit(TwoWire &wire, int address, int display_index, char* v
 
 /* Instruction Structure: DisplayType,DisplayIndex,ValueIndex,Dx,Dy,Value */
 void updateSSD1306(TwoWire &wire, int address, int display_index, int value_index, int dx, int dy, char* value) {
-  memset(IICLinkMultiDisplayController.OUTPUT_PACKET, 0, sizeof(IICLinkMultiDisplayController.OUTPUT_PACKET));
+  clearI2CLinkOutputPacket(IICLinkMultiDisplayController);
   write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 0, 0x28 ); // command 40
   write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 1, DISPLAY_TYPE_SSD1306);
   write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 2, display_index);
@@ -68,6 +68,7 @@ void updateSSD1306(TwoWire &wire, int address, int display_index, int value_inde
 
 /* Instruction Structure: EventID,DisplayIndex */
 void drawSSD1306Canvas(TwoWire &wire, int address, int display_index) {
+  clearI2CLinkOutputPacket(IICLinkMultiDisplayController);
   write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 0, 0x32 ); // command 50
   write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 1, display_index);
   writeI2CToSlaveBin(wire, IICLinkMultiDisplayController, address, 2, 5, "drawSSD1306Canvas");
@@ -80,7 +81,7 @@ void requestMultiDisplayControllerData(TwoWire &wire, int address, bool &isr_int
    Serial.printf("[ISR FLAG] requestMultiDisplayControllerData\n");
 
    // Send event ID
-   memset(IICLinkMultiDisplayController.OUTPUT_PACKET, 0, sizeof(IICLinkMultiDisplayController.OUTPUT_PACKET));
+   clearI2CLinkOutputPacket(IICLinkMultiDisplayController);
    IICLinkMultiDisplayController.OUTPUT_PACKET[0] = 0x01; // 1
    writeI2CToSlaveBin(wire, IICLinkMultiDisplayController, address, 1, 0, "requestMultiDisplayControllerData");
 

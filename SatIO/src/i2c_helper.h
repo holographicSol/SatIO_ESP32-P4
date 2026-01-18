@@ -131,6 +131,18 @@ void clearI2CLinkOutputBytes(IICLink &iic_link);
 void clearI2CLinkInputChars(IICLink &iic_link);
 
 /** ----------------------------------------------------------------------------
+ * @brief Clears the input packet bytes of the given IICLink structure.
+ * @param iic_link Specify IICLink instance.
+ */
+void clearI2CLinkInputPacket(IICLink &iic_link);
+
+/** ----------------------------------------------------------------------------
+ * @brief Clears the output packet bytes of the given IICLink structure.
+ * @param iic_link Specify IICLink instance.
+ */
+void clearI2CLinkOutputPacket(IICLink &iic_link);
+
+/** ----------------------------------------------------------------------------
  * @brief Writes data to an I2C slave device.
  * @param wire Specify TwoWire instance.
  * @param iic_link Specify IICLink instance.

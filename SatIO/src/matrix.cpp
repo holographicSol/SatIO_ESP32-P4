@@ -1652,7 +1652,7 @@ IICLink IICLinkPCI; // IIC link data structure for input port controller
 IICLink IICLinkPCO; // IIC link data structure for output port controller
 
 void writeOutputPortControllerClear(TwoWire &wire, int address) {
-  memset(IICLinkPCO.OUTPUT_PACKET, 0, sizeof(IICLinkPCO.OUTPUT_PACKET));
+  clearI2CLinkOutputPacket(IICLinkPCO);
   write_uint8_ToPacket(IICLinkPCO.OUTPUT_PACKET, 0, 0x0A); // command 10
   writeI2CToSlaveBin(wire, IICLinkPCO, address, 1, 0, "writeOutputPortControllerClear");
   systemData.i_count_port_controller_output++;
@@ -1661,7 +1661,7 @@ void writeOutputPortControllerClear(TwoWire &wire, int address) {
 void writeOutputPortControllerSetPins(TwoWire &wire, int address) {
   for (int Mi = 0; Mi < MAX_MATRIX_SWITCHES; Mi++) {
     if (matrixData.matrix_switch_write_required[0][Mi]) {
-      memset(IICLinkPCO.OUTPUT_PACKET, 0, sizeof(IICLinkPCO.OUTPUT_PACKET));
+      clearI2CLinkOutputPacket(IICLinkPCO);
 
       // Select value to send as either override value or output value 
       int32_t value_to_send = matrixData.computer_assist[0][Mi]
@@ -1691,7 +1691,7 @@ void writeOutputPortControllerSetPins(TwoWire &wire, int address) {
 bool readInputPortControllerReadPins(TwoWire &wire, int address) {
 
   // Send event ID once to set a mode on receiver
-  memset(IICLinkPCO.OUTPUT_PACKET, 0, sizeof(IICLinkPCO.OUTPUT_PACKET));
+  clearI2CLinkOutputPacket(IICLinkPCO);
   IICLinkPCO.OUTPUT_PACKET[0] = 0x1E; // command 30
   writeI2CToSlaveBin(wire, IICLinkPCO, address, 1, 0, "readInputPortControllerM1");
 
