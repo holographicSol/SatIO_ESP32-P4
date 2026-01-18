@@ -212,7 +212,7 @@ IICLink I2CLinkBus2;
 */
 // void receiveEventBus0Bin(size_t n_bytes_received) {
 //   if (n_bytes_received < 1) return;
-//   uint8_t cmd = Wire.read();
+//   uint8_t cmd = Wire.read(); // expects uint8 command byte (up to 255 unique commands can be accepted). 
 //   Serial.println("[receiveEventBus0Bin] " + String(cmd) + " (" + String(n_bytes_received) + " bytes)");
 //   switch (cmd) {
 //     case 0x00: {
@@ -233,7 +233,7 @@ IICLink I2CLinkBus2;
 */
 // void receiveEventBus1Bin(size_t n_bytes_received) {
 //   if (n_bytes_received < 1) return;
-//   uint8_t cmd = Wire.read();
+//   uint8_t cmd = Wire.read(); // expects uint8 command byte (up to 255 unique commands can be accepted). 
 //   Serial.println("[receiveEventBus1Bin] " + String(cmd) + " (" + String(n_bytes_received) + " bytes)");
 //   switch (cmd) {
 //     case 0x00: {
@@ -254,7 +254,7 @@ IICLink I2CLinkBus2;
 */
 // void receiveEventBus2Bin(size_t n_bytes_received) {
 //   if (n_bytes_received < 1) return;
-//   uint8_t cmd = Wire.read();
+//   uint8_t cmd = Wire.read(); // expects uint8 command byte (up to 255 unique commands can be accepted). 
 //   Serial.println("[receiveEventBus2Bin] " + String(cmd) + " (" + String(n_bytes_received) + " bytes)");
 //   switch (cmd) {
 //     case 0x00: {
@@ -352,6 +352,22 @@ void clearI2CLinkOutputBytes(IICLink &iic_link) {
  */
 void clearI2CLinkInputChars(IICLink &iic_link) {
   memset(iic_link.INPUT_BUFFER, 0, sizeof(iic_link.INPUT_BUFFER));
+}
+
+/** ----------------------------------------------------------------------------
+ * @brief Clears the input packet bytes of the given IICLink structure.
+ * @param iic_link Specify IICLink instance.
+ */
+void clearI2CLinkInputPacket(IICLink &iic_link) {
+  memset(iic_link.INPUT_PACKET, 0, sizeof(iic_link.INPUT_PACKET));
+}
+
+/** ----------------------------------------------------------------------------
+ * @brief Clears the output packet bytes of the given IICLink structure.
+ * @param iic_link Specify IICLink instance.
+ */
+void clearI2CLinkOutputPacket(IICLink &iic_link) {
+  memset(iic_link.OUTPUT_PACKET, 0, sizeof(iic_link.OUTPUT_PACKET));
 }
 
 /** ----------------------------------------------------------------------------

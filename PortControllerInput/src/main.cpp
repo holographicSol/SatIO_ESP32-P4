@@ -165,7 +165,7 @@ void requestEventBus0Bin() {
     // send pin reading
     case 0x1E: {
         // Serial.println("[requestEventBus0Bin] preparing to send requested data: input value");
-        memset(I2CLinkBus0.OUTPUT_PACKET, 0, sizeof(I2CLinkBus0.OUTPUT_PACKET));
+        clearI2CLinkOutputPacket(I2CLinkBus0);
         write_uint8_ToPacket(I2CLinkBus0.OUTPUT_PACKET, 0, (uint8_t)current_pin);
         write_float_ToPacket(I2CLinkBus0.OUTPUT_PACKET, 1, (float)input_value[current_pin]);
         writeI2CToMasterBin(Wire, I2CLinkBus0, 5, 0);
@@ -185,7 +185,7 @@ void requestEventBus0Bin() {
 */
 void receiveEventBus0Bin(int n_bytes_received) {
   if (n_bytes_received < 1) return;
-  uint8_t cmd = Wire.read();
+  uint8_t cmd = Wire.read(); // expects uint8 command byte (up to 255 unique commands can be accepted). 
   Serial.println("[receiveEventBus0Bin] " + String(cmd) + " (" + String(n_bytes_received) + " bytes)");
   switch (cmd) {
 
