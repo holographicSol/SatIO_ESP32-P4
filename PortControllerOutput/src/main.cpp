@@ -5,7 +5,7 @@ PortController - IIC I/O device.
 
                  Can send pin readings to master.
 
-                 Can set pin levels acscording to master.
+                 Can set pin levels according to master.
 
                  For perfomance reasons it is recommnended for single use as either input
                  or output device but can be used as both.
@@ -141,19 +141,6 @@ volatile int current_input_value=0;
 volatile uint8_t current_pin=0;
 
 // ------------------------------------------------------------
-// I2C Data
-// ------------------------------------------------------------
-struct I2CLinkStruct {
-  volatile int i_token;
-  char         * token;
-  volatile byte OUTPUT_BUFFER[32];
-  char          INPUT_BUFFER[32];
-  char          TMP_BUFFER[32];
-};
-I2CLinkStruct I2CLink;
-
-
-// ------------------------------------------------------------
 // Clear Data
 // ------------------------------------------------------------
 void clearMatrixSwitch() {
@@ -171,15 +158,14 @@ void clearMatrixSwitch() {
 /** ----------------------------------------------------------------------------
  * @brief Request binary event handler for Bus 0
  */
-volatile long request_event_id_bus_0;
 
 void requestEventBus0Bin() {
-  // Serial.println("[requestEventBus0Bin] id: " + String(request_event_id_bus_0));
-  switch (request_event_id_bus_0) {
+  // Serial.println("[requestEventBus0Bin] id: " + String(I2CLinkBus0.REQUEST_ID));
+  switch (I2CLinkBus0.REQUEST_ID) {
     // send pin reading
     case 0x1E: {
         // Serial.println("[requestEventBus0Bin] preparing to send requested data: input value");
-        memset(I2CLinkBus0.OUTPUT_PACKET, 0, sizeof(I2CLinkBus0.OUTPUT_PACKET));
+        clearI2CLinkOutputPacket(I2CLinkBus0);
         write_uint8_ToPacket(I2CLinkBus0.OUTPUT_PACKET, 0, (uint8_t)current_pin);
         write_float_ToPacket(I2CLinkBus0.OUTPUT_PACKET, 1, (float)input_value[current_pin]);
         writeI2CToMasterBin(Wire, I2CLinkBus0, 5, 0);
@@ -187,7 +173,7 @@ void requestEventBus0Bin() {
         break;
       }
     default: {
-        Serial.println("[requestEventBus0Bin] event id is not defined: " + String(request_event_id_bus_0));
+        Serial.println("[requestEventBus0Bin] event id is not defined: " + String(I2CLinkBus0.REQUEST_ID));
         while (Wire.available()) {Wire.read();} // drain
         break;
     }
@@ -199,7 +185,7 @@ void requestEventBus0Bin() {
 */
 void receiveEventBus0Bin(int n_bytes_received) {
   if (n_bytes_received < 1) return;
-  uint8_t cmd = Wire.read();
+  uint8_t cmd = Wire.read(); // expects uint8 command byte (up to 255 unique commands can be accepted). 
   Serial.println("[receiveEventBus0Bin] " + String(cmd) + " (" + String(n_bytes_received) + " bytes)");
   switch (cmd) {
 
@@ -277,7 +263,7 @@ void receiveEventBus0Bin(int n_bytes_received) {
     // Command 30
     case 0x1E: {
       current_pin = 0;
-      request_event_id_bus_0 = 0x1E;
+      I2CLinkBus0.REQUEST_ID = 0x1E;
       while (Wire.available()) {Wire.read();}
       break;
     }
