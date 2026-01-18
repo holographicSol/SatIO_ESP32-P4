@@ -232,7 +232,7 @@ void requestEventBus1Bin() {
   switch (I2CLinkBus1.REQUEST_ID) {
     case 0x01: {
         Serial.println("[requestEventBus1Bin] preparing to send requested data (brightness_stage): " + String(brightness_stage));
-        memset(I2CLinkBus1.OUTPUT_PACKET, 0, sizeof(I2CLinkBus1.OUTPUT_PACKET));
+        clearI2CLinkOutputPacket(I2CLinkBus1);
         write_uint8_ToPacket(I2CLinkBus1.OUTPUT_PACKET, 0, brightness_stage);
         writeI2CToMasterBin(Wire1, I2CLinkBus1, 1, 0);
         break;
@@ -260,7 +260,7 @@ uint8_t colorB;
 
 void receiveEventBus1Bin(size_t n_bytes_received) {
   if (n_bytes_received < 1) return;
-  uint8_t cmd = Wire1.read();
+  uint8_t cmd = Wire1.read(); // expects uint8 command byte (up to 255 unique commands can be accepted). 
   // Serial.println("[receiveEventBus1Bin] " + String(cmd) + " (" + String(n_bytes_received) + " bytes)");
   switch (cmd) {
     case 0x01: {
