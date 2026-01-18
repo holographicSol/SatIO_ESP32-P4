@@ -168,40 +168,26 @@ uint8_t brightness_stage = 5;
 const int LED_BRIGHTNESS_LEVELS[MAX_BRIGHTNESS_STAGE]  = {0, 1, 50, 100, 200, 255}; // adjust as required (0-255)
 const int SEG_BRIGHTNESS_LEVELS[MAX_BRIGHTNESS_STAGE]  = {0, 1, 2, 3, 4, 7}; // adjust as required (0-7)
 
-/** ----------------------------------------------------------------------------
- * I2CLinkStruct.
- */
-// struct I2CLinkStruct {
-//   volatile int i_token;
-//   char         * token;
-//   byte          OUTPUT_BUFFER[MAX_IIC_BUFFER_SIZE];
-//   char          INPUT_BUFFER[MAX_IIC_BUFFER_SIZE];
-//   char          TMP_BUFFER[MAX_IIC_BUFFER_SIZE];
-// };
-// I2CLinkStruct I2CLink;
-
 /**----------------------------------------------------------------------------
  * Interrupts.
  * High/Low inversion for receiving device pin mode INPUT_PULLDOWN.
  * INPUT_PULLDOWN may be required on receiving device pin to avoid 'floating'.
  */
 #define MASTER_INTERRUPT_PIN 13
+bool interrupt_master_flag=false;
 
+/* Interrupt master (this is not an ISR) */
 void interruptMaster() {
+  interrupt_master_flag=false;
   Serial.println("[interruptMaster] Interrupting master");
   digitalWrite(MASTER_INTERRUPT_PIN, LOW);
   digitalWrite(MASTER_INTERRUPT_PIN, HIGH);
 }
 
+/* ISR brightness button */
 #define ISR_PIN_BRIGHTNESS 36
 bool iter_brightness = false;
-void IRAM_ATTR iter_brightness_ISR(void * arg) {iter_brightness = true;}
-
-/**----------------------------------------------------------------------------
- * Task Display Loop Performance Tracking.
- */
-static unsigned long display_loop_counter = 0;
-static unsigned long display_loop_last_time = 0;
+void IRAM_ATTR ISR_brightness_button(void * arg) {iter_brightness = true;}
 
 /**----------------------------------------------------------------------------
  * Addressable LEDs.
@@ -215,12 +201,8 @@ static unsigned long display_loop_last_time = 0;
 CRGB leds[MAX_INDICATORS];
 uint8_t led_color_values[MAX_INDICATORS][MAX_LED_COLOR_VALUES] = {}; // {R,G,B}
 
-void UpdateIndicator(int index_led, CRGB color) {
-  leds[index_led] = color; FastLED.show();
-}
-
-void UpdateAllIndicators(int start, int end, CRGB color) {
-  for (int i=start; i<=end; i++) {color; FastLED.show();}
+void UpdateAllIndicators(int start, int end, int r, int g, int b) {
+  for (int i=start; i<=end; i++) {leds[i] = CRGB(r,g,b);}
 }
 
 /** ----------------------------------------------------------------------------
@@ -248,10 +230,10 @@ void requestEventBus1Bin() {
  * @brief Receive event handler for Bus 1.
  * @warning Uncomment and customize to use locally (backup first) or copy into project!
 */
+uint8_t cmd;
 uint8_t display_index;
 uint8_t value_idx;
 char    value_char[32];
-uint8_t dtype;
 uint8_t dx;
 uint8_t dy;
 uint8_t colorR;
@@ -260,9 +242,10 @@ uint8_t colorB;
 
 void receiveEventBus1Bin(size_t n_bytes_received) {
   if (n_bytes_received < 1) return;
-  uint8_t cmd = Wire1.read(); // expects uint8 command byte (up to 255 unique commands can be accepted). 
+  cmd = Wire1.read(); // expects uint8 command byte (up to 255 unique commands can be accepted). 
   // Serial.println("[receiveEventBus1Bin] " + String(cmd) + " (" + String(n_bytes_received) + " bytes)");
   switch (cmd) {
+    // Set Request ID: 1
     case 0x01: {
       // no sanitation
       Serial.println("[receiveEventBus1Bin] preparing to process command: " + String(cmd));
@@ -289,9 +272,8 @@ void receiveEventBus1Bin(size_t n_bytes_received) {
     }
     // 4 Digit 7 Segment Displays
     case 0x14: {
-      read_uint8_FromWire(Wire1, dtype);
       read_uint8_FromWire(Wire1, display_index);
-      size_t str_len = n_bytes_received - 3; // deduct 3 bytes to find strlen
+      size_t str_len = n_bytes_received - 2; // deduct 2 bytes to find strlen
       if (str_len >= sizeof(value_char)) {str_len = sizeof(value_char) - 1;}
       read_nchars_FromWire(Wire1, value_char, str_len);
       value_char[str_len] = '\0'; // null terminate
@@ -306,9 +288,8 @@ void receiveEventBus1Bin(size_t n_bytes_received) {
     }
     // 6 Digit 7 Segment Displays
     case 0x1E: {
-      read_uint8_FromWire(Wire1, dtype);
       read_uint8_FromWire(Wire1, display_index);
-      size_t str_len = n_bytes_received - 3; // deduct 3 bytes to find strlen
+      size_t str_len = n_bytes_received - 2; // deduct 2 bytes to find strlen
       if (str_len >= sizeof(value_char)) {str_len = sizeof(value_char) - 1;}
       read_nchars_FromWire(Wire1, value_char, str_len);
       value_char[str_len] = '\0'; // null terminate
@@ -321,14 +302,13 @@ void receiveEventBus1Bin(size_t n_bytes_received) {
       //             );
       break;
     }
-    // SSD1306 Displays
+    // Update SSD1306 Canvas Values
     case 0x28: {
-      read_uint8_FromWire(Wire1, dtype);
       read_uint8_FromWire(Wire1, display_index);
       read_uint8_FromWire(Wire1, value_idx);
       read_uint8_FromWire(Wire1, dx);
       read_uint8_FromWire(Wire1, dy);
-      size_t str_len = n_bytes_received - 6; // deduct 6 bytes to find strlen
+      size_t str_len = n_bytes_received - 5; // deduct 5 bytes to find strlen
       if (str_len >= sizeof(value_char)) {str_len = sizeof(value_char) - 1;}
       read_nchars_FromWire(Wire1, value_char, str_len);
       value_char[str_len] = '\0'; // null terminate
@@ -345,6 +325,7 @@ void receiveEventBus1Bin(size_t n_bytes_received) {
       //             );
       break;
     }
+    // Update SSD1306 Canvas Bool
     case 0x32: {
       read_uint8_FromWire(Wire1, display_index);
       ssd1306_displays[display_index].draw=true;
@@ -355,7 +336,7 @@ void receiveEventBus1Bin(size_t n_bytes_received) {
     }
     default: {
         Serial.println("[receiveEventBus1Bin] command is not defined: " + String(cmd));
-        while (Wire.available()) {Wire.read();} // drain
+        // while (Wire.available()) {Wire.read();} // drain
         break;
     }
   }
@@ -366,6 +347,9 @@ void receiveEventBus1Bin(size_t n_bytes_received) {
  * 
  * @brief Update Display(s) & Any Indicators.
  */
+static unsigned long display_loop_counter = 0;
+static unsigned long display_loop_last_time = 0;
+
 void taskDisplay(void * pvParameters) {
   // while (global_task_sync==false) {vTaskDelay(1);}
   for (;;) {
@@ -386,10 +370,8 @@ void taskDisplay(void * pvParameters) {
       // -----------------------------------------------------
       // clear
       // -----------------------
-      for (int i_display=0; i_display<MAX_INDICATORS; i_display++) {
-        FastLED.setBrightness(LED_BRIGHTNESS_LEVELS[brightness_stage]);
-        FastLED.show();
-      }
+      FastLED.setBrightness(LED_BRIGHTNESS_LEVELS[brightness_stage]);
+      FastLED.show();
       // -----------------------------------------------------
       // 7 Segment Displays: Adjust Brightness
       // -----------------------------------------------------
@@ -468,11 +450,11 @@ void taskDisplay(void * pvParameters) {
         //               led_color_values[i_display][INDEX_LED_COLOR_VALUE_GREEN],
         //               led_color_values[i_display][INDEX_LED_COLOR_VALUE_BLUE]
         //             );
-        UpdateIndicator(i_display,
-                        CRGB(led_color_values[i_display][INDEX_LED_COLOR_VALUE_RED],
-                            led_color_values[i_display][INDEX_LED_COLOR_VALUE_GREEN],
-                            led_color_values[i_display][INDEX_LED_COLOR_VALUE_BLUE]));
+        leds[i_display] = CRGB(led_color_values[i_display][INDEX_LED_COLOR_VALUE_RED],
+                             led_color_values[i_display][INDEX_LED_COLOR_VALUE_GREEN],
+                             led_color_values[i_display][INDEX_LED_COLOR_VALUE_BLUE]);
       }
+      FastLED.show();
       // -----------------------------------------------------
       // Update I2C Display(s)
       // -----------------------------------------------------
@@ -595,18 +577,23 @@ void setup() {
   digitalWrite(MASTER_INTERRUPT_PIN, HIGH);
   // Button to iterate brightness level
   pinMode(ISR_PIN_BRIGHTNESS, INPUT);
-  attachInterruptArg(digitalPinToInterrupt(ISR_PIN_BRIGHTNESS), iter_brightness_ISR, NULL, RISING);
+  attachInterruptArg(digitalPinToInterrupt(ISR_PIN_BRIGHTNESS), ISR_brightness_button, NULL, RISING);
 
   // ------------------------------------------------------------
   // Indicators
   // ------------------------------------------------------------
   FastLED.addLeds<NEOPIXEL, INDICATOR_DIO>(leds, MAX_INDICATORS);
   FastLED.setBrightness(255); // 0–255, adjust as needed
-  UpdateAllIndicators(0, MAX_INDICATORS, CRGB::Black);
-  delay(1000);                         // test clear
-  UpdateIndicator(0, CRGB::Red);       // test built-in color
-  UpdateIndicator(9, CRGB(0,0,255)); // test arbitrary color
 
+  UpdateAllIndicators(0, MAX_INDICATORS, 0,0,0);
+  FastLED.show();
+  delay(1000);
+  UpdateAllIndicators(0, MAX_INDICATORS, 255,0,0);
+  FastLED.show();
+  delay(1000);
+  UpdateAllIndicators(0, MAX_INDICATORS, 0,0,0);
+  FastLED.show();
+  
   // ------------------------------------------------------------
   // I2C Master Initialization
   // ------------------------------------------------------------
