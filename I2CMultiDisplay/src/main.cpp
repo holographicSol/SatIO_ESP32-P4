@@ -174,12 +174,10 @@ const int SEG_BRIGHTNESS_LEVELS[MAX_BRIGHTNESS_STAGE]  = {0, 1, 2, 3, 4, 7}; // 
  * INPUT_PULLDOWN may be required on receiving device pin to avoid 'floating'.
  */
 #define MASTER_INTERRUPT_PIN 13
-bool interrupt_master_flag=false;
 
 /* Interrupt master (this is not an ISR) */
 void interruptMaster() {
-  interrupt_master_flag=false;
-  Serial.println("[interruptMaster] Interrupting master");
+  // Serial.println("[interruptMaster] Interrupting master");
   digitalWrite(MASTER_INTERRUPT_PIN, LOW);
   digitalWrite(MASTER_INTERRUPT_PIN, HIGH);
 }
@@ -210,17 +208,17 @@ void UpdateAllIndicators(int start, int end, int r, int g, int b) {
  * @warning Uncomment and customize to use locally (backup first) or copy into project!
 */
 void requestEventBus1Bin() {
-  Serial.println("[requestEventBus1Bin] id: " + String(I2CLinkBus1.REQUEST_ID));
+  // Serial.println("[requestEventBus1Bin] id: " + String(I2CLinkBus1.REQUEST_ID));
   switch (I2CLinkBus1.REQUEST_ID) {
     case 0x01: {
-        Serial.println("[requestEventBus1Bin] preparing to send requested data (brightness_stage): " + String(brightness_stage));
+        // Serial.println("[requestEventBus1Bin] preparing to send requested data (brightness_stage): " + String(brightness_stage));
         clearI2CLinkOutputPacket(I2CLinkBus1);
         write_uint8_ToPacket(I2CLinkBus1.OUTPUT_PACKET, 0, brightness_stage);
         writeI2CToMasterBin(Wire1, I2CLinkBus1, 1, 0);
         break;
     }
     default: {
-        Serial.println("[requestEventBus1Bin] event id is not defined: " + String(I2CLinkBus1.REQUEST_ID));
+        // Serial.println("[requestEventBus1Bin] event id is not defined: " + String(I2CLinkBus1.REQUEST_ID));
         break;
     }
   }
@@ -241,14 +239,14 @@ uint8_t colorG;
 uint8_t colorB;
 
 void receiveEventBus1Bin(size_t n_bytes_received) {
-  if (n_bytes_received < 1) return;
+  // if (n_bytes_received < 1) return;
   cmd = Wire1.read(); // expects uint8 command byte (up to 255 unique commands can be accepted). 
   // Serial.println("[receiveEventBus1Bin] " + String(cmd) + " (" + String(n_bytes_received) + " bytes)");
   switch (cmd) {
     // Set Request ID: 1
     case 0x01: {
       // no sanitation
-      Serial.println("[receiveEventBus1Bin] preparing to process command: " + String(cmd));
+      // Serial.println("[receiveEventBus1Bin] preparing to process command: " + String(cmd));
       I2CLinkBus1.REQUEST_ID=0x01;
       break;
     }
@@ -335,7 +333,7 @@ void receiveEventBus1Bin(size_t n_bytes_received) {
       break;
     }
     default: {
-        Serial.println("[receiveEventBus1Bin] command is not defined: " + String(cmd));
+        // Serial.println("[receiveEventBus1Bin] command is not defined: " + String(cmd));
         // while (Wire.available()) {Wire.read();} // drain
         break;
     }
@@ -364,7 +362,7 @@ void taskDisplay(void * pvParameters) {
       iter_brightness=false;
       brightness_stage = brightness_stage + 1;
       if (brightness_stage>=MAX_BRIGHTNESS_STAGE) {brightness_stage=0;}
-      Serial.printf("[Brightness level] %d\n", brightness_stage);
+      // Serial.printf("[Brightness level] %d\n", brightness_stage);
       // -----------------------------------------------------
       // LEDs: Adjust Brightness
       // -----------------------------------------------------
@@ -531,7 +529,7 @@ void taskDisplay(void * pvParameters) {
     display_loop_counter++;
     unsigned long current_time = millis();
     if (current_time - display_loop_last_time >= 1000) {
-      Serial.printf("Display Task: %lu loops/sec\n", display_loop_counter);
+      // Serial.printf("Display Task: %lu loops/sec\n", display_loop_counter);
       display_loop_counter = 0;
       display_loop_last_time = current_time;
     }
@@ -593,7 +591,7 @@ void setup() {
   delay(1000);
   UpdateAllIndicators(0, MAX_INDICATORS, 0,0,0);
   FastLED.show();
-  
+
   // ------------------------------------------------------------
   // I2C Master Initialization
   // ------------------------------------------------------------
