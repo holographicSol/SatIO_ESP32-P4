@@ -139,6 +139,12 @@ void clearI2CLinkInputPacket(IICLink &iic_link);
 void clearI2CLinkOutputPacket(IICLink &iic_link);
 
 /** ----------------------------------------------------------------------------
+ * @brief Drains all available bytes from the I2C wire.
+ * @param wire Specify TwoWire instance.
+ */
+void drainBus(TwoWire &wire);
+
+/** ----------------------------------------------------------------------------
  * @brief Writes data to an I2C slave device.
  * @param wire Specify TwoWire instance.
  * @param iic_link Specify IICLink instance.

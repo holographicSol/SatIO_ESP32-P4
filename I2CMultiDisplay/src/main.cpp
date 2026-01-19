@@ -37,7 +37,7 @@ Support:
 #define TASK_DISPLAY_PRIORITY               4
 #define TASK_DISPLAY_CORE                   0
 #define TASK_DISPLAY_STACK_SIZE             16384
-#define TICK_DELAY_TASK_DISPLAY             true
+#define TICK_DELAY_TASK_DISPLAY             false
 #define DELAY_TASK_DISPLAY                  1
 TaskHandle_t TaskDisplay;
 
@@ -245,9 +245,9 @@ void receiveEventBus1Bin(size_t n_bytes_received) {
   switch (cmd) {
     // Set Request ID: 1
     case 0x01: {
-      // no sanitation
       // Serial.println("[receiveEventBus1Bin] preparing to process command: " + String(cmd));
       I2CLinkBus1.REQUEST_ID=0x01;
+      drainBus(Wire1); // drain
       break;
     }
     // Indicators
@@ -266,13 +266,13 @@ void receiveEventBus1Bin(size_t n_bytes_received) {
       //               colorG,
       //               colorB
       //             );
+      drainBus(Wire1); // drain
       break;
     }
     // 4 Digit 7 Segment Displays
     case 0x14: {
       read_uint8_FromWire(Wire1, display_index);
       size_t str_len = n_bytes_received - 2; // deduct 2 bytes to find strlen
-      if (str_len >= sizeof(value_char)) {str_len = sizeof(value_char) - 1;}
       read_nchars_FromWire(Wire1, value_char, str_len);
       value_char[str_len] = '\0'; // null terminate
       auto& disp = seven_seg_displays[display_index];
@@ -282,13 +282,13 @@ void receiveEventBus1Bin(size_t n_bytes_received) {
       //               display_index,
       //               value_char
       //             );
+      drainBus(Wire1); // drain
       break;
     }
     // 6 Digit 7 Segment Displays
     case 0x1E: {
       read_uint8_FromWire(Wire1, display_index);
       size_t str_len = n_bytes_received - 2; // deduct 2 bytes to find strlen
-      if (str_len >= sizeof(value_char)) {str_len = sizeof(value_char) - 1;}
       read_nchars_FromWire(Wire1, value_char, str_len);
       value_char[str_len] = '\0'; // null terminate
       auto& disp = seven_seg_displays[display_index];
@@ -298,6 +298,7 @@ void receiveEventBus1Bin(size_t n_bytes_received) {
       //               display_index,
       //               value_char
       //             );
+      drainBus(Wire1); // drain
       break;
     }
     // Update SSD1306 Canvas Values
@@ -307,7 +308,6 @@ void receiveEventBus1Bin(size_t n_bytes_received) {
       read_uint8_FromWire(Wire1, dx);
       read_uint8_FromWire(Wire1, dy);
       size_t str_len = n_bytes_received - 5; // deduct 5 bytes to find strlen
-      if (str_len >= sizeof(value_char)) {str_len = sizeof(value_char) - 1;}
       read_nchars_FromWire(Wire1, value_char, str_len);
       value_char[str_len] = '\0'; // null terminate
       ssd1306_displays[display_index].dx[value_idx] = dx;
@@ -321,6 +321,7 @@ void receiveEventBus1Bin(size_t n_bytes_received) {
       //               dy,
       //               value_char
       //             );
+      drainBus(Wire1); // drain
       break;
     }
     // Update SSD1306 Canvas Bool
@@ -330,11 +331,12 @@ void receiveEventBus1Bin(size_t n_bytes_received) {
       // Serial.printf("[RX] SSD1306 %d: draw canvas.\n",
       //               display_index
       //             );
+      drainBus(Wire1); // drain
       break;
     }
     default: {
         // Serial.println("[receiveEventBus1Bin] command is not defined: " + String(cmd));
-        // while (Wire.available()) {Wire.read();} // drain
+        drainBus(Wire1); // drain
         break;
     }
   }
@@ -438,6 +440,7 @@ void taskDisplay(void * pvParameters) {
     // Update Displays
     // -----------------------------------------------------
     if (!brightness_stage==0) {
+
       // -----------------------------------------------------
       // Update Indicators
       // -----------------------------------------------------
@@ -453,6 +456,7 @@ void taskDisplay(void * pvParameters) {
                              led_color_values[i_display][INDEX_LED_COLOR_VALUE_BLUE]);
       }
       FastLED.show();
+
       // -----------------------------------------------------
       // Update I2C Display(s)
       // -----------------------------------------------------
@@ -491,9 +495,9 @@ void taskDisplay(void * pvParameters) {
             }
             disp.display64->drawCanvas(0, 0, *disp.canvas64);
           }
-
         }
       }
+
       // -----------------------------------------------------
       // Update Analog/Digital Display(s)
       // -----------------------------------------------------
