@@ -74,9 +74,14 @@ static const int AD_MUX_CHANNEL_TABLE[MAX_ANALOG_DIGITAL_MULTIPLEXER_CHANNELS][M
 
 void setADMultiplexerChannel(AnalogDigitalMultiplexer &mux_id, int channel) {
   /* Set the channel on specified analog/digital multiplexer */
-  for (int i=0; i<MAX_ANALOG_DIGITAL_MULTIPLEXER_CONTROL_PINS; i++) {
-      digitalWrite(mux_id.pins[i], AD_MUX_CHANNEL_TABLE[channel][i]);
+  if (channel < 0 || channel >= MAX_ANALOG_DIGITAL_MULTIPLEXER_CHANNELS) {
+    Serial.printf("[ERROR] setADMultiplexerChannel: channel out of bounds: %d\n", channel);
+    return;
   }
+  for (int i=0; i<MAX_ANALOG_DIGITAL_MULTIPLEXER_CONTROL_PINS; i++) {
+    digitalWrite(mux_id.pins[i], AD_MUX_CHANNEL_TABLE[channel][i]);
+  }
+  // Serial.printf("[DEBUG] setADMultiplexerChannel: channel=%d, pins=[%d,%d,%d,%d] set to [%d,%d,%d,%d]\n", channel, mux_id.pins[0], mux_id.pins[1], mux_id.pins[2], mux_id.pins[3], AD_MUX_CHANNEL_TABLE[channel][0], AD_MUX_CHANNEL_TABLE[channel][1], AD_MUX_CHANNEL_TABLE[channel][2], AD_MUX_CHANNEL_TABLE[channel][3]);
 }
 
 void readADMultiplexerAnalogChannel(AnalogDigitalMultiplexer &mux_id, uint8_t channel) {

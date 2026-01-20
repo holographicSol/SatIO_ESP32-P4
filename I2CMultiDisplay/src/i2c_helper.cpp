@@ -591,7 +591,7 @@ bool requestFromSlaveBinNoID(TwoWire &wire,
  * @warning Specified value is expected to be uint8_t.
  */
 void read_uint8_FromWire(TwoWire &wire, uint8_t &value) {
-  value = wire.read(); 
+  value = wire.read();
 }
 
 /**

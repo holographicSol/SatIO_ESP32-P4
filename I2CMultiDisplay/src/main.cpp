@@ -197,7 +197,6 @@ void IRAM_ATTR ISR_brightness_button(void * arg) {iter_brightness = true;}
 #define INDEX_LED_COLOR_VALUE_GREEN 1
 #define INDEX_LED_COLOR_VALUE_BLUE  2
 CRGB leds[MAX_INDICATORS];
-uint8_t led_color_values[MAX_INDICATORS][MAX_LED_COLOR_VALUES] = {}; // {R,G,B}
 
 void UpdateAllIndicators(int start, int end, int r, int g, int b) {
   for (int i=start; i<=end; i++) {leds[i] = CRGB(r,g,b);}
@@ -210,6 +209,8 @@ void UpdateAllIndicators(int start, int end, int r, int g, int b) {
 void requestEventBus1Bin() {
   // Serial.println("[requestEventBus1Bin] id: " + String(I2CLinkBus1.REQUEST_ID));
   switch (I2CLinkBus1.REQUEST_ID) {
+
+    // Request ID: 1 - Brightness Stage
     case 0x01: {
         // Serial.println("[requestEventBus1Bin] preparing to send requested data (brightness_stage): " + String(brightness_stage));
         clearI2CLinkOutputPacket(I2CLinkBus1);
@@ -228,6 +229,7 @@ void requestEventBus1Bin() {
  * @brief Receive event handler for Bus 1.
  * @warning Uncomment and customize to use locally (backup first) or copy into project!
 */
+size_t str_len;
 uint8_t cmd;
 uint8_t display_index;
 uint8_t value_idx;
@@ -239,7 +241,7 @@ uint8_t colorG;
 uint8_t colorB;
 
 void receiveEventBus1Bin(size_t n_bytes_received) {
-  // if (n_bytes_received < 1) return;
+  if (n_bytes_received < 1) return;
   cmd = Wire1.read(); // expects uint8 command byte (up to 255 unique commands can be accepted). 
   // Serial.println("[receiveEventBus1Bin] " + String(cmd) + " (" + String(n_bytes_received) + " bytes)");
   switch (cmd) {
@@ -247,7 +249,7 @@ void receiveEventBus1Bin(size_t n_bytes_received) {
     case 0x01: {
       // Serial.println("[receiveEventBus1Bin] preparing to process command: " + String(cmd));
       I2CLinkBus1.REQUEST_ID=0x01;
-      drainBus(Wire1); // drain
+      drainBus(Wire1);
       break;
     }
     // Indicators
@@ -257,48 +259,61 @@ void receiveEventBus1Bin(size_t n_bytes_received) {
       read_uint8_FromWire(Wire1, colorR);
       read_uint8_FromWire(Wire1, colorG);
       read_uint8_FromWire(Wire1, colorB);
-      led_color_values[display_index][INDEX_LED_COLOR_VALUE_RED]   = colorR;
-      led_color_values[display_index][INDEX_LED_COLOR_VALUE_GREEN] = colorG;
-      led_color_values[display_index][INDEX_LED_COLOR_VALUE_BLUE]  = colorB;
+      if (display_index >= MAX_INDICATORS) {
+        Serial.printf("[ERROR] LED display_index out of bounds: %d\n", display_index);
+        drainBus(Wire1);
+        break;
+      }
+      leds[display_index] = CRGB(colorR,colorG,colorB);
       // Serial.printf("[RX] led %d: r=%d g=%d b=%d\n",
       //               display_index,
       //               colorR,
       //               colorG,
       //               colorB
       //             );
-      drainBus(Wire1); // drain
+      drainBus(Wire1);
       break;
     }
     // 4 Digit 7 Segment Displays
     case 0x14: {
       read_uint8_FromWire(Wire1, display_index);
-      size_t str_len = n_bytes_received - 2; // deduct 2 bytes to find strlen
+      str_len = n_bytes_received - 2; // deduct 2 bytes to find strlen
       read_nchars_FromWire(Wire1, value_char, str_len);
       value_char[str_len] = '\0'; // null terminate
+      if (display_index >= MAX_7SEG_DISPLAYS) {
+        Serial.printf("[ERROR] 7seg4Digit display_index out of bounds: %d\n", display_index);
+        drainBus(Wire1);
+        break;
+      }
       auto& disp = seven_seg_displays[display_index];
       memset(disp.value, 0, sizeof(disp.value));
-      strcpy(disp.value, value_char);
+      strncpy(disp.value, value_char, sizeof(disp.value) - 1);
       // Serial.printf("[RX] 7seg4Digit: display_index=%d value=%s\n",
       //               display_index,
       //               value_char
       //             );
-      drainBus(Wire1); // drain
+      drainBus(Wire1);
       break;
     }
     // 6 Digit 7 Segment Displays
     case 0x1E: {
       read_uint8_FromWire(Wire1, display_index);
-      size_t str_len = n_bytes_received - 2; // deduct 2 bytes to find strlen
+      str_len = n_bytes_received - 2; // deduct 2 bytes to find strlen
       read_nchars_FromWire(Wire1, value_char, str_len);
       value_char[str_len] = '\0'; // null terminate
+      if (display_index >= MAX_7SEG_DISPLAYS) {
+        Serial.printf("[ERROR] 7seg6Digit display_index out of bounds: %d\n", display_index);
+        drainBus(Wire1);
+        break;
+      }
       auto& disp = seven_seg_displays[display_index];
       memset(disp.value, 0, sizeof(disp.value));
-      strcpy(disp.value, value_char);
+      strncpy(disp.value, value_char, sizeof(disp.value) - 1);
       // Serial.printf("[RX] 7seg6Digit: display_index=%d value=%s\n",
       //               display_index,
       //               value_char
       //             );
-      drainBus(Wire1); // drain
+      drainBus(Wire1);
       break;
     }
     // Update SSD1306 Canvas Values
@@ -307,13 +322,18 @@ void receiveEventBus1Bin(size_t n_bytes_received) {
       read_uint8_FromWire(Wire1, value_idx);
       read_uint8_FromWire(Wire1, dx);
       read_uint8_FromWire(Wire1, dy);
-      size_t str_len = n_bytes_received - 5; // deduct 5 bytes to find strlen
+      str_len = n_bytes_received - 5; // deduct 5 bytes to find strlen
       read_nchars_FromWire(Wire1, value_char, str_len);
       value_char[str_len] = '\0'; // null terminate
+      if (display_index >= MAX_SSD1306_DISPLAYS || value_idx >= MAX_SSD1306_DISPLAY_VALUES) {
+        Serial.printf("[ERROR] SSD1306 display_index or value_idx out of bounds: %d, %d\n", display_index, value_idx);
+        drainBus(Wire1);
+        break;
+      }
       ssd1306_displays[display_index].dx[value_idx] = dx;
       ssd1306_displays[display_index].dy[value_idx] = dy;
       memset(ssd1306_displays[display_index].value[value_idx], 0, sizeof(ssd1306_displays[display_index].value[value_idx]));
-      strcpy(ssd1306_displays[display_index].value[value_idx], value_char);
+      strncpy(ssd1306_displays[display_index].value[value_idx], value_char, sizeof(ssd1306_displays[display_index].value[value_idx]) - 1);
       // Serial.printf("[RX] SSD1306 %d: value_index=%d dx=%d dy=%d value=%s\n",
       //               display_index,
       //               value_idx,
@@ -321,22 +341,27 @@ void receiveEventBus1Bin(size_t n_bytes_received) {
       //               dy,
       //               value_char
       //             );
-      drainBus(Wire1); // drain
+      drainBus(Wire1);
       break;
     }
     // Update SSD1306 Canvas Bool
     case 0x32: {
       read_uint8_FromWire(Wire1, display_index);
+      if (display_index >= MAX_SSD1306_DISPLAYS) {
+        Serial.printf("[ERROR] SSD1306 draw display_index out of bounds: %d\n", display_index);
+        drainBus(Wire1);
+        break;
+      }
       ssd1306_displays[display_index].draw=true;
       // Serial.printf("[RX] SSD1306 %d: draw canvas.\n",
       //               display_index
       //             );
-      drainBus(Wire1); // drain
+      drainBus(Wire1);
       break;
     }
     default: {
         // Serial.println("[receiveEventBus1Bin] command is not defined: " + String(cmd));
-        drainBus(Wire1); // drain
+        drainBus(Wire1);
         break;
     }
   }
@@ -347,11 +372,13 @@ void receiveEventBus1Bin(size_t n_bytes_received) {
  * 
  * @brief Update Display(s) & Any Indicators.
  */
+unsigned long current_time;
 static unsigned long display_loop_counter = 0;
 static unsigned long display_loop_last_time = 0;
 
 void taskDisplay(void * pvParameters) {
   // while (global_task_sync==false) {vTaskDelay(1);}
+  esp_task_wdt_add(NULL);
   for (;;) {
     esp_task_wdt_reset();
     // -----------------------------------------------------
@@ -380,8 +407,10 @@ void taskDisplay(void * pvParameters) {
       if (brightness_stage==0) {
         for (int i_display=0; i_display<MAX_7SEG_DISPLAYS; i_display++) {
           auto& disp = seven_seg_displays[i_display];
-          setADMultiplexerChannel(ad_mux_0, i_display);
-          setADMultiplexerChannel(ad_mux_1, i_display);
+            // Serial.printf("[DEBUG] setADMultiplexerChannel(ad_mux_0, %d)\n", i_display);
+            setADMultiplexerChannel(ad_mux_0, i_display);
+            // Serial.printf("[DEBUG] setADMultiplexerChannel(ad_mux_1, %d)\n", i_display);
+            setADMultiplexerChannel(ad_mux_1, i_display);
           if (disp.type == SEG_4DIGIT) {disp.display4->clear();}
           else if (disp.type == SEG_6DIGIT) {disp.display6->clear();}
         }
@@ -392,8 +421,10 @@ void taskDisplay(void * pvParameters) {
       else {
         for (int i_display=0; i_display<MAX_7SEG_DISPLAYS; i_display++) {
           auto& disp = seven_seg_displays[i_display];
-          setADMultiplexerChannel(ad_mux_0, i_display);
-          setADMultiplexerChannel(ad_mux_1, i_display);
+            // Serial.printf("[DEBUG] setADMultiplexerChannel(ad_mux_0, %d)\n", i_display);
+            setADMultiplexerChannel(ad_mux_0, i_display);
+            // Serial.printf("[DEBUG] setADMultiplexerChannel(ad_mux_1, %d)\n", i_display);
+            setADMultiplexerChannel(ad_mux_1, i_display);
           if (disp.type == SEG_4DIGIT)
             {disp.display4->setBrightness(SEG_BRIGHTNESS_LEVELS[brightness_stage]);}
           else if (disp.type == SEG_6DIGIT)
@@ -408,6 +439,7 @@ void taskDisplay(void * pvParameters) {
       if (brightness_stage==0) {
         for (int i_display=0; i_display<MAX_SSD1306_DISPLAYS; i_display++) {
           auto& disp = ssd1306_displays[i_display];
+          // Serial.printf("[DEBUG] setI2CMultiplexChannel for SSD1306 display %d\n", i_display);
           setI2CMultiplexChannel(Wire, i2c_mux_0, i_display);
           if (disp.type==SSD_128X32) {
             disp.canvas32->clear();
@@ -425,6 +457,7 @@ void taskDisplay(void * pvParameters) {
       else {
         for (int i_display=0; i_display<MAX_SSD1306_DISPLAYS; i_display++) {
           auto& disp = ssd1306_displays[i_display];
+          // Serial.printf("[DEBUG] setI2CMultiplexChannel for SSD1306 display %d\n", i_display);
           setI2CMultiplexChannel(Wire, i2c_mux_0, i_display);
           if (disp.type==SSD_128X32) {
             // send brightness/contrast command if supported
@@ -444,18 +477,24 @@ void taskDisplay(void * pvParameters) {
       // -----------------------------------------------------
       // Update Indicators
       // -----------------------------------------------------
-      for (int i_display=0; i_display<MAX_INDICATORS; i_display++) {
-        // Serial.printf("[LED] display_index=%d r=%d g=%d b=%d\n",
-        //               i_display,
-        //               led_color_values[i_display][INDEX_LED_COLOR_VALUE_RED],
-        //               led_color_values[i_display][INDEX_LED_COLOR_VALUE_GREEN],
-        //               led_color_values[i_display][INDEX_LED_COLOR_VALUE_BLUE]
-        //             );
-        leds[i_display] = CRGB(led_color_values[i_display][INDEX_LED_COLOR_VALUE_RED],
-                             led_color_values[i_display][INDEX_LED_COLOR_VALUE_GREEN],
-                             led_color_values[i_display][INDEX_LED_COLOR_VALUE_BLUE]);
-      }
       FastLED.show();
+
+      // -----------------------------------------------------
+      // Update Analog/Digital Display(s)
+      // -----------------------------------------------------
+      for (int i_display = 0; i_display < MAX_7SEG_DISPLAYS; i_display++) {
+        auto& disp = seven_seg_displays[i_display];
+        // Serial.printf("[DEBUG] setADMultiplexerChannel(ad_mux_0, %d)\n", i_display);
+        setADMultiplexerChannel(ad_mux_0, i_display);
+        // Serial.printf("[DEBUG] setADMultiplexerChannel(ad_mux_1, %d)\n", i_display);
+        setADMultiplexerChannel(ad_mux_1, i_display);
+        if (disp.type == SEG_4DIGIT) {
+          disp.display4->showString(disp.value);
+        }
+        else if (disp.type == SEG_6DIGIT) {
+          disp.display6->showString(disp.value);
+        }
+      }
 
       // -----------------------------------------------------
       // Update I2C Display(s)
@@ -464,79 +503,38 @@ void taskDisplay(void * pvParameters) {
         auto& disp = ssd1306_displays[i_display];
         if (disp.draw==true) {
           disp.draw=false;
-          setI2CMultiplexChannel(Wire, i2c_mux_0, i_display);
           if (disp.type==SSD_128X32) {
             disp.canvas32->clear();
             for (int i_value=0; i_value<MAX_SSD1306_DISPLAY_VALUES; i_value++) {
-              // Serial.printf("[SSD_128X32] display_index=%d type=%d value_index=%d dx=%d dy=%d value=%s\n",
-              //               i_display,
-              //               disp.type,
-              //               i_value,
-              //               disp.dx[i_value],
-              //               disp.dy[i_value],
-              //               disp.value[i_value]
-              //             );
               disp.canvas32->printFixed(disp.dx[i_value], disp.dy[i_value], disp.value[i_value], STYLE_BOLD);
             }
+            // Serial.printf("[DEBUG] setI2CMultiplexChannel for SSD1306 display %d\n", i_display);
+            setI2CMultiplexChannel(Wire, i2c_mux_0, i_display);
             disp.display32->drawCanvas(0, 0, *disp.canvas32);
           }
           else if (disp.type==SSD_128X64) {
             disp.canvas64->clear();
             for (int i_value=0; i_value<MAX_SSD1306_DISPLAY_VALUES; i_value++) {
-              // Serial.printf("[SSD_128X64] display_index=%d type=%dvalue_index=%d dx=%d dy=%d value=%s\n",
-              //               i_display,
-              //               disp.type,
-              //               i_value,
-              //               disp.dx[i_value],
-              //               disp.dy[i_value],
-              //               disp.value[i_value]
-              //             );
               disp.canvas64->printFixed(disp.dx[i_value], disp.dy[i_value], disp.value[i_value], STYLE_BOLD);
             }
+            // Serial.printf("[DEBUG] setI2CMultiplexChannel for SSD1306 display %d\n", i_display);
+            setI2CMultiplexChannel(Wire, i2c_mux_0, i_display);
             disp.display64->drawCanvas(0, 0, *disp.canvas64);
           }
         }
-      }
-
-      // -----------------------------------------------------
-      // Update Analog/Digital Display(s)
-      // -----------------------------------------------------
-      for (uint8_t i_display = 0; i_display < MAX_7SEG_DISPLAYS; i_display++) {
-        auto& disp = seven_seg_displays[i_display];
-        // if (disp.value == disp.prev_value) continue;
-        setADMultiplexerChannel(ad_mux_0, i_display);
-        setADMultiplexerChannel(ad_mux_1, i_display);
-        if (disp.type == SEG_4DIGIT) {
-          // Serial.printf("[SEG_4DIGIT] display_index=%d type=%d value=%s\n",
-          //               i_display,
-          //               disp.type,
-          //               disp.value
-          //             );
-          disp.display4->showString(disp.value);
-        }
-        else if (disp.type == SEG_6DIGIT) {
-          // Serial.printf("[SEG_6DIGIT] display_index=%d type=%d value=%s\n",
-          //               i_display,
-          //               disp.type,
-          //               disp.value
-          //             );
-          disp.display6->showString(disp.value);
-        }
-        // memset(disp.prev_value, 0, sizeof(disp.prev_value));
-        // strcpy(disp.prev_value, disp.value);
       }
     }
   
     // -----------------------------------------------------
     // Track and print loops per second
     // -----------------------------------------------------
-    display_loop_counter++;
-    unsigned long current_time = millis();
-    if (current_time - display_loop_last_time >= 1000) {
+    // display_loop_counter++;
+    // current_time = millis();
+    // if (current_time - display_loop_last_time >= 1000) {
       // Serial.printf("Display Task: %lu loops/sec\n", display_loop_counter);
-      display_loop_counter = 0;
-      display_loop_last_time = current_time;
-    }
+    //   display_loop_counter = 0;
+    //   display_loop_last_time = current_time;
+    // }
     // -----------------------------------------------------
     // Delay Task
     // -----------------------------------------------------
@@ -558,13 +556,26 @@ void createTaskDisplay() {
     TASK_DISPLAY_PRIORITY,   /* Priority of the task */
     &TaskDisplay,            /* Task handle. */
     TASK_DISPLAY_CORE);      /* Core where the task should run */
-    esp_task_wdt_add(TaskDisplay);
 }
 
 /** ----------------------------------------------------------------------------
  * Setup.
  */
 void setup() {
+  // --------------------------------------------------------------
+  // Required for operations in taks that may take longer than 5s..
+  // --------------------------------------------------------------
+  // esp_task_wdt_config_t config = {
+  //   .timeout_ms = 60* 1000, // 1 minute
+  //   .trigger_panic = true,  // Trigger panic if watchdog timer not reset
+  // };
+  // esp_task_wdt_reconfigure(&config);
+  // enableLoopWDT();
+  // --------------------------------------------------------------
+  // Warmup delay: some devices require at least one second start.
+  // --------------------------------------------------------------
+  delay(1000);
+  
   // ------------------------------------------------------------
   // Serial
   // ------------------------------------------------------------
@@ -643,10 +654,14 @@ void setup() {
   // --------------------------------------------------------------------
   // Set analog/digital multiplexer sig as OUTPUT LOW (ready for write).
   // --------------------------------------------------------------------
-  pinMode(ad_mux_0.pins[INDEX_ANALOG_DIGITAL_MULTIPLEXER_SIG], OUTPUT); // DIO pins
-  pinMode(ad_mux_1.pins[INDEX_ANALOG_DIGITAL_MULTIPLEXER_SIG], OUTPUT); // CLK pins
-  digitalWrite(ad_mux_0.pins[INDEX_ANALOG_DIGITAL_MULTIPLEXER_SIG], LOW);
-  digitalWrite(ad_mux_1.pins[INDEX_ANALOG_DIGITAL_MULTIPLEXER_SIG], LOW);
+    Serial.printf("[DEBUG] pinMode(ad_mux_0.pins[INDEX_ANALOG_DIGITAL_MULTIPLEXER_SIG]=%d, OUTPUT)\n", ad_mux_0.pins[INDEX_ANALOG_DIGITAL_MULTIPLEXER_SIG]);
+    pinMode(ad_mux_0.pins[INDEX_ANALOG_DIGITAL_MULTIPLEXER_SIG], OUTPUT); // DIO pins
+    Serial.printf("[DEBUG] pinMode(ad_mux_1.pins[INDEX_ANALOG_DIGITAL_MULTIPLEXER_SIG]=%d, OUTPUT)\n", ad_mux_1.pins[INDEX_ANALOG_DIGITAL_MULTIPLEXER_SIG]);
+    pinMode(ad_mux_1.pins[INDEX_ANALOG_DIGITAL_MULTIPLEXER_SIG], OUTPUT); // CLK pins
+    Serial.printf("[DEBUG] digitalWrite(ad_mux_0.pins[INDEX_ANALOG_DIGITAL_MULTIPLEXER_SIG]=%d, LOW)\n", ad_mux_0.pins[INDEX_ANALOG_DIGITAL_MULTIPLEXER_SIG]);
+    digitalWrite(ad_mux_0.pins[INDEX_ANALOG_DIGITAL_MULTIPLEXER_SIG], LOW);
+    Serial.printf("[DEBUG] digitalWrite(ad_mux_1.pins[INDEX_ANALOG_DIGITAL_MULTIPLEXER_SIG]=%d, LOW)\n", ad_mux_1.pins[INDEX_ANALOG_DIGITAL_MULTIPLEXER_SIG]);
+    digitalWrite(ad_mux_1.pins[INDEX_ANALOG_DIGITAL_MULTIPLEXER_SIG], LOW);
 
   // ------------------------------------------------------------
   // Initialize 7-Segment Display(s)
