@@ -495,13 +495,13 @@ void taskDisplay(void * pvParameters) {
         for (int i=0; i<strlen(disp.value); i++) {if (disp.value[i]=='.') {display_decimal=true;}}
         for (int i=0; i<strlen(disp.value); i++) {if (disp.value[i]==':') {display_colon=true;}}
         if (disp.type == SEG_4DIGIT) {
-          if (display_decimal==true) {disp.display4->showNumber(atof(disp.value), 1);} // adjust precisiona as required
+          if (display_decimal==true) {disp.display4->showNumber(atof(disp.value), 1);} // adjust precision as required
           else                       {disp.display4->showNumber(atoi(disp.value), 0);}
           // if (display_colon==true)   {disp.display4->setSegments(dot_colon_select_7seg_4digit[5]);} // uncomment/adjust if required
           // else                       {disp.display4->setSegments(dot_colon_select_7seg_4digit[0]);}
         }
         else if (disp.type == SEG_6DIGIT) {
-          if (display_decimal==true) {disp.display6->showNumber(atof(disp.value), 1);} // adjust precisiona as required
+          if (display_decimal==true) {disp.display6->showNumber(atof(disp.value), 1);} // adjust precision as required
           else                       {disp.display6->showNumber(atoi(disp.value), 0);}
           // if (display_colon==true)   {disp.display6->setSegments(dot_colon_select_7seg_6digit[8]);} // uncomment/adjust if required
           // else                       {disp.display6->setSegments(dot_colon_select_7seg_6digit[0]);}
