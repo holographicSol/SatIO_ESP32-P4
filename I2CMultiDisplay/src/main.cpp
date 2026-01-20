@@ -245,6 +245,7 @@ void receiveEventBus1Bin(size_t n_bytes_received) {
   cmd = Wire1.read(); // expects uint8 command byte (up to 255 unique commands can be accepted). 
   // Serial.println("[receiveEventBus1Bin] " + String(cmd) + " (" + String(n_bytes_received) + " bytes)");
   switch (cmd) {
+
     // Set Request ID: 1
     case 0x01: {
       // Serial.println("[receiveEventBus1Bin] preparing to process command: " + String(cmd));
@@ -255,15 +256,40 @@ void receiveEventBus1Bin(size_t n_bytes_received) {
     // Indicators
     case 0x0A: {
       if (n_bytes_received!=5) {return;}
+      
+      // display index
       read_uint8_FromWire(Wire1, display_index);
-      read_uint8_FromWire(Wire1, colorR);
-      read_uint8_FromWire(Wire1, colorG);
-      read_uint8_FromWire(Wire1, colorB);
       if (display_index >= MAX_INDICATORS) {
         Serial.printf("[ERROR] LED display_index out of bounds: %d\n", display_index);
         drainBus(Wire1);
         break;
       }
+
+      // color value red
+      read_uint8_FromWire(Wire1, colorR);
+      if (colorR > 255 || colorR < 0) {
+        Serial.printf("[ERROR] LED colorR value out of bounds: %d\n", colorR);
+        drainBus(Wire1);
+        break;
+      }
+
+      // color value green
+      read_uint8_FromWire(Wire1, colorG);
+      if (colorG > 255 || colorG < 0) {
+        Serial.printf("[ERROR] LED colorG value out of bounds: %d\n", colorG);
+        drainBus(Wire1);
+        break;
+      }
+
+      // color value blue
+      read_uint8_FromWire(Wire1, colorB);
+      if (colorB > 255 || colorB < 0) {
+        Serial.printf("[ERROR] LED colorB value out of bounds: %d\n", colorB);
+        drainBus(Wire1);
+        break;
+      }
+
+      // update LED color
       leds[display_index] = CRGB(colorR,colorG,colorB);
       // Serial.printf("[RX] led %d: r=%d g=%d b=%d\n",
       //               display_index,
@@ -274,17 +300,29 @@ void receiveEventBus1Bin(size_t n_bytes_received) {
       drainBus(Wire1);
       break;
     }
+
     // 4 Digit 7 Segment Displays
     case 0x14: {
+      
+      // display index
       read_uint8_FromWire(Wire1, display_index);
-      str_len = n_bytes_received - 2; // deduct 2 bytes to find strlen
-      read_nchars_FromWire(Wire1, value_char, str_len);
-      value_char[str_len] = '\0'; // null terminate
       if (display_index >= MAX_7SEG_DISPLAYS) {
         Serial.printf("[ERROR] 7seg4Digit display_index out of bounds: %d\n", display_index);
         drainBus(Wire1);
         break;
       }
+
+      // value
+      str_len = n_bytes_received - 2; // deduct 2 bytes to find strlen
+      read_nchars_FromWire(Wire1, value_char, str_len);
+      value_char[str_len] = '\0'; // null terminate
+      if (str_is_double(value_char)==false && str_is_int64(value_char)==false) {
+        Serial.printf("[ERROR] 7seg4Digit invalid value received: %s\n", value_char);
+        drainBus(Wire1);
+        break;
+      }
+
+      // update display value
       auto& disp = seven_seg_displays[display_index];
       memset(disp.value, 0, sizeof(disp.value));
       strncpy(disp.value, value_char, sizeof(disp.value) - 1);
@@ -295,17 +333,29 @@ void receiveEventBus1Bin(size_t n_bytes_received) {
       drainBus(Wire1);
       break;
     }
+
     // 6 Digit 7 Segment Displays
     case 0x1E: {
+
+      // display index
       read_uint8_FromWire(Wire1, display_index);
-      str_len = n_bytes_received - 2; // deduct 2 bytes to find strlen
-      read_nchars_FromWire(Wire1, value_char, str_len);
-      value_char[str_len] = '\0'; // null terminate
       if (display_index >= MAX_7SEG_DISPLAYS) {
         Serial.printf("[ERROR] 7seg6Digit display_index out of bounds: %d\n", display_index);
         drainBus(Wire1);
         break;
       }
+
+      // value
+      str_len = n_bytes_received - 2; // deduct 2 bytes to find strlen
+      read_nchars_FromWire(Wire1, value_char, str_len);
+      value_char[str_len] = '\0'; // null terminate
+      if (str_is_double(value_char)==false && str_is_int64(value_char)==false) {
+        Serial.printf("[ERROR] 7seg6Digit invalid value received: %s\n", value_char);
+        drainBus(Wire1);
+        break;
+      }
+
+      // update display value
       auto& disp = seven_seg_displays[display_index];
       memset(disp.value, 0, sizeof(disp.value));
       strncpy(disp.value, value_char, sizeof(disp.value) - 1);
@@ -316,20 +366,38 @@ void receiveEventBus1Bin(size_t n_bytes_received) {
       drainBus(Wire1);
       break;
     }
+
     // Update SSD1306 Canvas Values
     case 0x28: {
+
+      // display index
       read_uint8_FromWire(Wire1, display_index);
-      read_uint8_FromWire(Wire1, value_idx);
-      read_uint8_FromWire(Wire1, dx);
-      read_uint8_FromWire(Wire1, dy);
-      str_len = n_bytes_received - 5; // deduct 5 bytes to find strlen
-      read_nchars_FromWire(Wire1, value_char, str_len);
-      value_char[str_len] = '\0'; // null terminate
-      if (display_index >= MAX_SSD1306_DISPLAYS || value_idx >= MAX_SSD1306_DISPLAY_VALUES) {
-        Serial.printf("[ERROR] SSD1306 display_index or value_idx out of bounds: %d, %d\n", display_index, value_idx);
+      if (display_index >= MAX_SSD1306_DISPLAYS) {
+        Serial.printf("[ERROR] SSD1306 display_index out of bounds: %d\n", display_index);
         drainBus(Wire1);
         break;
       }
+
+      // value index
+      read_uint8_FromWire(Wire1, value_idx);
+      if (value_idx >= MAX_SSD1306_DISPLAY_VALUES) {
+        Serial.printf("[ERROR] SSD1306 value_idx out of bounds: %d\n", value_idx);
+        drainBus(Wire1);
+        break;
+      }
+
+      // dx value
+      read_uint8_FromWire(Wire1, dx);
+
+      // dy value
+      read_uint8_FromWire(Wire1, dy);
+
+      // value
+      str_len = n_bytes_received - 5; // deduct 5 bytes to find strlen
+      read_nchars_FromWire(Wire1, value_char, str_len);
+      value_char[str_len] = '\0'; // null terminate
+
+      // update display value
       ssd1306_displays[display_index].dx[value_idx] = dx;
       ssd1306_displays[display_index].dy[value_idx] = dy;
       memset(ssd1306_displays[display_index].value[value_idx], 0, sizeof(ssd1306_displays[display_index].value[value_idx]));
@@ -344,14 +412,19 @@ void receiveEventBus1Bin(size_t n_bytes_received) {
       drainBus(Wire1);
       break;
     }
+
     // Update SSD1306 Canvas Bool
     case 0x32: {
+
+      // display index
       read_uint8_FromWire(Wire1, display_index);
       if (display_index >= MAX_SSD1306_DISPLAYS) {
         Serial.printf("[ERROR] SSD1306 draw display_index out of bounds: %d\n", display_index);
         drainBus(Wire1);
         break;
       }
+
+      // set draw flag
       ssd1306_displays[display_index].draw=true;
       // Serial.printf("[RX] SSD1306 %d: draw canvas.\n",
       //               display_index
