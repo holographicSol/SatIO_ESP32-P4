@@ -488,11 +488,23 @@ void taskDisplay(void * pvParameters) {
         setADMultiplexerChannel(ad_mux_0, i_display);
         // Serial.printf("[DEBUG] setADMultiplexerChannel(ad_mux_1, %d)\n", i_display);
         setADMultiplexerChannel(ad_mux_1, i_display);
+
+        // set value with automatic decimal and colon handling (adjust as required for specific use case)
+        bool display_decimal = false;
+        bool display_colon = false;
+        for (int i=0; i<strlen(disp.value); i++) {if (disp.value[i]=='.') {display_decimal=true;}}
+        for (int i=0; i<strlen(disp.value); i++) {if (disp.value[i]==':') {display_colon=true;}}
         if (disp.type == SEG_4DIGIT) {
-          disp.display4->showString(disp.value);
+          if (display_decimal==true) {disp.display4->showNumber(atof(disp.value), 1);} // adjust precisiona as required
+          else                       {disp.display4->showNumber(atoi(disp.value), 0);}
+          // if (display_colon==true)   {disp.display4->setSegments(dot_colon_select_7seg_4digit[5]);} // uncomment/adjust if required
+          // else                       {disp.display4->setSegments(dot_colon_select_7seg_4digit[0]);}
         }
         else if (disp.type == SEG_6DIGIT) {
-          disp.display6->showString(disp.value);
+          if (display_decimal==true) {disp.display6->showNumber(atof(disp.value), 1);} // adjust precisiona as required
+          else                       {disp.display6->showNumber(atoi(disp.value), 0);}
+          // if (display_colon==true)   {disp.display6->setSegments(dot_colon_select_7seg_6digit[8]);} // uncomment/adjust if required
+          // else                       {disp.display6->setSegments(dot_colon_select_7seg_6digit[0]);}
         }
       }
 
