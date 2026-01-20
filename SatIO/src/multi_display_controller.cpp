@@ -37,33 +37,30 @@ void updateIndicator(TwoWire &wire, int address, int display_index, int r, int g
 void update7Segment4Digit(TwoWire &wire, int address, int display_index, char* value) {
   clearI2CLinkOutputPacket(IICLinkMultiDisplayController);
   write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 0, 0x14); // command 20
-  write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 1, DISPLAY_TYPE_7SEGMENT_4DIGIT);
-  write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 2, display_index);
-  write_nchars_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 3, value, strlen(value));
-  writeI2CToSlaveBin(wire, IICLinkMultiDisplayController, address, 3+strlen(value), 5, "update7Segment4Digit");
+  write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 1, display_index);
+  write_nchars_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 2, value, strlen(value));
+  writeI2CToSlaveBin(wire, IICLinkMultiDisplayController, address, 2+strlen(value), 5, "update7Segment4Digit");
 }
 
 /* Instruction Structure: DisplayType,DisplayIndex,Value */
 void update7Segment6Digit(TwoWire &wire, int address, int display_index, char* value) {
   clearI2CLinkOutputPacket(IICLinkMultiDisplayController);
   write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 0, 0x1E); // command 30
-  write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 1, DISPLAY_TYPE_7SEGMENT_6DIGIT);
-  write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 2, display_index);
-  write_nchars_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 3, value, strlen(value));
-  writeI2CToSlaveBin(wire, IICLinkMultiDisplayController, address, 3+strlen(value), 5, "update7Segment6Digit");
+  write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 1, display_index);
+  write_nchars_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 2, value, strlen(value));
+  writeI2CToSlaveBin(wire, IICLinkMultiDisplayController, address, 2+strlen(value), 5, "update7Segment6Digit");
 }
 
 /* Instruction Structure: DisplayType,DisplayIndex,ValueIndex,Dx,Dy,Value */
 void updateSSD1306(TwoWire &wire, int address, int display_index, int value_index, int dx, int dy, char* value) {
   clearI2CLinkOutputPacket(IICLinkMultiDisplayController);
   write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 0, 0x28 ); // command 40
-  write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 1, DISPLAY_TYPE_SSD1306);
-  write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 2, display_index);
-  write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 3, value_index);
-  write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 4, dx);
-  write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 5, dy);
-  write_nchars_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 6, value, strlen(value));
-  writeI2CToSlaveBin(wire, IICLinkMultiDisplayController, address, 6+strlen(value), 5, "updateSSD1306");
+  write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 1, display_index);
+  write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 2, value_index);
+  write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 3, dx);
+  write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 4, dy);
+  write_nchars_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 5, value, strlen(value));
+  writeI2CToSlaveBin(wire, IICLinkMultiDisplayController, address, 5+strlen(value), 5, "updateSSD1306");
 }
 
 /* Instruction Structure: EventID,DisplayIndex */
@@ -83,7 +80,7 @@ void requestMultiDisplayControllerData(TwoWire &wire, int address, bool &isr_int
    // Send event ID
    clearI2CLinkOutputPacket(IICLinkMultiDisplayController);
    IICLinkMultiDisplayController.OUTPUT_PACKET[0] = 0x01; // 1
-   writeI2CToSlaveBin(wire, IICLinkMultiDisplayController, address, 1, 0, "requestMultiDisplayControllerData");
+   writeI2CToSlaveBin(wire, IICLinkMultiDisplayController, address, 1, 5, "requestMultiDisplayControllerData");
 
    // Request from slave
    if (requestFromSlaveBinNoID(wire,

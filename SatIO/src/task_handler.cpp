@@ -44,31 +44,33 @@ TaskHandle_t TaskUniverse;
 TaskHandle_t TaskSwitches;
 TaskHandle_t TasMultikDisplay;
 
-// PRIORITIES (Lower = Higher Priority)
-#define TASK_GPS_PRIORITY                   2    // High: Time/location sync critical
-#define TASK_SERIALINFOCMD_PRIORITY         2    // High: User interaction & debugging
-#define TASK_GYRO_PRIORITY                  3    // Medium: Sensor reading
-#define TASK_MULTIPLEXERS_PRIORITY          3    // Medium: Analog multiplexing
-#define TASK_SWITCHES_PRIORITY              3    // Medium: Logic processing
-#define TASK_PORTCONTROLLERINPUT_PRIORITY   4    // Medium: I/O reading
+// CORE 0 PRIORITY
+#define TASK_MULTI_DISPLAY_PRIORITY         5    // High: UI updates can be deferred
+#define TASK_SWITCHES_PRIORITY              5    // High: Logic processing
+#define TASK_SERIALINFOCMD_PRIORITY         4    // High: User interaction & debugging
+#define TASK_MULTIPLEXERS_PRIORITY          4    // High: Analog multiplexing
+#define TASK_PORTCONTROLLERINPUT_PRIORITY   4    // High: I/O reading
+#define TASK_GYRO_PRIORITY                  4    // High: Sensor reading
+#define TASK_UNIVERSE_PRIORITY              2    // LOW: Computational, non-critical delay
+#define TASK_STORAGE_PRIORITY               2    // LOW: I/O operations, can wait
+#define TASK_LOGGING_PRIORITY               2    // LOW: Asynchronous data recording
 
-#define TASK_STORAGE_PRIORITY               3    // Medium: I/O operations, can wait
-#define TASK_LOGGING_PRIORITY               5    // Low: Asynchronous data recording
-#define TASK_UNIVERSE_PRIORITY              4    // Low: Computational, non-critical delay
-#define TASK_MULTI_DISPLAY_PRIORITY         5    // Low: UI updates can be deferred
+// CORE 1 PRIORITY
+#define TASK_GPS_PRIORITY                   5    // High: Time/location sync critical
 
-// CORE ASSIGNMENT (Spread load across both cores)
-#define TASK_GPS_CORE                       1    // Core 1: Critical for system sync
+// CORE 0 ASSIGNMENT
 #define TASK_SERIALINFOCMD_CORE             0    // Core 0: Keep on main (timing-sensitive)
 #define TASK_GYRO_CORE                      0    // Core 0: Sensor reading (less critical)
 #define TASK_MULTIPLEXERS_CORE              0    // Core 0: ADC/multiplexing
 #define TASK_PORTCONTROLLERINPUT_CORE       0    // Core 0: I2C/GPIO input
 #define TASK_SWITCHES_CORE                  0    // Core 0: Outputs need responsiveness
-
 #define TASK_UNIVERSE_CORE                  0    // Core 0: Heavy compute, can defer
 #define TASK_STORAGE_CORE                   0    // Core 0: I/O-heavy, doesn't need Core 0
 #define TASK_LOGGING_CORE                   0    // Core 0: I/O operations
 #define TASK_MULTI_DISPLAY_CORE             0    // Core 0: UI responsiveness
+
+// CORE 1 ASSIGNMENT
+#define TASK_GPS_CORE                       1    // Core 1: Critical for system sync
 
 // STACK SIZES (Adjusted for task complexity)
 #define TASK_STORAGE_STACK_SIZE             6144    // +50%: SDMMC operations
@@ -137,7 +139,8 @@ bool isTaskDelayed(TaskHandle_t taskHandle) {
  *  (6) Powers down the sdcard when not in use. 
  */
 void taskStorage(void * pvParameters) {
-  while (global_task_sync==false) {vTaskDelay(1);}
+  esp_task_wdt_add(NULL);
+  while (global_task_sync==false) {esp_task_wdt_reset(); vTaskDelay(1);}
   for (;;) {
     esp_task_wdt_reset();
     // ------------------------------------------------
@@ -170,7 +173,6 @@ void createTaskStorage() {
     TASK_STORAGE_PRIORITY, /* Priority of the task */
     &TaskStorage,          /* Task handle. */
     TASK_STORAGE_CORE);    /* Core where the task should run */
-    esp_task_wdt_add(TaskStorage);
 }
 
 /** ----------------------------------------------------------------------------
@@ -179,6 +181,8 @@ void createTaskStorage() {
  * @brief Writes logs to disk.
  */
 void taskLogging(void * pvParameters) {
+  esp_task_wdt_add(NULL);
+  while (global_task_sync==false) {esp_task_wdt_reset(); vTaskDelay(1);}
   for (;;) {
     esp_task_wdt_reset();
     // check disk space
@@ -215,7 +219,6 @@ void createTaskLogging() {
     TASK_LOGGING_PRIORITY, /* Priority of the task */
     &TaskLogging,          /* Task handle. */
     TASK_LOGGING_CORE);    /* Core where the task should run */
-    esp_task_wdt_add(TaskLogging);
 }
 
 /** ----------------------------------------------------------------------------
@@ -226,7 +229,8 @@ void createTaskLogging() {
  *  (2) Commands in.
  */
 void taskSerialInfoCMD(void * pvParameters) {
-  while (global_task_sync==false) {vTaskDelay(1);}
+  esp_task_wdt_add(NULL);
+  while (global_task_sync==false) {esp_task_wdt_reset(); vTaskDelay(1);}
   for (;;) {
     esp_task_wdt_reset();
     // ------------------------------------------------
@@ -251,7 +255,6 @@ void createTaskSerialInfoCMD() {
     TASK_SERIALINFOCMD_PRIORITY, /* Priority of the task */
     &TaskSerialInfoCMD,          /* Task handle. */
     TASK_SERIALINFOCMD_CORE);    /* Core where the task should run */
-    esp_task_wdt_add(TaskSerialInfoCMD);
 }
 
 /** ----------------------------------------------------------------------------
@@ -263,6 +266,8 @@ void createTaskSerialInfoCMD() {
  * Consider renaming task to something like 'time and location'
  */
 void taskGPS(void * pvParameters) {
+  esp_task_wdt_add(NULL);
+  while (global_task_sync==false) {esp_task_wdt_reset(); vTaskDelay(1);}
   for (;;) {
     esp_task_wdt_reset();
     // ------------------------------------------------
@@ -318,7 +323,6 @@ void createTaskGPS() {
     TASK_GPS_PRIORITY, /* Priority of the task */
     &TaskGPS,          /* Task handle. */
     TASK_GPS_CORE);    /* Core where the task should run */
-    esp_task_wdt_add(TaskGPS);
 }
 
 /** ----------------------------------------------------------------------------
@@ -327,7 +331,8 @@ void createTaskGPS() {
  * @brief Reads and stores gyroscopic data.
  */
 void taskGyro(void * pvParameters) {
-  while (global_task_sync==false) {vTaskDelay(1);}
+  esp_task_wdt_add(NULL);
+  while (global_task_sync==false) {esp_task_wdt_reset(); vTaskDelay(1);}
   for (;;) {
     esp_task_wdt_reset();
     if (readGyro()==true) {
@@ -368,7 +373,6 @@ void createTaskGyro() {
     TASK_GYRO_PRIORITY, /* Priority of the task */
     &TaskGyro,          /* Task handle. */
     TASK_GYRO_CORE);    /* Core where the task should run */
-    esp_task_wdt_add(TaskGyro);
 }
 
 /** ----------------------------------------------------------------------------
@@ -377,7 +381,8 @@ void createTaskGyro() {
  * @brief Reads all analog/digital multiplexer channels.
  */
 void taskMultiplexers(void * pvParameters) {
-  while (!global_task_sync) {vTaskDelay(pdMS_TO_TICKS(10));}
+  esp_task_wdt_add(NULL);
+  while (global_task_sync==false) {esp_task_wdt_reset(); vTaskDelay(1);}
   for (;;) {
     esp_task_wdt_reset();
     // ------------------------------------------------
@@ -411,7 +416,6 @@ void createTaskMultiplexers() {
     TASK_MULTIPLEXERS_PRIORITY, /* Priority of the task */
     &TaskMultiplexers,          /* Task handle. */
     TASK_MULTIPLEXERS_CORE);    /* Core where the task should run */
-    esp_task_wdt_add(TaskMultiplexers);
 }
 
 /** ----------------------------------------------------------------------------
@@ -420,7 +424,8 @@ void createTaskMultiplexers() {
  * @brief Reads pins on portcontroller.
  */
 void taskPortControllerInput(void * pvParameters) {
-  while (global_task_sync==false) {vTaskDelay(1);}
+  esp_task_wdt_add(NULL);
+  while (global_task_sync==false) {esp_task_wdt_reset(); vTaskDelay(1);}
   for (;;) {
     esp_task_wdt_reset();
     // ------------------------------------------------
@@ -449,7 +454,6 @@ void createTaskPortControllerInput() {
     TASK_PORTCONTROLLERINPUT_PRIORITY, /* Priority of the task */
     &TaskPortControllerInput,          /* Task handle. */
     TASK_PORTCONTROLLERINPUT_CORE);    /* Core where the task should run */
-    esp_task_wdt_add(TaskPortControllerInput);
 }
 
 /** ----------------------------------------------------------------------------
@@ -462,7 +466,8 @@ void createTaskPortControllerInput() {
  *  (4) Instructing the portcontroller accordingly.
  */
 void taskSwitches(void * pvParameters) {
-  while (global_task_sync==false) {vTaskDelay(1);}
+  esp_task_wdt_add(NULL);
+  while (global_task_sync==false) {esp_task_wdt_reset(); vTaskDelay(1);}
   for (;;) {
     esp_task_wdt_reset();
     // ------------------------------------------------
@@ -500,7 +505,6 @@ void createTaskSwitches() {
     TASK_SWITCHES_PRIORITY, /* Priority of the task */
     &TaskSwitches,          /* Task handle. */
     TASK_SWITCHES_CORE);    /* Core where the task should run */
-    esp_task_wdt_add(TaskSwitches);
 }
 
 /** ----------------------------------------------------------------------------
@@ -509,7 +513,8 @@ void createTaskSwitches() {
  * @brief Stores various information about the universe!
  */
 void taskUniverse(void * pvParameters) {
-  while (global_task_sync==false) {vTaskDelay(1);}
+  esp_task_wdt_add(NULL);
+  while (global_task_sync==false) {esp_task_wdt_reset(); vTaskDelay(1);}
   for (;;) {
     esp_task_wdt_reset();
     // ------------------------------------------------
@@ -553,7 +558,6 @@ void createTaskUniverse() {
     TASK_UNIVERSE_PRIORITY, /* Priority of the task */
     &TaskUniverse,          /* Task handle. */
     TASK_UNIVERSE_CORE);    /* Core where the task should run */
-    esp_task_wdt_add(TaskUniverse);
 }
 
 /** ----------------------------------------------------------------------------
@@ -562,7 +566,8 @@ void createTaskUniverse() {
  */
 
 void tasMultikDisplay(void * pvParameters) {
-  // while (global_task_sync==false) {vTaskDelay(1);}
+  esp_task_wdt_add(NULL);
+  // while (global_task_sync==false) {esp_task_wdt_reset(); vTaskDelay(1);}
   for (;;) {
     esp_task_wdt_reset();
 
@@ -656,7 +661,6 @@ void createTaskMultiDisplay() {
     TASK_MULTI_DISPLAY_PRIORITY, /* Priority of the task */
     &TasMultikDisplay,          /* Task handle. */
     TASK_MULTI_DISPLAY_CORE);    /* Core where the task should run */
-    esp_task_wdt_add(TasMultikDisplay);
 }
 
 /** ----------------------------------------------------------------------------

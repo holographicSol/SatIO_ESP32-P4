@@ -124,7 +124,7 @@ void setup() {
   // Required for operations in taks that may take longer than 5s..
   // --------------------------------------------------------------
   esp_task_wdt_config_t config = {
-    .timeout_ms = 60* 1000, // 20 seconds
+    .timeout_ms = 60* 1000, // 1 minute
     .trigger_panic = true,  // Trigger panic if watchdog timer not reset
   };
   esp_task_wdt_reconfigure(&config);
