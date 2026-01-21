@@ -110,7 +110,7 @@
 #define DEFAULT_SCROLL_DELAY  100
 #define DEFAULT_FLIP          false
 
-#define FRAMES(a)     sizeof(a)/6
+// #define FRAMES(a)     sizeof(a)/6
 #define TIME_MS(t)    t
 #define TIME_S(t)     t*1000
 

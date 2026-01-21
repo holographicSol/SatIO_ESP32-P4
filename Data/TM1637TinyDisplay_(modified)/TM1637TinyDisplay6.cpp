@@ -428,128 +428,142 @@ void TM1637TinyDisplay6::showNumberBaseEx(int8_t base, uint32_t num, uint8_t dot
   setSegments(digits, length, pos);
 }
 
+/**
+ * Display string on 6-digit TM1637 display
+ * - Short strings (≤6 meaningful chars) → right aligned
+ * - Long strings → smooth left scroll with intro/outro
+ * - Supports '.' (decimal point after character) and ':' (middle colon)
+ *
+ * @param s       string to display (may contain . and :)
+ * @param length  usually MAXDIGITS (6)
+ * @param pos     starting position (usually 0)
+ * @param dots    optional extra dots bitmask (rarely used)
+ */
 void TM1637TinyDisplay6::showString(const char s[], uint8_t length, uint8_t pos, uint8_t dots)
 {
-    uint8_t digits[MAXDIGITS];
-    memset(digits, 0, sizeof(digits));
-
-    size_t slen = strlen(s);
-
-    // Calculate effective number of digits we will actually display
-    size_t effectiveLen = 0;
-    for (size_t i = 0; i < slen; ++i) {
-        if (s[i] != '.' && s[i] != ':') {
-            effectiveLen++;
-        }
+    if (!s || !*s) {
+        clear();
+        return;
     }
 
-    // --- Case 1: Fits on display (no scrolling) ---
-    if (effectiveLen <= MAXDIGITS) {
-        uint8_t digitIdx = 0;
+    // ─────────────────────────────────────────────────────────────
+    // Step 1: Parse string → separate characters + dot/colon markers
+    // ─────────────────────────────────────────────────────────────
+    char clean[128];
+    uint8_t dotAfter[128] = {0};   // 1 = decimal point after this char
+    uint8_t colonAt[128]  = {0};   // 1 = colon after this char position
+    size_t count = 0;
 
-        for (size_t i = 0; i < slen && digitIdx < MAXDIGITS; ++i) {
-            char c = s[i];
-
-            if (c == '.') {
-                // Attach decimal point to previous digit (if exists)
-                if (digitIdx > 0) {
-                    digits[digitIdx - 1] |= 0x80;
-                }
-                continue;
-            }
-            else if (c == ':') {
-                // Typical for 6-digit clock modules: colon often uses DP of digit 1 (second from left)
-                if (MAXDIGITS >= 4) {
-                    digits[1] |= 0x80;
-                }
-                // Alternative: some modules use digits[2] or both [1] and [2]
-                // digits[2] |= 0x80;  // uncomment/adjust if needed
-                continue;
-            }
-
-            // Normal character
-            digits[digitIdx++] = encodeASCII(c);
+    for (const char* p = s; *p && count < sizeof(clean)-1; ++p)
+    {
+        if (*p == '.') {
+            if (count > 0) dotAfter[count-1] = 1;
         }
-
-        // Apply any extra dots bitmask passed as parameter
-        if (dots != 0) {
-            showDots(dots, digits);
+        else if (*p == ':') {
+            if (count > 0) colonAt[count-1] = 1;
+            // Some displays want colon on fixed position → we handle below too
         }
-
-        setSegments(digits, length, pos);
-    }
-
-    // --- Case 2: Too many digits → scrolling ---
-    else {
-        // Build clean string + dot/colon markers
-        char cleanStr[slen + 1];
-        uint8_t dotPos[slen + 1] = {0};   // 1 = set DP on this clean index
-        uint8_t colonPos[slen + 1] = {0}; // 1 = set colon at this clean index
-
-        size_t cleanIdx = 0;
-
-        for (size_t i = 0; i < slen; ++i) {
-            char c = s[i];
-
-            if (c == '.') {
-                if (cleanIdx > 0) {
-                    dotPos[cleanIdx - 1] = 1;
-                }
-                continue;
-            }
-            else if (c == ':') {
-                colonPos[cleanIdx] = 1;   // colon after current character
-                continue;
-            }
-
-            cleanStr[cleanIdx++] = c;
-        }
-        cleanStr[cleanIdx] = '\0';
-
-        // Now perform scrolling using the clean content
-        uint8_t tempDigits[MAXDIGITS];
-
-        // Scroll-in effect (optional but nice)
-        for (int x = 0; x < MAXDIGITS - 1; x++) {
-            memset(tempDigits, 0, sizeof(tempDigits));
-            for (int y = 0; y <= x && y < cleanIdx; y++) {
-                tempDigits[y] = encodeASCII(cleanStr[y]);
-                if (dotPos[y])   tempDigits[y] |= 0x80;
-                if (colonPos[y]) tempDigits[y] |= 0x80;  // adjust colon bit if needed
-            }
-            setSegments(tempDigits, length, pos);
-            delay(m_scrollDelay);
-        }
-
-        // Main scrolling loop
-        size_t windowStart = 0;
-        while (windowStart <= cleanIdx - MAXDIGITS || windowStart == 0) {
-            memset(tempDigits, 0, sizeof(tempDigits));
-
-            for (uint8_t y = 0; y < MAXDIGITS; y++) {
-                size_t idx = windowStart + y;
-                if (idx < cleanIdx) {
-                    tempDigits[y] = encodeASCII(cleanStr[idx]);
-                    if (dotPos[idx])   tempDigits[y] |= 0x80;
-                    if (colonPos[idx]) tempDigits[y] |= 0x80;
-                }
-            }
-
-            setSegments(tempDigits, length, pos);
-            delay(m_scrollDelay);
-            windowStart++;
-        }
-
-        // Scroll-out effect
-        for (int x = 0; x < MAXDIGITS; x++) {
-            for (int y = 0; y < MAXDIGITS - 1; y++) {
-                tempDigits[y] = tempDigits[y + 1];
-            }
-            tempDigits[MAXDIGITS - 1] = 0;
-            setSegments(tempDigits, length, pos);
-            delay(m_scrollDelay);
+        else {
+            clean[count++] = *p;
         }
     }
+    clean[count] = '\0';
+
+    uint8_t disp[6];  // working display buffer
+
+    // ─────────────────────────────────────────────────────────────
+    // Case A: Fits on display → RIGHT aligned
+    // ─────────────────────────────────────────────────────────────
+    if (count <= 6)
+    {
+        memset(disp, 0, sizeof(disp));
+
+        // Right align: start writing from right side
+        uint8_t startAt = 6 - count;
+
+        for (size_t i = 0; i < count; i++)
+        {
+            uint8_t seg = encodeASCII((uint8_t)clean[i]);
+
+            if (dotAfter[i]) {
+                seg |= 0x80;
+            }
+
+            disp[startAt + i] = seg;
+        }
+
+        // Special colon handling – most 6-digit clock modules use colon
+        // around digits 2 & 3 (0-based index 1 and 2)
+        bool hasColon = (strchr(s, ':') != NULL);
+        if (hasColon || colonAt[0] || colonAt[1])
+        {
+            // Typical choice: colon on digit 1 (second from left)
+            // Adjust to 2 if your module uses different wiring
+            if (count >= 2) {
+                disp[1] |= 0x80;
+            }
+        }
+
+        // Apply extra dots bitmask if provided
+        if (dots) showDots(dots, disp);
+
+        setSegments(disp, length, pos);
+        return;
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // Case B: Scrolling (long text)
+    // ─────────────────────────────────────────────────────────────
+    uint8_t window[6];
+
+    // Intro: text slides in from right
+    for (int step = 0; step < 6; step++)
+    {
+        memset(window, 0, sizeof(window));
+
+        for (int i = 0; i <= step && i < count; i++)
+        {
+            int pos = 5 - step + i;           // appear from right
+            if (pos >= 0 && pos < 6)
+            {
+                window[pos] = encodeASCII(clean[i]);
+                if (dotAfter[i]) window[pos] |= 0x80;
+                // Colon simplified – appears with character
+                if (colonAt[i]) window[pos] |= 0x80;
+            }
+        }
+        setSegments(window, length, pos);
+        delay(m_scrollDelay);
+    }
+
+    // Main scroll
+    for (size_t start = 0; start <= count - 6; start++)
+    {
+        for (uint8_t i = 0; i < 6; i++)
+        {
+            size_t idx = start + i;
+            window[i] = (idx < count) ? encodeASCII(clean[idx]) : 0;
+            if (idx < count) {
+                if (dotAfter[idx]) window[i] |= 0x80;
+                if (colonAt[idx])  window[i] |= 0x80;
+            }
+        }
+        setSegments(window, length, pos);
+        delay(m_scrollDelay);
+    }
+
+    // Outro: text slides out to left
+    for (int step = 0; step < 6; step++)
+    {
+        for (uint8_t i = 0; i < 5; i++) {
+            window[i] = window[i+1];
+        }
+        window[5] = 0;
+        setSegments(window, length, pos);
+        delay(m_scrollDelay);
+    }
+
+    clear();
 }
 
 void TM1637TinyDisplay6::showString_P(const char s[], uint8_t length, uint8_t pos, uint8_t dots) 

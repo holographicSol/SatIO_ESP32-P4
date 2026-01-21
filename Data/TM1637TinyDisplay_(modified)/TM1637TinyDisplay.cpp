@@ -280,114 +280,150 @@ void TM1637TinyDisplay::showNumberBaseEx(int8_t base, uint16_t num, uint8_t dots
   setSegments(digits, length, pos);
 }
 
-// void TM1637TinyDisplay::showString(const char s[], uint8_t length, uint8_t pos)
-// {
-//   uint8_t digits[4] = {0,0,0,0};
+/**
+ * Display string on TM1637 4-digit display
+ * - Short strings (≤4 chars ignoring dots/colons) → right aligned
+ * - Long strings → scroll left with animation
+ * - Supports '.' (decimal point after character) and ':' (middle colon)
+ */
+void TM1637TinyDisplay::showString(const char* s, uint8_t length, uint8_t pos)
+{
+    if (!s || !*s) {
+        clear();
+        return;
+    }
 
-//   if (strlen(s) <= 4) {
-//     switch (strlen(s)) {
-//       case 4:
-//         digits[3] = encodeASCII(s[3]);
-//       case 3:
-//         digits[2] = encodeASCII(s[2]);
-//       case 2:
-//         digits[1] = encodeASCII(s[1]);
-//       case 1:
-//         digits[0] = encodeASCII(s[0]);
-//       case 0:
-//         setSegments(digits, length, pos);
-//     }
-//   }
-//   if (strlen(s) > 4) {
-//     // Scroll text on display if too long
-//     for (int x = 0; x < 3; x++) {  // Scroll message on
-//       digits[0] = digits[1];
-//       digits[1] = digits[2];
-//       digits[2] = digits[3];
-//       digits[3] = encodeASCII(s[x]);
-//       setSegments(digits, length, pos);
-//       delay(m_scrollDelay);
-//     }
-//     for (int x = 3; x < strlen(s); x++) { // Scroll through string
-//       digits[0] = encodeASCII(s[x - 3]);
-//       digits[1] = encodeASCII(s[x - 2]);
-//       digits[2] = encodeASCII(s[x - 1]);
-//       digits[3] = encodeASCII(s[x]);
-//       setSegments(digits, length, pos);
-//       delay(m_scrollDelay);
-//     }
-//     for (int x = 0; x < 4; x++) {  // Scroll message off
-//       digits[0] = digits[1];
-//       digits[1] = digits[2];
-//       digits[2] = digits[3];
-//       digits[3] = 0;
-//       setSegments(digits, length, pos);
-//       delay(m_scrollDelay);
-//     }
-//   }
-// }
+    // Step 1: Extract visible characters + mark dots and colons
+    char chars[128];              // cleaned characters (without . and :)
+    uint8_t dotAfter[128] = {0};  // 1 = decimal point after this char
+    uint8_t charCount = 0;
+    bool pendingColon = false;
 
-void TM1637TinyDisplay::showString(const char s[], uint8_t length, uint8_t pos) {
-  uint8_t digits[4] = {0, 0, 0, 0};
-  size_t len = strlen(s);
+    for (const char* p = s; *p && charCount < sizeof(chars)-1; ++p)
+    {
+        if (*p == '.') {
+            if (charCount > 0) {
+                dotAfter[charCount-1] = 1;
+            }
+        }
+        else if (*p == ':') {
+            pendingColon = true;
+        }
+        else {
+            chars[charCount] = *p;
+            if (pendingColon) {
+                dotAfter[charCount] |= 0x02;  // mark as needing colon (middle)
+                pendingColon = false;
+            }
+            charCount++;
+        }
+    }
+    chars[charCount] = '\0';
 
-  if (len <= 4) {
-    uint8_t digitIdx = 0;
-    for (size_t i = 0; i < len && digitIdx < 4; ++i) {
-      if (s[i] == '.') {
-        if (digitIdx > 0) digits[digitIdx - 1] |= 0x80;  // Set DP on previous digit
-        continue;  // Skip '.'
-      } else if (s[i] == ':') {
-        digits[1] |= 0x80;  // Set colon (assuming DP on second digit from left)
-        continue;  // Skip ':'
-      }
-      digits[digitIdx++] = encodeASCII(s[i]);
+    // ───────────────────────────────────────────────
+    // Case 1: Short enough → right aligned display
+    // ───────────────────────────────────────────────
+    if (charCount <= 4)
+    {
+        uint8_t display[4] = {0, 0, 0, 0};
+
+        // Right align - fill from the right
+        int startPos = 4 - charCount;
+
+        for (int i = 0; i < charCount; i++)
+        {
+            uint8_t seg = encodeASCII((uint8_t)chars[i]);
+
+            // Add decimal point if requested
+            if (dotAfter[i] & 1) {
+                seg |= 0x80;
+            }
+
+            display[startPos + i] = seg;
+        }
+
+        // Middle colon handling (most common case: time format xx:xx)
+        bool hasColon = (strchr(s, ':') != NULL);
+        if (pendingColon || hasColon) {
+            // Put colon on second digit (index 1)
+            if (charCount >= 3) {  // at least something before and after colon
+                display[1] |= 0x80;
+            }
+        }
+
+        setSegments(display, length, pos);
+        return;
     }
-    setSegments(digits, length, pos);
-  } else {
-    // Scrolling with dot/colon handling (more complex: buffer the effective display)
-    char effective[256];  // Temp buffer for parsed string (no dots/colons)
-    uint8_t dotsMask = 0;  // Bitmask for DPs (bit 0: rightmost digit)
-    uint8_t effectiveLen = 0;
-    for (size_t i = 0; i < len; ++i) {
-      if (s[i] == '.') {
-        if (effectiveLen > 0) dotsMask |= (1 << (3 - (effectiveLen - 1) % 4));  // Set DP on prev
-        continue;
-      } else if (s[i] == ':') {
-        dotsMask |= (1 << 2);  // Colon on second digit (adjust if needed)
-        continue;
-      }
-      effective[effectiveLen++] = s[i];
+
+    // ───────────────────────────────────────────────
+    // Case 2: Long text → scrolling
+    // ───────────────────────────────────────────────
+    uint8_t window[4];
+
+    // Scroll in (text appears from right)
+    for (int step = 0; step < 4; step++)
+    {
+        window[0] = (step >= 1 && (step-1) < charCount) ? encodeASCII(chars[step-1]) : 0;
+        window[1] = (step >= 2 && (step-2) < charCount) ? encodeASCII(chars[step-2]) : 0;
+        window[2] = (step >= 3 && (step-3) < charCount) ? encodeASCII(chars[step-3]) : 0;
+        window[3] = (step     < charCount) ? encodeASCII(chars[step])     : 0;
+
+        // Add dots (we simplify: only dots in visible window)
+        for (int i = 0; i < 4; i++) {
+            int realIdx = step - (3 - i);
+            if (realIdx >= 0 && realIdx < charCount) {
+                if (dotAfter[realIdx] & 1) {
+                    window[i] |= 0x80;
+                }
+            }
+        }
+
+        setSegments(window, length, pos);
+        delay(m_scrollDelay);
     }
-    // Now scroll the effective string, applying dotsMask each frame
-    for (int x = 0; x < 3; ++x) {  // Scroll on
-      digits[0] = digits[1];
-      digits[1] = digits[2];
-      digits[2] = digits[3];
-      digits[3] = encodeASCII(effective[x]);
-      showDots(dotsMask, digits);  // Apply dots/colons
-      setSegments(digits, length, pos);
-      delay(m_scrollDelay);
+
+    // Main scrolling phase
+    for (int start = 4; start <= charCount; start++)
+    {
+        for (int i = 0; i < 4; i++)
+        {
+            int idx = start - 3 + i;
+            if (idx >= charCount) {
+                window[i] = 0;
+            } else {
+                window[i] = encodeASCII(chars[idx]);
+                if (dotAfter[idx] & 1) {
+                    window[i] |= 0x80;
+                }
+            }
+        }
+        setSegments(window, length, pos);
+        delay(m_scrollDelay);
     }
-    for (int x = 3; x < effectiveLen; ++x) {  // Scroll through
-      digits[0] = encodeASCII(effective[x - 3]);
-      digits[1] = encodeASCII(effective[x - 2]);
-      digits[2] = encodeASCII(effective[x - 1]);
-      digits[3] = encodeASCII(effective[x]);
-      showDots(dotsMask, digits);
-      setSegments(digits, length, pos);
-      delay(m_scrollDelay);
+
+    // Scroll out
+    for (int step = 0; step < 4; step++)
+    {
+        int base = charCount - 3 + step;
+
+        window[0] = (base   < charCount) ? encodeASCII(chars[base])   : 0;
+        window[1] = (base+1 < charCount) ? encodeASCII(chars[base+1]) : 0;
+        window[2] = (base+2 < charCount) ? encodeASCII(chars[base+2]) : 0;
+        window[3] = (base+3 < charCount) ? encodeASCII(chars[base+3]) : 0;
+
+        // Dots during scroll-out
+        for (int i = 0; i < 4; i++) {
+            int realIdx = base + i;
+            if (realIdx >= 0 && realIdx < charCount && (dotAfter[realIdx] & 1)) {
+                window[i] |= 0x80;
+            }
+        }
+
+        setSegments(window, length, pos);
+        delay(m_scrollDelay);
     }
-    for (int x = 0; x < 4; ++x) {  // Scroll off
-      digits[0] = digits[1];
-      digits[1] = digits[2];
-      digits[2] = digits[3];
-      digits[3] = 0;
-      showDots(dotsMask, digits);
-      setSegments(digits, length, pos);
-      delay(m_scrollDelay);
-    }
-  }
+
+    clear();
 }
 
 void TM1637TinyDisplay::showLevel(unsigned int level, bool horizontal) 
