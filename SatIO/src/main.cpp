@@ -212,6 +212,8 @@ void setup() {
   // --------------------------------------------------------------
   Serial.println("[IIC] intitializing RTC");
   iic_0.setPins(IIC_BUS0_SDA, IIC_BUS0_SCL);
+  iic_0.setBufferSize(256);
+  iic_0.setTimeOut(1000);
   iic_0.begin(IIC_BUS0_SDA, IIC_BUS0_SCL, 200000UL);
   rtc.begin(&iic_0);
   // --------------------------------------------------------------

@@ -564,6 +564,7 @@ void createTaskUniverse() {
  * Multi Display Controller.
  * @brief Sends instructions to multi display controller.
  */
+char temp_buffer_multidisplay[32];
 
 void tasMultikDisplay(void * pvParameters) {
   esp_task_wdt_add(NULL);
@@ -588,26 +589,43 @@ void tasMultikDisplay(void * pvParameters) {
                       0, 0, 255);
       
       // test 7 segment 4 digit display 0
+      long satellite_count = atol(gnggaData.satellite_count);
+      if (satellite_count > 9999) {satellite_count = 9999;}
+      memset(temp_buffer_multidisplay, 0,sizeof(temp_buffer_multidisplay));
+      strcpy(temp_buffer_multidisplay, String(satellite_count).c_str());
       update7Segment4Digit(iic_0, I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0,
       0,
-      gnggaData.satellite_count);
+      temp_buffer_multidisplay
+      );
       
       // test 7 segment 4 digit display 1
+      float gps_precision = atof(gnggaData.gps_precision_factor);
+      if (gps_precision > 999.9) {gps_precision = 999.9;}
+      memset(temp_buffer_multidisplay, 0,sizeof(temp_buffer_multidisplay));
+      strcpy(temp_buffer_multidisplay, String(gps_precision, 1).c_str());
       update7Segment4Digit(iic_0, I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0,
       1,
-      gnggaData.gps_precision_factor);
+      temp_buffer_multidisplay);
 
       // test 7 segment 6 digit display 0
-      update7Segment6Digit(iic_0, I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0,
-      2,
-      satioData.padded_local_time_HHMMSS
-      );
+      memset(temp_buffer_multidisplay, 0,sizeof(temp_buffer_multidisplay));
+      strcpy(temp_buffer_multidisplay, satioData.padded_local_time_HHMMSS);
+      if (strlen(temp_buffer_multidisplay)==6) {
+        update7Segment6Digit(iic_0, I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0,
+        2,
+        temp_buffer_multidisplay
+        );
+      }
 
       // test 7 segment 6 digit display 1
-      update7Segment6Digit(iic_0, I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0,
-      3,
-      satioData.padded_local_short_date_DDMMYY
-      );
+      memset(temp_buffer_multidisplay, 0,sizeof(temp_buffer_multidisplay));
+      strcpy(temp_buffer_multidisplay, satioData.padded_local_short_date_DDMMYY);
+      if (strlen(temp_buffer_multidisplay)==6) {
+        update7Segment6Digit(iic_0, I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0,
+        3,
+        temp_buffer_multidisplay
+        );
+      }
 
       // test SSD1306 0
       updateSSD1306(iic_0, I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0,
