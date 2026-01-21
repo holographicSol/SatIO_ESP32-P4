@@ -31,6 +31,9 @@ Support:
 #include "./strval.h"
 #include "./i2c_helper.h"
 
+#include "freertos/semphr.h"
+SemaphoreHandle_t xSevenSegMutex = NULL;
+
 /** ----------------------------------------------------------------------------
  * Task Display.
  */
@@ -223,6 +226,7 @@ void requestEventBus1Bin() {
         break;
     }
   }
+  I2CLinkBus1.REQUEST_ID = 0;
 }
 
 /** ----------------------------------------------------------------------------
@@ -233,12 +237,14 @@ size_t str_len;
 uint8_t cmd;
 uint8_t display_index;
 uint8_t value_idx;
-char    value_char[32];
 uint8_t dx;
 uint8_t dy;
 uint8_t colorR;
 uint8_t colorG;
 uint8_t colorB;
+bool display_decimal = false;
+bool display_colon = false;
+char    value_char[32];
 
 void receiveEventBus1Bin(size_t n_bytes_received) {
   if (n_bytes_received < 1) return;
@@ -314,18 +320,19 @@ void receiveEventBus1Bin(size_t n_bytes_received) {
 
       // value
       str_len = n_bytes_received - 2; // deduct 2 bytes to find strlen
+      memset(value_char, 0, sizeof(value_char));
       read_nchars_FromWire(Wire1, value_char, str_len);
       value_char[str_len] = '\0'; // null terminate
-      if (str_is_double(value_char)==false && str_is_int64(value_char)==false) {
-        Serial.printf("[ERROR] 7seg4Digit invalid value received: %s\n", value_char);
-        drainBus(Wire1);
-        break;
-      }
 
       // update display value
-      auto& disp = seven_seg_displays[display_index];
-      memset(disp.value, 0, sizeof(disp.value));
-      strncpy(disp.value, value_char, sizeof(disp.value) - 1);
+      if (xSevenSegMutex != NULL) {
+        if (xSemaphoreTake(xSevenSegMutex, portMAX_DELAY) == pdTRUE) {
+            auto& disp = seven_seg_displays[display_index]; // or [i_display]
+            memset(disp.value, 0, sizeof(disp.value));
+            strncpy(disp.value, value_char, sizeof(disp.value) - 1);
+            xSemaphoreGive(xSevenSegMutex);
+        }
+      }
       // Serial.printf("[RX] 7seg4Digit: display_index=%d value=%s\n",
       //               display_index,
       //               value_char
@@ -347,18 +354,19 @@ void receiveEventBus1Bin(size_t n_bytes_received) {
 
       // value
       str_len = n_bytes_received - 2; // deduct 2 bytes to find strlen
+      memset(value_char, 0, sizeof(value_char));
       read_nchars_FromWire(Wire1, value_char, str_len);
       value_char[str_len] = '\0'; // null terminate
-      if (str_is_double(value_char)==false && str_is_int64(value_char)==false) {
-        Serial.printf("[ERROR] 7seg6Digit invalid value received: %s\n", value_char);
-        drainBus(Wire1);
-        break;
-      }
 
       // update display value
-      auto& disp = seven_seg_displays[display_index];
-      memset(disp.value, 0, sizeof(disp.value));
-      strncpy(disp.value, value_char, sizeof(disp.value) - 1);
+      if (xSevenSegMutex != NULL) {
+        if (xSemaphoreTake(xSevenSegMutex, portMAX_DELAY) == pdTRUE) {
+            auto& disp = seven_seg_displays[display_index]; // or [i_display]
+            memset(disp.value, 0, sizeof(disp.value));
+            strncpy(disp.value, value_char, sizeof(disp.value) - 1);
+            xSemaphoreGive(xSevenSegMutex);
+        }
+      }
       // Serial.printf("[RX] 7seg6Digit: display_index=%d value=%s\n",
       //               display_index,
       //               value_char
@@ -394,6 +402,7 @@ void receiveEventBus1Bin(size_t n_bytes_received) {
 
       // value
       str_len = n_bytes_received - 5; // deduct 5 bytes to find strlen
+      memset(value_char, 0, sizeof(value_char));
       read_nchars_FromWire(Wire1, value_char, str_len);
       value_char[str_len] = '\0'; // null terminate
 
@@ -401,7 +410,7 @@ void receiveEventBus1Bin(size_t n_bytes_received) {
       ssd1306_displays[display_index].dx[value_idx] = dx;
       ssd1306_displays[display_index].dy[value_idx] = dy;
       memset(ssd1306_displays[display_index].value[value_idx], 0, sizeof(ssd1306_displays[display_index].value[value_idx]));
-      strncpy(ssd1306_displays[display_index].value[value_idx], value_char, sizeof(ssd1306_displays[display_index].value[value_idx]) - 1);
+      strncpy(ssd1306_displays[display_index].value[value_idx], value_char, strlen(value_char));
       // Serial.printf("[RX] SSD1306 %d: value_index=%d dx=%d dy=%d value=%s\n",
       //               display_index,
       //               value_idx,
@@ -425,7 +434,8 @@ void receiveEventBus1Bin(size_t n_bytes_received) {
       }
 
       // set draw flag
-      ssd1306_displays[display_index].draw=true;
+      auto& disp = ssd1306_displays[display_index];
+      disp.draw=true;
       // Serial.printf("[RX] SSD1306 %d: draw canvas.\n",
       //               display_index
       //             );
@@ -479,13 +489,18 @@ void taskDisplay(void * pvParameters) {
       // -----------------------
       if (brightness_stage==0) {
         for (int i_display=0; i_display<MAX_7SEG_DISPLAYS; i_display++) {
-          auto& disp = seven_seg_displays[i_display];
-            // Serial.printf("[DEBUG] setADMultiplexerChannel(ad_mux_0, %d)\n", i_display);
-            setADMultiplexerChannel(ad_mux_0, i_display);
-            // Serial.printf("[DEBUG] setADMultiplexerChannel(ad_mux_1, %d)\n", i_display);
-            setADMultiplexerChannel(ad_mux_1, i_display);
-          if (disp.type == SEG_4DIGIT) {disp.display4->clear();}
-          else if (disp.type == SEG_6DIGIT) {disp.display6->clear();}
+          if (xSevenSegMutex != NULL) {
+            if (xSemaphoreTake(xSevenSegMutex, portMAX_DELAY) == pdTRUE) {
+              // Serial.printf("[DEBUG] setADMultiplexerChannel(ad_mux_0, %d)\n", i_display);
+              setADMultiplexerChannel(ad_mux_0, i_display);
+              // Serial.printf("[DEBUG] setADMultiplexerChannel(ad_mux_1, %d)\n", i_display);
+              setADMultiplexerChannel(ad_mux_1, i_display);
+              auto& disp = seven_seg_displays[i_display];
+              if (disp.type == SEG_4DIGIT) {disp.display4->clear();}
+              else if (disp.type == SEG_6DIGIT) {disp.display6->clear();}
+              xSemaphoreGive(xSevenSegMutex);
+            }
+          }
         }
       }
       // -----------------------
@@ -493,15 +508,20 @@ void taskDisplay(void * pvParameters) {
       // -----------------------
       else {
         for (int i_display=0; i_display<MAX_7SEG_DISPLAYS; i_display++) {
-          auto& disp = seven_seg_displays[i_display];
-            // Serial.printf("[DEBUG] setADMultiplexerChannel(ad_mux_0, %d)\n", i_display);
-            setADMultiplexerChannel(ad_mux_0, i_display);
-            // Serial.printf("[DEBUG] setADMultiplexerChannel(ad_mux_1, %d)\n", i_display);
-            setADMultiplexerChannel(ad_mux_1, i_display);
-          if (disp.type == SEG_4DIGIT)
-            {disp.display4->setBrightness(SEG_BRIGHTNESS_LEVELS[brightness_stage]);}
-          else if (disp.type == SEG_6DIGIT)
-            {disp.display6->setBrightness(SEG_BRIGHTNESS_LEVELS[brightness_stage]);}
+          if (xSevenSegMutex != NULL) {
+            if (xSemaphoreTake(xSevenSegMutex, portMAX_DELAY) == pdTRUE) {
+              // Serial.printf("[DEBUG] setADMultiplexerChannel(ad_mux_0, %d)\n", i_display);
+              setADMultiplexerChannel(ad_mux_0, i_display);
+              // Serial.printf("[DEBUG] setADMultiplexerChannel(ad_mux_1, %d)\n", i_display);
+              setADMultiplexerChannel(ad_mux_1, i_display);
+              auto& disp = seven_seg_displays[i_display];
+              if (disp.type == SEG_4DIGIT)
+                {disp.display4->setBrightness(SEG_BRIGHTNESS_LEVELS[brightness_stage]);}
+              else if (disp.type == SEG_6DIGIT)
+                {disp.display6->setBrightness(SEG_BRIGHTNESS_LEVELS[brightness_stage]);}
+              xSemaphoreGive(xSevenSegMutex);
+            }
+          }
         }
       }
       // -----------------------------------------------------
@@ -511,9 +531,9 @@ void taskDisplay(void * pvParameters) {
       // -----------------------
       if (brightness_stage==0) {
         for (int i_display=0; i_display<MAX_SSD1306_DISPLAYS; i_display++) {
-          auto& disp = ssd1306_displays[i_display];
           // Serial.printf("[DEBUG] setI2CMultiplexChannel for SSD1306 display %d\n", i_display);
           setI2CMultiplexChannel(Wire, i2c_mux_0, i_display);
+          auto& disp = ssd1306_displays[i_display];
           if (disp.type==SSD_128X32) {
             disp.canvas32->clear();
             disp.display32->drawCanvas(0, 0, *disp.canvas32);
@@ -556,28 +576,31 @@ void taskDisplay(void * pvParameters) {
       // Update Analog/Digital Display(s)
       // -----------------------------------------------------
       for (int i_display = 0; i_display < MAX_7SEG_DISPLAYS; i_display++) {
-        auto& disp = seven_seg_displays[i_display];
-        // Serial.printf("[DEBUG] setADMultiplexerChannel(ad_mux_0, %d)\n", i_display);
-        setADMultiplexerChannel(ad_mux_0, i_display);
-        // Serial.printf("[DEBUG] setADMultiplexerChannel(ad_mux_1, %d)\n", i_display);
-        setADMultiplexerChannel(ad_mux_1, i_display);
-
-        // set value with automatic decimal and colon handling (adjust as required for specific use case)
-        bool display_decimal = false;
-        bool display_colon = false;
-        for (int i=0; i<strlen(disp.value); i++) {if (disp.value[i]=='.') {display_decimal=true;}}
-        for (int i=0; i<strlen(disp.value); i++) {if (disp.value[i]==':') {display_colon=true;}}
-        if (disp.type == SEG_4DIGIT) {
-          if (display_decimal==true) {disp.display4->showNumber(atof(disp.value), 1);} // adjust precision as required
-          else                       {disp.display4->showNumber(atoi(disp.value), 0);}
-          // if (display_colon==true)   {disp.display4->setSegments(dot_colon_select_7seg_4digit[5]);} // uncomment/adjust if required
-          // else                       {disp.display4->setSegments(dot_colon_select_7seg_4digit[0]);}
-        }
-        else if (disp.type == SEG_6DIGIT) {
-          if (display_decimal==true) {disp.display6->showNumber(atof(disp.value), 1);} // adjust precision as required
-          else                       {disp.display6->showNumber(atoi(disp.value), 0);}
-          // if (display_colon==true)   {disp.display6->setSegments(dot_colon_select_7seg_6digit[8]);} // uncomment/adjust if required
-          // else                       {disp.display6->setSegments(dot_colon_select_7seg_6digit[0]);}
+        if (xSevenSegMutex != NULL) {
+          if (xSemaphoreTake(xSevenSegMutex, portMAX_DELAY) == pdTRUE) {
+            // Serial.printf("[DEBUG] setADMultiplexerChannel(ad_mux_0, %d)\n", i_display);
+            setADMultiplexerChannel(ad_mux_0, i_display);
+            // Serial.printf("[DEBUG] setADMultiplexerChannel(ad_mux_1, %d)\n", i_display);
+            setADMultiplexerChannel(ad_mux_1, i_display);
+            auto& disp = seven_seg_displays[i_display];
+            if (disp.type == SEG_4DIGIT) {
+              // Serial.printf("[SEG_4DIGIT] display_index=%d type=%d value=%s\n",
+              //               i_display,
+              //               disp.type,
+              //               disp.value
+              //             );
+              disp.display4->showString(disp.value);
+            }
+            else if (disp.type == SEG_6DIGIT) {
+              // Serial.printf("[SEG_6DIGIT] display_index=%d type=%d value=%s\n",
+              //               i_display,
+              //               disp.type,
+              //               disp.value
+              //             );
+              disp.display6->showString(disp.value);
+            }
+            xSemaphoreGive(xSevenSegMutex);
+          }
         }
       }
 
@@ -585,6 +608,7 @@ void taskDisplay(void * pvParameters) {
       // Update I2C Display(s)
       // -----------------------------------------------------
       for (int i_display=0; i_display<MAX_SSD1306_DISPLAYS; i_display++) {
+        setI2CMultiplexChannel(Wire, i2c_mux_0, i_display);
         auto& disp = ssd1306_displays[i_display];
         if (disp.draw==true) {
           disp.draw=false;
@@ -594,7 +618,6 @@ void taskDisplay(void * pvParameters) {
               disp.canvas32->printFixed(disp.dx[i_value], disp.dy[i_value], disp.value[i_value], STYLE_BOLD);
             }
             // Serial.printf("[DEBUG] setI2CMultiplexChannel for SSD1306 display %d\n", i_display);
-            setI2CMultiplexChannel(Wire, i2c_mux_0, i_display);
             disp.display32->drawCanvas(0, 0, *disp.canvas32);
           }
           else if (disp.type==SSD_128X64) {
@@ -603,7 +626,6 @@ void taskDisplay(void * pvParameters) {
               disp.canvas64->printFixed(disp.dx[i_value], disp.dy[i_value], disp.value[i_value], STYLE_BOLD);
             }
             // Serial.printf("[DEBUG] setI2CMultiplexChannel for SSD1306 display %d\n", i_display);
-            setI2CMultiplexChannel(Wire, i2c_mux_0, i_display);
             disp.display64->drawCanvas(0, 0, *disp.canvas64);
           }
         }
@@ -668,27 +690,19 @@ void setup() {
   Serial.begin(115200);  while(!Serial);
 
   // ------------------------------------------------------------
-  // Interrupts
-  // ------------------------------------------------------------
-  // Send interrupt to master to indicate data is ready
-  pinMode(MASTER_INTERRUPT_PIN, OUTPUT);
-  digitalWrite(MASTER_INTERRUPT_PIN, HIGH);
-  // Button to iterate brightness level
-  pinMode(ISR_PIN_BRIGHTNESS, INPUT);
-  attachInterruptArg(digitalPinToInterrupt(ISR_PIN_BRIGHTNESS), ISR_brightness_button, NULL, RISING);
-
-  // ------------------------------------------------------------
   // Indicators
   // ------------------------------------------------------------
   FastLED.addLeds<NEOPIXEL, INDICATOR_DIO>(leds, MAX_INDICATORS);
   FastLED.setBrightness(255); // 0–255, adjust as needed
-
-  UpdateAllIndicators(0, MAX_INDICATORS, 0,0,0);
-  FastLED.show();
-  delay(1000);
-  UpdateAllIndicators(0, MAX_INDICATORS, 255,0,0);
-  FastLED.show();
-  delay(1000);
+  
+  for (int i=0; i<10; i++) {
+    UpdateAllIndicators(0, MAX_INDICATORS, 0,0,0);
+    FastLED.show();
+    delay(50);
+    UpdateAllIndicators(0, MAX_INDICATORS, 255,0,0);
+    FastLED.show();
+    delay(50);
+  }
   UpdateAllIndicators(0, MAX_INDICATORS, 0,0,0);
   FastLED.show();
 
@@ -794,7 +808,7 @@ void setup() {
       // test canvas
       disp.canvas32->setFixedFont(disp.font);
       disp.canvas32->clear();
-      disp.canvas32->printFixed(1, 1, "starting", STYLE_BOLD);
+      disp.canvas32->printFixed(1, 1, "SatIO", STYLE_BOLD);
       disp.display32->drawCanvas(0, 0, *disp.canvas32);
       delay(1000);
     }
@@ -804,11 +818,13 @@ void setup() {
       // test canvas
       disp.canvas64->setFixedFont(disp.font);
       disp.canvas64->clear();
-      disp.canvas64->printFixed(1, 1, "starting", STYLE_BOLD);
+      disp.canvas64->printFixed(1, 1, "SatIO", STYLE_BOLD);
       disp.display64->drawCanvas(0, 0, *disp.canvas64);
       // delay(1000);
     }
   }
+
+  xSevenSegMutex = xSemaphoreCreateMutex();
 
   // ------------------------------------------------------------
   delay(1000);
@@ -825,6 +841,15 @@ void setup() {
   // Function to run when data received from master
   // ------------------------------------------------------------
   Wire1.onReceive(receiveEventBus1Bin);
+  // ------------------------------------------------------------
+  // Interrupts
+  // ------------------------------------------------------------
+  // Send interrupt to master to indicate data is ready
+  pinMode(MASTER_INTERRUPT_PIN, OUTPUT);
+  digitalWrite(MASTER_INTERRUPT_PIN, HIGH);
+  // Button to iterate brightness level
+  pinMode(ISR_PIN_BRIGHTNESS, INPUT);
+  attachInterruptArg(digitalPinToInterrupt(ISR_PIN_BRIGHTNESS), ISR_brightness_button, NULL, RISING);
 }
 
 /** ----------------------------------------------------------------------------
