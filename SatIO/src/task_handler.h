@@ -10,9 +10,17 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/semphr.h"
 
+#include <Arduino.h>
+#include "i2c_helper.h"
+// #include "lcdgfx.h"             // https://github.com/lexus2k/lcdgfx
+// #include "lcdgfx_gui.h"         // https://github.com/lexus2k/lcdgfx
+
+// extern DisplaySSD1306_128x64_I2C ssd1306_display_0;
+// extern NanoCanvas<128,64,1> canvas_128x64_0;
+
 extern SemaphoreHandle_t i2c_bus0_mutex;
 
-extern TaskHandle_t Task7Seg;
+extern TaskHandle_t TasMultiDisplay;
 extern TaskHandle_t TaskSerialInfoCMD;
 extern TaskHandle_t TaskStorage;
 extern TaskHandle_t TaskMultiplexers;

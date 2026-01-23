@@ -116,6 +116,12 @@
 #include "driver/uart.h"
 #include "SPIFFS.h"
 
+// #include "lcdgfx.h"             // https://github.com/lexus2k/lcdgfx
+// #include "lcdgfx_gui.h"         // https://github.com/lexus2k/lcdgfx
+
+// DisplaySSD1306_128x64_I2C ssd1306_display_0(-1, {0, 0x3C, IIC_BUS0_SCL, IIC_BUS0_SDA});
+// NanoCanvas<128,64,1> canvas_128x64_0;
+
 /**
  * @brief Setup
  */
@@ -216,11 +222,24 @@ void setup() {
   iic_0.setTimeOut(1000);
   iic_0.begin(IIC_BUS0_SDA, IIC_BUS0_SCL, 200000UL);
   rtc.begin(&iic_0);
+  delay(200);
+
   // --------------------------------------------------------------
   // Initialize I2C BUS 0: Display
   // --------------------------------------------------------------
-  Serial.println("[IIC] intitializing multi display controller");
-  // iic_0.begin(IIC_BUS0_SDA, IIC_BUS0_SCL, 200000UL); // Bus 0 already initialized
+  // Serial.println("[IIC] intitializing multiplexer");
+  // for (int i=0; i<3; i++) {
+  //   setI2CMultiplexChannel(Wire, i2c_mux_0, i);
+  //   delay(200);
+  //   Serial.println("[IIC] intitializing display(s)");
+  //   ssd1306_display_0.begin();
+  //   ssd1306_display_0.clear();
+  //   // test canvas
+  //   canvas_128x64_0.setFixedFont(ssd1306xled_font6x8);
+  //   canvas_128x64_0.clear();
+  //   canvas_128x64_0.printFixed(1, 1, "SatIO", STYLE_BOLD);
+  //   ssd1306_display_0.drawCanvas(0, 0, canvas_128x64_0);
+  // }
 
   // --------------------------------------------------------------
   // Initialize I2C BUS 1: Output port controller
@@ -267,6 +286,7 @@ void setup() {
   Serial1.flush();
   Serial.println("[SERIAL1] Baud rate: 115200");
   Serial.println("[SERIAL1] (hardware serial remap: Rx=36 Tx=-1)");
+  
   // --------------------------------------------------------------
   // Initialize Serial 2 (for 9-Axis Gyro).
   // --------------------------------------------------------------
@@ -284,11 +304,11 @@ void setup() {
   // Interrupts
   // ------------------------------------------------------------
   // requires HIGH/LOW inversion from interrupting device
-  pinMode(ISR_PIN_MULTIDISPLAY_CONTROLLER_0, INPUT_PULLDOWN);
-  attachInterruptArg(digitalPinToInterrupt(ISR_PIN_MULTIDISPLAY_CONTROLLER_0),
-                                           ISR_MultiDisplayController_0,
-                                           NULL,
-                                           FALLING);
+  // pinMode(ISR_PIN_MULTIDISPLAY_CONTROLLER_0, INPUT_PULLDOWN);
+  // attachInterruptArg(digitalPinToInterrupt(ISR_PIN_MULTIDISPLAY_CONTROLLER_0),
+  //                                          ISR_MultiDisplayController_0,
+  //                                          NULL,
+  //                                          FALLING);
 
   // --------------------------------------------------------------
   // Create Tasks.
