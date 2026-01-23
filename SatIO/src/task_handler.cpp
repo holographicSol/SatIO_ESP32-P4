@@ -720,6 +720,12 @@ void tasMultiDisplay(void * pvParameters) {
     write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 1, 3);
     writeI2CToSlaveBin(iic_0, IICLinkMultiDisplayController, I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0, 2, iic_delay, "drawSSD1306Canvas");
 
+    /** ----------------------------------------------------------------------------
+     * Display 4: Fast input (analog/digital multiplexer)
+    */
+   
+    // multiplexer channel 0
+
     // ------------------------------------------------
     // Counters
     // ------------------------------------------------
