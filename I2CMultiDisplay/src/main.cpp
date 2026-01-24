@@ -88,8 +88,8 @@ NanoCanvas<7*7,8,1> canvas_7charsx8; // 7px x 7 chars
 NanoCanvas<7*6,8,1> canvas_6charsx8; // 7px x 6 chars
 
 int attitude_scale_size = 49;
-const lcduint_t canvas_size_roll_x = 36;
-const lcduint_t canvas_size_roll_y = 36;
+const lcduint_t canvas_size_roll_x = 35;
+const lcduint_t canvas_size_roll_y = 35;
 NanoCanvas<canvas_size_roll_x, canvas_size_roll_y, 1> canvas_roll_0;
 NanoCanvas<canvas_size_roll_x, canvas_size_roll_y, 1> canvas_roll_1;
 
@@ -739,6 +739,14 @@ void taskDisplay(void * pvParameters) {
                                    canvas_center_y,
                                    canvas_center_x+canvas_roll_line_width_half,
                                    canvas_center_y);
+            
+            canvas_roll_0.drawVLine(canvas_center_x-canvas_roll_line_width_half,
+                                    canvas_center_y-4,
+                                    canvas_center_y);
+
+            canvas_roll_0.drawVLine(canvas_center_x+canvas_roll_line_width_half,
+                                    canvas_center_y-4,
+                                    canvas_center_y);
 
             // Serial.println("Draw line from x: " + String(canvas_center_x-canvas_roll_line_width_half+1) + " to " + String(canvas_center_x+canvas_roll_line_width_half-1) + " at y: " + String(canvas_center_y));
 
