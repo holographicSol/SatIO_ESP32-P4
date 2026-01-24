@@ -759,16 +759,20 @@ void taskDisplay(void * pvParameters) {
 
             // Serial.println("Draw line from x: " + String(canvas_center_x-canvas_roll_line_width_half+1) + " to " + String(canvas_center_x+canvas_roll_line_width_half-1) + " at y: " + String(canvas_center_y));
 
-            canvas_roll_0.rotate(canvas_roll_1, (int)fooang); // test roll
-            // canvas_roll_0.rotate(canvas_roll_1, (int)gyro_roll); // gyro roll
-            
+            // test roll
+            canvas_roll_0.rotate(canvas_roll_1, (int)fooang);
             fooang++;
             if (fooang>360) {fooang=0;}
             // fooang=0;
+
+            // actual roll
+            // canvas_roll_0.rotate(canvas_roll_1, (int)gyro_roll); // gyro roll
+            
             // original canvas
             // dispSSD1306.display64->drawCanvas(attitude_scale_pos_y+23 + canvas_center_x,
             //                       attitude_scale_pos_y+23 - canvas_center_y,
             //                       canvas_roll_0);
+            
             // rotated canvas
             dispSSD1306.display64->drawCanvas(attitude_scale_pos_y+((attitude_scale_size/2)-1) + (canvas_center_x-0),
                                   attitude_scale_pos_y+((attitude_scale_size/2)-1) - (canvas_center_y-0),
