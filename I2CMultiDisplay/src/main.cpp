@@ -721,15 +721,15 @@ void taskDisplay(void * pvParameters) {
             canvas_roll_0.clear();
             canvas_roll_1.clear();
             
-            int canvas_center_x = (canvas_size_roll_x - 1) / 2;
-            int canvas_center_y = (canvas_size_roll_y - 1) / 2;
+            int canvas_center_x = ((canvas_size_roll_x - 1) / 2);
+            int canvas_center_y = ((canvas_size_roll_y - 1) / 2);
 
             // Serial.println("--------------------------------------------");
 
             // Serial.println("canvas_center_x: " + String(canvas_center_x));
             // Serial.println("canvas_center_y: " + String(canvas_center_y));
 
-            int canvas_roll_line_width = 30; // this is calculateed from available space in canvas size 36
+            int canvas_roll_line_width = 23;
             int canvas_roll_line_width_half = canvas_roll_line_width/2;
 
             // Serial.println("canvas_roll_line_width: " + String(canvas_roll_line_width));
@@ -737,7 +737,7 @@ void taskDisplay(void * pvParameters) {
 
             canvas_roll_0.fillRect(canvas_center_x-canvas_roll_line_width_half,
                                    canvas_center_y,
-                                   canvas_center_x+canvas_roll_line_width_half-1,
+                                   canvas_center_x+canvas_roll_line_width_half,
                                    canvas_center_y);
 
             // Serial.println("Draw line from x: " + String(canvas_center_x-canvas_roll_line_width_half+1) + " to " + String(canvas_center_x+canvas_roll_line_width_half-1) + " at y: " + String(canvas_center_y));
@@ -753,8 +753,8 @@ void taskDisplay(void * pvParameters) {
             //                       attitude_scale_pos_y+23 - canvas_center_y,
             //                       canvas_roll_0);
             // rotated canvas
-            dispSSD1306.display64->drawCanvas(attitude_scale_pos_y+23 + canvas_center_x,
-                                  attitude_scale_pos_y+23 - canvas_center_y,
+            dispSSD1306.display64->drawCanvas(attitude_scale_pos_y+((attitude_scale_size/2)-1) + (canvas_center_x-0),
+                                  attitude_scale_pos_y+((attitude_scale_size/2)-1) - (canvas_center_y-0),
                                   canvas_roll_1);
 
             // Serial.println("Draw roll at x: " + String(attitude_scale_pos_y+23 + canvas_center_x) + " y: " + String(attitude_scale_pos_y+23 - canvas_center_y));
