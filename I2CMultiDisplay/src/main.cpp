@@ -203,6 +203,7 @@ char local_date_str[32]="";
 float gyro_roll=0;
 float gyro_pitch=0;
 float gyro_yaw=0;
+float selected_heading=0; // allow setting selected_heading separately and always use selected_heading for yaw slider
 
 float gyro_accel_x=0;
 float gyro_accel_y=0;
@@ -496,9 +497,6 @@ static unsigned long display_loop_last_time = 0;
 long pitch_pos=0;
 long yaw_pos=0;
 
-
-
-
 int fooang=0;
 
 void taskDisplay(void * pvParameters) {
@@ -772,7 +770,7 @@ void taskDisplay(void * pvParameters) {
             // dispSSD1306.display64->drawCanvas(attitude_scale_pos_y+23 + canvas_center_x,
             //                       attitude_scale_pos_y+23 - canvas_center_y,
             //                       canvas_roll_0);
-            
+
             // rotated canvas
             dispSSD1306.display64->drawCanvas(attitude_scale_pos_y+((attitude_scale_size/2)-1) + (canvas_center_x-0),
                                   attitude_scale_pos_y+((attitude_scale_size/2)-1) - (canvas_center_y-0),
