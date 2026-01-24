@@ -424,6 +424,8 @@ public:
     /** Rotates the canvas clock-wise */
     void rotateCW(T &out);
 
+    void rotate(T &out, float angle_deg);
+
 protected:
     lcduint_t m_w;              ///< width of NanoCanvas area in pixels
     lcduint_t m_h;              ///< height of NanoCanvas area in pixels

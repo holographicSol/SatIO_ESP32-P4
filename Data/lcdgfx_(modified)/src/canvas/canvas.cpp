@@ -25,6 +25,7 @@
 #include "canvas.h"
 #include "canvas/internal/canvas_types_int.h"
 #include <string.h>
+#include <math.h>
 
 /////////////////////////////////////////////////////////////////////////////////
 //
@@ -500,6 +501,316 @@ template <> void NanoCanvasOps<1>::rotateCW(NanoCanvasOps<1> &out)
         out.m_h = m_w;
     }
 }
+
+/**
+ * @brief basic angle in degrees, center of rotation is the center of the canvas.
+ * 
+ * @note This is not a perfect implementation of rotation, as it may leave/add pixels.
+ */
+
+template <> void NanoCanvasOps<1>::rotate(NanoCanvasOps<1> &out, float angle_deg)
+{
+    float angle_rad = angle_deg * (M_PI / 180.0f);
+    float cos_a = cos(angle_rad);
+    float sin_a = sin(angle_rad);
+
+    /*
+        For even-sized canvases, the true center for rotation should be at (w-1)/2.0f
+        to account for indexing from 0.
+    */
+
+    // store canvas dimensions (rotate around canvas center)
+    // float cx = out.m_w / 2.0f;
+    // float cy = out.m_h / 2.0f;
+    // float out_cx = out.m_w / 2.0f;
+    // float out_cy = out.m_h / 2.0f;
+
+    // store canvas dimensions (rotate around canvas center) with offset
+    float cx = (out.m_w - 1) / 2.0f;
+    float cy = (out.m_w - 1) / 2.0f;
+    float out_cx = (out.m_w - 1) / 2.0f;
+    float out_cy = (out.m_h - 1) / 2.0f;
+
+    // store canvas dimensions (rotate around right bottom corner)
+    // float cx = m_w;
+    // float cy = m_h;
+    // float out_cx = m_w;
+    // float out_cy = m_h;
+
+    // Serial.println("Rotate: angle_deg=" + String(angle_deg) +
+    //                ", in_cx=" + String(cx) + ", in_cy=" + String(cy) +
+    //                ", out_cx=" + String(out_cx) + ", out_cy=" + String(out_cy));
+
+    for (int y = 0; y < out.m_h; ++y)
+    {
+        for (int x = 0; x < out.m_w; ++x)
+        {
+            // Map destination (x, y) to source (src_x, src_y)
+            float src_x_f = cos_a * (x - out_cx) + sin_a * (y - out_cy) + cx;
+            float src_y_f = -sin_a * (x - out_cx) + cos_a * (y - out_cy) + cy;
+            int src_x = (int)(src_x_f + 0.5f); // (+/-)
+            int src_y = (int)(src_y_f + 0.5f); // (+/-)
+            // int src_x = (int)roundf(src_x_f); // using roundf (+/-)
+            // int src_y = (int)roundf(src_y_f); // using roundf (+/-)
+            // int src_x = (int)floor(src_x_f + 0.5f); // avoid bias
+            // int src_y = (int)floor(src_y_f + 0.5f); // avoid bias
+
+            // Serial.println("  dst(" + String(x) + "," + String(y) + ") -> src(" +
+            //                String(src_x) + "," + String(src_y) + ") from (" +
+            //                String(src_x_f, 2) + "," + String(src_y_f, 2) + ")");
+
+            if (src_x >= 0 && src_x < m_w && src_y >= 0 && src_y < m_h)
+            {
+                uint16_t src_addr = src_x + (src_y / 8) * m_w;
+                uint8_t src_bit = src_y & 0x07;
+                uint8_t src_pixel = (m_buf[src_addr] >> src_bit) & 0x01;
+
+                uint16_t dst_addr = x + (y / 8) * out.m_w;
+                uint8_t dst_bit = y & 0x07;
+                out.m_buf[dst_addr] &= ~(1 << dst_bit);
+                out.m_buf[dst_addr] |= (src_pixel << dst_bit);
+            }
+            else
+            {
+                // Set background (clear pixel)
+                uint16_t dst_addr = x + (y / 8) * out.m_w;
+                uint8_t dst_bit = y & 0x07;
+                out.m_buf[dst_addr] &= ~(1 << dst_bit);
+            }
+        }
+    }
+}
+
+// template <> void NanoCanvasOps<1>::rotate(NanoCanvasOps<1> &out, float angle_deg)
+// {
+//     float angle_rad = angle_deg * (M_PI / 180.0f);
+//     float cos_a = cos(angle_rad);
+//     float sin_a = sin(angle_rad);
+
+//     float cx = m_w / 2.0f;
+//     float cy = m_h / 2.0f;
+//     float out_cx = out.m_w / 2.0f;
+//     float out_cy = out.m_h / 2.0f;
+
+//     // Sub-pixel offsets for 2x2 super-sampling
+//     const float offsets[4][2] = {
+//         {-0.25f, -0.25f}, {0.25f, -0.25f},
+//         {-0.25f, 0.25f},  {0.25f, 0.25f}
+//     };
+
+//     for (int y = 0; y < out.m_h; ++y)
+//     {
+//         for (int x = 0; x < out.m_w; ++x)
+//         {
+//             int hits = 0;
+
+//             // Sample 4 points per pixel
+//             for (int i = 0; i < 4; ++i)
+//             {
+//                 float sample_x = x + offsets[i][0];
+//                 float sample_y = y + offsets[i][1];
+
+//                 float src_x_f = cos_a * (sample_x - out_cx) + sin_a * (sample_y - out_cy) + cx;
+//                 float src_y_f = -sin_a * (sample_x - out_cx) + cos_a * (sample_y - out_cy) + cy;
+
+//                 int src_x = (int)(src_x_f + 0.5f);
+//                 int src_y = (int)(src_y_f + 0.5f);
+
+//                 if (src_x >= 0 && src_x < m_w && src_y >= 0 && src_y < m_h)
+//                 {
+//                     uint16_t src_addr = src_x + (src_y / 8) * m_w;
+//                     uint8_t src_bit = src_y & 0x07;
+//                     if ((m_buf[src_addr] >> src_bit) & 0x01) {
+//                         hits++;
+//                     }
+//                 }
+//             }
+
+//             // Threshold: If 2 or more sub-pixels are "on", set the output pixel
+//             // Using >= 2 provides a smoother edge than a simple "nearest neighbor"
+//             uint8_t final_pixel = (hits >= 2) ? 1 : 0;
+
+//             uint16_t dst_addr = x + (y / 8) * out.m_w;
+//             uint8_t dst_bit = y & 0x07;
+            
+//             if (final_pixel) {
+//                 out.m_buf[dst_addr] |= (1 << dst_bit);
+//             } else {
+//                 out.m_buf[dst_addr] &= ~(1 << dst_bit);
+//             }
+//         }
+//     }
+// }
+
+// template <> void NanoCanvasOps<1>::rotate(NanoCanvasOps<1> &out, float angle_deg)
+// {
+//     float angle_rad = angle_deg * (M_PI / 180.0f);
+//     float cos_a = cos(angle_rad);
+//     float sin_a = sin(angle_rad);
+
+//     float cx = m_w / 2.0f;
+//     float cy = m_h / 2.0f;
+//     float out_cx = out.m_w / 2.0f;
+//     float out_cy = out.m_h / 2.0f;
+
+//     // 4x4 super-sampling grid for finer anti-aliasing
+//     const int samples = 16;
+//     const float offsets[16][2] = {
+//         {-0.375f, -0.375f}, {-0.125f, -0.375f}, {0.125f, -0.375f}, {0.375f, -0.375f},
+//         {-0.375f, -0.125f}, {-0.125f, -0.125f}, {0.125f, -0.125f}, {0.375f, -0.125f},
+//         {-0.375f,  0.125f}, {-0.125f,  0.125f}, {0.125f,  0.125f}, {0.375f,  0.125f},
+//         {-0.375f,  0.375f}, {-0.125f,  0.375f}, {0.125f,  0.375f}, {0.375f,  0.375f}
+//     };
+
+//     for (int y = 0; y < out.m_h; ++y)
+//     {
+//         for (int x = 0; x < out.m_w; ++x)
+//         {
+//             int hits = 0;
+
+//             // Sample 16 points per pixel
+//             for (int i = 0; i < samples; ++i)
+//             {
+//                 float sample_x = x + offsets[i][0];
+//                 float sample_y = y + offsets[i][1];
+
+//                 float src_x_f = cos_a * (sample_x - out_cx) + sin_a * (sample_y - out_cy) + cx;
+//                 float src_y_f = -sin_a * (sample_x - out_cx) + cos_a * (sample_y - out_cy) + cy;
+
+//                 int src_x = (int)(src_x_f + 0.5f);
+//                 int src_y = (int)(src_y_f + 0.5f);
+
+//                 if (src_x >= 0 && src_x < m_w && src_y >= 0 && src_y < m_h)
+//                 {
+//                     uint16_t src_addr = src_x + (src_y / 8) * m_w;
+//                     uint8_t src_bit = src_y & 0x07;
+//                     if ((m_buf[src_addr] >> src_bit) & 0x01) {
+//                         hits++;
+//                     }
+//                 }
+//             }
+
+//             // Adaptive threshold: 1 or more hits sets the pixel (preserves thin lines)
+//             uint8_t final_pixel = (hits >= 1) ? 1 : 0;
+
+//             uint16_t dst_addr = x + (y / 8) * out.m_w;
+//             uint8_t dst_bit = y & 0x07;
+//             if (final_pixel) {
+//                 out.m_buf[dst_addr] |= (1 << dst_bit);
+//             } else {
+//                 out.m_buf[dst_addr] &= ~(1 << dst_bit);
+//             }
+//         }
+//     }
+// }
+
+// template <> void NanoCanvasOps<1>::rotate(NanoCanvasOps<1> &out, float angle_deg)
+// {
+//     float angle_rad = angle_deg * (M_PI / 180.0f);
+//     float cos_a = cos(angle_rad);
+//     float sin_a = sin(angle_rad);
+
+//     float cx = m_w / 2.0f;
+//     float cy = m_h / 2.0f;
+//     float out_cx = out.m_w / 2.0f;
+//     float out_cy = out.m_h / 2.0f;
+
+//     // 8x8 super-sampling grid with Gaussian weights for even finer anti-aliasing
+//     const int grid = 8;
+//     const int samples = grid * grid;
+//     float offsets[samples][2];
+//     float weights[samples];
+//     float sigma = 1.0f; // Gaussian standard deviation
+//     float sum_weights = 0.0f;
+//     int idx = 0;
+//     for (int j = 0; j < grid; ++j) {
+//         for (int i = 0; i < grid; ++i) {
+//             float fx = ((float)i + 0.5f) / grid - 0.5f;
+//             float fy = ((float)j + 0.5f) / grid - 0.5f;
+//             offsets[idx][0] = fx;
+//             offsets[idx][1] = fy;
+//             float dist2 = fx * fx + fy * fy;
+//             weights[idx] = expf(-dist2 / (2 * sigma * sigma));
+//             sum_weights += weights[idx];
+//             idx++;
+//         }
+//     }
+//     for (int y = 0; y < out.m_h; ++y)
+//     {
+//         for (int x = 0; x < out.m_w; ++x)
+//         {
+//             float weighted_hits = 0.0f;
+//             float total_weight = 0.0f;
+//             for (int i = 0; i < samples; ++i)
+//             {
+//                 float sample_x = x + offsets[i][0];
+//                 float sample_y = y + offsets[i][1];
+//                 float src_x_f = cos_a * (sample_x - out_cx) + sin_a * (sample_y - out_cy) + cx;
+//                 float src_y_f = -sin_a * (sample_x - out_cx) + cos_a * (sample_y - out_cy) + cy;
+//                 int src_x = (int)(src_x_f + 0.5f);
+//                 int src_y = (int)(src_y_f + 0.5f);
+//                 if (src_x >= 0 && src_x < m_w && src_y >= 0 && src_y < m_h)
+//                 {
+//                     uint16_t src_addr = src_x + (src_y / 8) * m_w;
+//                     uint8_t src_bit = src_y & 0x07;
+//                     if ((m_buf[src_addr] >> src_bit) & 0x01) {
+//                         weighted_hits += weights[i];
+//                     }
+//                     total_weight += weights[i];
+//                 } else {
+//                     total_weight += weights[i];
+//                 }
+//             }
+//             // Adaptive threshold: set pixel if weighted_hits exceeds 1/2 total_weight
+//             uint8_t final_pixel = (weighted_hits >= (0.5f * sum_weights)) ? 1 : 0;
+//             uint16_t dst_addr = x + (y / 8) * out.m_w;
+//             uint8_t dst_bit = y & 0x07;
+//             if (final_pixel) {
+//                 out.m_buf[dst_addr] |= (1 << dst_bit);
+//             } else {
+//                 out.m_buf[dst_addr] &= ~(1 << dst_bit);
+//             }
+//         }
+//     }
+// }
+
+// template <> 
+// void NanoCanvasOps<1>::rotate(NanoCanvasOps<1> &out, float angle_deg) {
+//     float radians = angle_deg * (3.14159265f / 180.0f);
+//     float cosA = cosf(radians);
+//     float sinA = sinf(radians);
+
+//     float centerX = this->m_w / 2.0f;
+//     float centerY = this->m_h / 2.0f;
+//     float outCenterX = out.m_w / 2.0f;
+//     float outCenterY = out.m_h / 2.0f;
+
+//     // Direct pointer to source buffer
+//     const uint8_t* srcBuffer = this->getBuffer();
+
+//     for (uint8_t y = 0; y < out.m_h; y++) {
+//         for (uint8_t x = 0; x < out.m_w; x++) {
+//             float dx = x - outCenterX;
+//             float dy = y - outCenterY;
+
+//             int16_t srcX = (int16_t)(dx * cosA + dy * sinA + centerX);
+//             int16_t srcY = (int16_t)(-dx * sinA + dy * cosA + centerY);
+
+//             if (srcX >= 0 && srcX < (int16_t)this->m_w && 
+//                 srcY >= 0 && srcY < (int16_t)this->m_h) {
+                
+//                 // Manual bit-reading for monochromatic buffer
+//                 // Typically: y >> 3 gives the row, (y & 7) gives the bit position
+//                 uint8_t bit = srcY & 7;
+//                 uint16_t offset = (srcY >> 3) * this->m_w + srcX;
+                
+//                 if (srcBuffer[offset] & (1 << bit)) {
+//                     out.putPixel(x, y);
+//                 }
+//             }
+//         }
+//     }
+// }
 
 /////////////////////////////////////////////////////////////////////////////////
 //
