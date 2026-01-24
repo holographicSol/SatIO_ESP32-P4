@@ -627,7 +627,7 @@ void taskDisplay(void * pvParameters) {
             // -------------------------------------------
             // Scale globals: Adjust sclale position
             // -------------------------------------------
-            int attitude_scale_pos_x=39;
+            int attitude_scale_pos_x=64;
             int attitude_scale_pos_y=5;
 
             // -------------------------------------------
@@ -635,12 +635,12 @@ void taskDisplay(void * pvParameters) {
             // -------------------------------------------
             int pitch_canvas_x=attitude_scale_pos_x+attitude_scale_size;
             int pitch_canvas_y=attitude_scale_pos_y;
-            int pitch_tick_x=7;
+            int pitch_tick_x=8;
             int pitch_tick_y=0;
             canvas_pitch.clear();
             canvas_pitch.drawVLine(pitch_tick_x,    pitch_tick_y,     attitude_scale_size);   // axis line
-            canvas_pitch.drawHLine(pitch_tick_x+1,  pitch_tick_y,     pitch_tick_x+4);   // end
-            canvas_pitch.drawHLine(pitch_tick_x+1,  pitch_tick_y+1,   pitch_tick_x+4);   // end
+            canvas_pitch.drawHLine(pitch_tick_x+1,  pitch_tick_y,     pitch_tick_x+3);   // end
+            // canvas_pitch.drawHLine(pitch_tick_x+1,  pitch_tick_y+1,   pitch_tick_x+3);   // end
             canvas_pitch.drawHLine(pitch_tick_x+1,  pitch_tick_y+5,   pitch_tick_x+1);   // q4
             canvas_pitch.drawHLine(pitch_tick_x+1,  pitch_tick_y+6,   pitch_tick_x+2);   // q4
             canvas_pitch.drawHLine(pitch_tick_x+1,  pitch_tick_y+7,   pitch_tick_x+1);   // q4
@@ -649,7 +649,7 @@ void taskDisplay(void * pvParameters) {
             canvas_pitch.drawHLine(pitch_tick_x+1,  pitch_tick_y+18,  pitch_tick_x+2);   // q3
             canvas_pitch.drawHLine(pitch_tick_x+1,  pitch_tick_y+19,  pitch_tick_x+1);   // q3
             canvas_pitch.drawHLine(pitch_tick_x-1,  pitch_tick_y+23,  pitch_tick_x+0);   // center
-            canvas_pitch.drawHLine(pitch_tick_x-2,  pitch_tick_y+24,  pitch_tick_x+4);   // center
+            canvas_pitch.drawHLine(pitch_tick_x-2,  pitch_tick_y+24,  pitch_tick_x+3);   // center
             canvas_pitch.drawHLine(pitch_tick_x-1,  pitch_tick_y+25,  pitch_tick_x+0);   // center
             canvas_pitch.drawHLine(pitch_tick_x+1,  pitch_tick_y+29,  pitch_tick_x+1);   // q2
             canvas_pitch.drawHLine(pitch_tick_x+1,  pitch_tick_y+30,  pitch_tick_x+2);   // q2
@@ -658,8 +658,8 @@ void taskDisplay(void * pvParameters) {
             canvas_pitch.drawHLine(pitch_tick_x+1,  pitch_tick_y+42,  pitch_tick_x+1);   // q1
             canvas_pitch.drawHLine(pitch_tick_x+1,  pitch_tick_y+43,  pitch_tick_x+2);   // q1
             canvas_pitch.drawHLine(pitch_tick_x+1,  pitch_tick_y+44,  pitch_tick_x+1);   // q1
-            canvas_pitch.drawHLine(pitch_tick_x+1,  pitch_tick_y+48,  pitch_tick_x+4);   // begin
-            canvas_pitch.drawHLine(pitch_tick_x+1,  pitch_tick_y+49,  pitch_tick_x+4);   // begin
+            // canvas_pitch.drawHLine(pitch_tick_x+1,  pitch_tick_y+48,  pitch_tick_x+3);   // begin
+            canvas_pitch.drawHLine(pitch_tick_x+1,  pitch_tick_y+49,  pitch_tick_x+3);   // begin
             // -------------------------------------------
             // Pitch mapped
             // -------------------------------------------
@@ -669,7 +669,22 @@ void taskDisplay(void * pvParameters) {
             // -------------------------------------------
             // Pitch slider
             // -------------------------------------------
-            canvas_pitch.fillRect(0, (int)pitch_pos, 1, (int)pitch_pos+1); // filled rectangle 2x2 pitch
+
+            // simple square
+            // canvas_pitch.fillRect(0, (int)pitch_pos, 1, (int)pitch_pos+1); // filled rectangle 2x2 pitch
+
+            // triangle pointer
+            canvas_pitch.fillRect(0, (int)pitch_pos-1, 1, (int)pitch_pos+1); // triangle base
+            canvas_pitch.putPixel(0, (int)pitch_pos-2); // triangle tip
+            canvas_pitch.putPixel(0, (int)pitch_pos+2); // triangle tip
+            canvas_pitch.putPixel(2, (int)pitch_pos); // triangle tip
+
+            // tri-mark
+            // canvas_pitch.drawVLine(0, (int)pitch_pos-4, (int)pitch_pos+4); // base
+            // canvas_pitch.drawHLine(0, (int)pitch_pos-4, 2); // top
+            // canvas_pitch.drawHLine(0, (int)pitch_pos,   2); // middle
+            // canvas_pitch.drawHLine(0, (int)pitch_pos+4, 2); // bottom
+
             dispSSD1306.display64->drawCanvas(pitch_canvas_x, pitch_canvas_y, canvas_pitch);
             // -------------------------------------------
             // Yaw scale
@@ -677,11 +692,11 @@ void taskDisplay(void * pvParameters) {
             int yaw_canvas_x=attitude_scale_pos_x;
             int yaw_canvas_y=attitude_scale_pos_y+attitude_scale_size;
             int yaw_tick_x=0;
-            int yaw_tick_y=7;
+            int yaw_tick_y=8;
             canvas_yaw.clear();
             canvas_yaw.drawHLine(yaw_tick_x,     yaw_tick_y,    attitude_scale_size);   // axis line
-            canvas_yaw.drawVLine(yaw_tick_x,     yaw_tick_y+1,  yaw_tick_y+4);   // end
-            canvas_yaw.drawVLine(yaw_tick_x+1,   yaw_tick_y+1,  yaw_tick_y+4);   // end
+            canvas_yaw.drawVLine(yaw_tick_x,     yaw_tick_y+1,  yaw_tick_y+3);   // end
+            // canvas_yaw.drawVLine(yaw_tick_x+1,   yaw_tick_y+1,  yaw_tick_y+3);   // end
             canvas_yaw.drawVLine(yaw_tick_x+5,   yaw_tick_y+1,  yaw_tick_y+1);   // q4
             canvas_yaw.drawVLine(yaw_tick_x+6,   yaw_tick_y+1,  yaw_tick_y+2);   // q4
             canvas_yaw.drawVLine(yaw_tick_x+7,   yaw_tick_y+1,  yaw_tick_y+1);   // q4
@@ -690,7 +705,7 @@ void taskDisplay(void * pvParameters) {
             canvas_yaw.drawVLine(yaw_tick_x+18,  yaw_tick_y+1,  yaw_tick_y+2);   // q3
             canvas_yaw.drawVLine(yaw_tick_x+19,  yaw_tick_y+1,  yaw_tick_y+1);   // q3
             canvas_yaw.drawVLine(yaw_tick_x+23,  yaw_tick_y-1,  yaw_tick_y+0);   // center
-            canvas_yaw.drawVLine(yaw_tick_x+24,  yaw_tick_y-2,  yaw_tick_y+4);   // center
+            canvas_yaw.drawVLine(yaw_tick_x+24,  yaw_tick_y-2,  yaw_tick_y+3);   // center
             canvas_yaw.drawVLine(yaw_tick_x+25,  yaw_tick_y-1,  yaw_tick_y+0);   // center
             canvas_yaw.drawVLine(yaw_tick_x+29,  yaw_tick_y+1,  yaw_tick_y+1);   // q2
             canvas_yaw.drawVLine(yaw_tick_x+30,  yaw_tick_y+1,  yaw_tick_y+2);   // q2
@@ -699,8 +714,8 @@ void taskDisplay(void * pvParameters) {
             canvas_yaw.drawVLine(yaw_tick_x+42,  yaw_tick_y+1,  yaw_tick_y+1);   // q1
             canvas_yaw.drawVLine(yaw_tick_x+43,  yaw_tick_y+1,  yaw_tick_y+2);   // q1
             canvas_yaw.drawVLine(yaw_tick_x+44,  yaw_tick_y+1,  yaw_tick_y+1);   // q1
-            canvas_yaw.drawVLine(yaw_tick_x+48,  yaw_tick_y+1,  yaw_tick_y+4);   // begin
-            canvas_yaw.drawVLine(yaw_tick_x+49,  yaw_tick_y+1,  yaw_tick_y+4);   // begin
+            // canvas_yaw.drawVLine(yaw_tick_x+48,  yaw_tick_y+1,  yaw_tick_y+3);   // begin
+            canvas_yaw.drawVLine(yaw_tick_x+49,  yaw_tick_y+1,  yaw_tick_y+3);   // begin
             // -------------------------------------------
             // Yaw mapped
             // -------------------------------------------
@@ -710,7 +725,22 @@ void taskDisplay(void * pvParameters) {
             // -------------------------------------------
             // Yaw slider
             // -------------------------------------------
-            canvas_yaw.fillRect((int)yaw_pos, 0, (int)yaw_pos+1, 1); // filled rectangle 2x2 yaw
+
+            // simple square
+            // canvas_yaw.fillRect((int)yaw_pos, 0, (int)yaw_pos+1, 1); // filled rectangle 2x2 yaw
+
+            // triangle pointer
+            canvas_yaw.fillRect((int)yaw_pos-1, 0, (int)yaw_pos+1, 1); // triangle base
+            canvas_yaw.putPixel((int)yaw_pos-2, 0); // triangle tip
+            canvas_yaw.putPixel((int)yaw_pos+2, 0); // triangle tip
+            canvas_yaw.putPixel((int)yaw_pos, 2); // triangle tip
+
+            // tri-mark
+            // canvas_yaw.drawHLine((int)yaw_pos-4, 0, (int)yaw_pos+4); // base
+            // canvas_yaw.drawVLine((int)yaw_pos-4, 0, 2); // top
+            // canvas_yaw.drawVLine((int)yaw_pos,   0, 2); // middle
+            // canvas_yaw.drawVLine((int)yaw_pos+4, 0, 2); // bottom
+
             dispSSD1306.display64->drawCanvas(yaw_canvas_x, yaw_canvas_y, canvas_yaw);
 
             // -------------------------------------------
@@ -776,14 +806,15 @@ void taskDisplay(void * pvParameters) {
             //                       attitude_scale_pos_y+23 - canvas_center_y,
             //                       canvas_roll_0);
 
+            // Serial.println("Draw roll at x: " + String((attitude_scale_pos_x + (attitude_scale_size/2)) - canvas_size_roll_x/2) +
+            //                            " y: " + String((attitude_scale_pos_y + (attitude_scale_size/2)) - canvas_size_roll_y/2));
+
             // rotated canvas
-            dispSSD1306.display64->drawCanvas(attitude_scale_pos_y+((attitude_scale_size/2)-1) + (canvas_center_x-0),
-                                  attitude_scale_pos_y+((attitude_scale_size/2)-1) - (canvas_center_y-0),
-                                  canvas_roll_1);
+            dispSSD1306.display64->drawCanvas((attitude_scale_pos_x + (attitude_scale_size/2)) - canvas_size_roll_x/2,
+                                              (attitude_scale_pos_y + (attitude_scale_size/2)) - canvas_size_roll_y/2,
+                                              canvas_roll_1);
 
             // Serial.println("Draw roll at x: " + String(attitude_scale_pos_y+23 + canvas_center_x) + " y: " + String(attitude_scale_pos_y+23 - canvas_center_y));
-
-            // delay(1000); // note that for n seconds we can see correct placement after 1st run
           }
 
           /** ---------------------------------------------
