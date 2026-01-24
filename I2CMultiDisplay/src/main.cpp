@@ -635,7 +635,7 @@ void taskDisplay(void * pvParameters) {
             // -------------------------------------------
             int pitch_canvas_x=attitude_scale_pos_x+attitude_scale_size;
             int pitch_canvas_y=attitude_scale_pos_y;
-            int pitch_tick_x=6;
+            int pitch_tick_x=7;
             int pitch_tick_y=0;
             canvas_pitch.clear();
             canvas_pitch.drawVLine(pitch_tick_x,    pitch_tick_y,     attitude_scale_size);   // axis line
@@ -677,7 +677,7 @@ void taskDisplay(void * pvParameters) {
             int yaw_canvas_x=attitude_scale_pos_x;
             int yaw_canvas_y=attitude_scale_pos_y+attitude_scale_size;
             int yaw_tick_x=0;
-            int yaw_tick_y=6;
+            int yaw_tick_y=7;
             canvas_yaw.clear();
             canvas_yaw.drawHLine(yaw_tick_x,     yaw_tick_y,    attitude_scale_size);   // axis line
             canvas_yaw.drawVLine(yaw_tick_x,     yaw_tick_y+1,  yaw_tick_y+4);   // end
@@ -763,13 +763,13 @@ void taskDisplay(void * pvParameters) {
             // Serial.println("Draw line from x: " + String(canvas_center_x-canvas_roll_line_width_half+1) + " to " + String(canvas_center_x+canvas_roll_line_width_half-1) + " at y: " + String(canvas_center_y));
 
             // test roll
-            canvas_roll_0.rotate(canvas_roll_1, (int)fooang);
-            fooang++;
-            if (fooang>360) {fooang=0;}
+            // canvas_roll_0.rotate(canvas_roll_1, (int)fooang);
+            // fooang++;
+            // if (fooang>360) {fooang=0;}
             // fooang=0;
 
             // actual roll
-            // canvas_roll_0.rotate(canvas_roll_1, (int)gyro_roll); // gyro roll
+            canvas_roll_0.rotate(canvas_roll_1, (int)gyro_roll); // gyro roll
             
             // original canvas
             // dispSSD1306.display64->drawCanvas(attitude_scale_pos_y+23 + canvas_center_x,
