@@ -733,6 +733,7 @@ void taskDisplay(void * pvParameters) {
             // Serial.println("canvas_roll_line_width: " + String(canvas_roll_line_width));
             // Serial.println("canvas_roll_line_width_half: " + String(canvas_roll_line_width_half));
 
+            // simple line
             // canvas_roll_0.fillRect(canvas_center_x-canvas_roll_line_width_half,
             //                        canvas_center_y,
             //                        canvas_center_x+canvas_roll_line_width_half,
@@ -742,18 +743,22 @@ void taskDisplay(void * pvParameters) {
             canvas_roll_0.drawCircle(canvas_center_x,
                                      canvas_center_y,
                                      3);
-            // reference bottom (underline)
-            canvas_roll_0.drawHLine(canvas_center_x-canvas_roll_line_width_half,
-                                    canvas_center_y+9,
-                                    canvas_center_y+canvas_roll_line_width_half);
             // reference left
             canvas_roll_0.drawVLine(canvas_center_x-canvas_roll_line_width_half,
                                     canvas_center_y-3,
-                                    canvas_center_y+3);
+                                    canvas_center_y+6);
+            // reference lower left
+            canvas_roll_0.drawHLine(canvas_center_x-canvas_roll_line_width_half,
+                                    canvas_center_y+6,
+                                    canvas_center_x-canvas_roll_line_width_half+5);
             // reference right
             canvas_roll_0.drawVLine(canvas_center_x+canvas_roll_line_width_half,
                                     canvas_center_y-3,
-                                    canvas_center_y+3);
+                                    canvas_center_y+6);
+            // reference lower right
+            canvas_roll_0.drawHLine(canvas_center_x+canvas_roll_line_width_half,
+                                    canvas_center_y+6,
+                                    canvas_center_x+canvas_roll_line_width_half-5);
 
             // Serial.println("Draw line from x: " + String(canvas_center_x-canvas_roll_line_width_half+1) + " to " + String(canvas_center_x+canvas_roll_line_width_half-1) + " at y: " + String(canvas_center_y));
 
