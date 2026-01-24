@@ -87,8 +87,15 @@ NanoCanvas<7*8,8,1> canvas_8charsx8; // 7px x 8 chars
 NanoCanvas<7*7,8,1> canvas_7charsx8; // 7px x 7 chars
 NanoCanvas<7*6,8,1> canvas_6charsx8; // 7px x 6 chars
 
+NanoCanvas<30,30,1> canvas_30_30_0;
+NanoCanvas<30,30,1> canvas_30_30_1;
+
 NanoCanvas<41,41,1> canvas_41_41_0;
 NanoCanvas<41,41,1> canvas_41_41_1;
+
+NanoCanvas<10,50,1> canvas_pitch;
+NanoCanvas<50,16,1> canvas_yaw;
+
 /* 3: add canvas */
 
 // Unified array (instance index directly correlates with multiplexer channel)
@@ -483,6 +490,12 @@ unsigned long current_time;
 static unsigned long display_loop_counter = 0;
 static unsigned long display_loop_last_time = 0;
 
+long pitch_pos=0;
+long yaw_pos=0;
+
+
+
+
 int fooang=0;
 
 void taskDisplay(void * pvParameters) {
@@ -564,7 +577,7 @@ void taskDisplay(void * pvParameters) {
           dispSSD1306.draw=false;
           setI2CMultiplexChannel(Wire, i2c_mux_0, i_display);
 
-          // raw values
+          // Basic
           if (i_display==0) {
             // satellite count
             canvas_6charsx8.clear();
@@ -585,35 +598,69 @@ void taskDisplay(void * pvParameters) {
             // position and style
           }
 
-          // raw angle values
+          // Attitude
           else if (i_display==1) {
-            // gyro roll (bottom center)
+
+            // gyro roll
             canvas_7charsx8.clear();
-            canvas_7charsx8.printFixed(25 - (int(strlen(String(gyro_roll).c_str()) * 7) /2), 0, String(gyro_roll).c_str(), STYLE_BOLD);
-            dispSSD1306.display64->drawCanvas(64 - 25, 59, canvas_7charsx8);
-            // gyro pitch (left center)
-            canvas_6charsx8.clear();
-            canvas_6charsx8.printFixed(0, 0, String(gyro_pitch).c_str(), STYLE_BOLD);
-            dispSSD1306.display64->drawCanvas(0, 32 - 4, canvas_6charsx8);
-            // gyro yaw (top center)
+            canvas_7charsx8.printFixed(0, 0, String(gyro_roll).c_str(), STYLE_BOLD);
+            dispSSD1306.display64->drawCanvas(0, 0, canvas_7charsx8);
+
+            // gyro pitch
             canvas_7charsx8.clear();
-            canvas_7charsx8.printFixed(25 - (int(strlen(String(gyro_yaw).c_str()) * 7) /2), 0, String(gyro_yaw).c_str(), STYLE_BOLD);
-            dispSSD1306.display64->drawCanvas(64-25, 0, canvas_7charsx8);
-            // UAP graphic
-            canvas_41_41_0.clear();
-            canvas_41_41_1.clear();
-            canvas_41_41_0.fillRect(5,  21, 36, 21); // base
-            canvas_41_41_0.fillRect(4,  16,  4, 21); // lref
-            canvas_41_41_0.fillRect(37, 16, 37, 21); // rref
-            canvas_41_41_0.rotate(canvas_41_41_1, fooang); // test rotation
-            // canvas_41_41_0.rotate(canvas_41_41_1, gyro_roll); // gyro roll
+            canvas_7charsx8.printFixed(0, 0, String(gyro_pitch).c_str(), STYLE_BOLD);
+            dispSSD1306.display64->drawCanvas(0, 10, canvas_7charsx8);
+
+            // gyro yaw
+            canvas_7charsx8.clear();
+            canvas_7charsx8.printFixed(0, 0, String(gyro_yaw).c_str(), STYLE_BOLD);
+            dispSSD1306.display64->drawCanvas(0, 20, canvas_7charsx8);
+
+            // Pitch scale
+            canvas_pitch.clear();
+            canvas_pitch.drawVLine(5, 0, 49); // outer right vertical
+            canvas_pitch.drawHLine(6, 0, 9);  // q1 horizontal
+            canvas_pitch.drawHLine(6, 12, 7); // 12 horizontal
+            canvas_pitch.drawHLine(6, 24, 9); // center horizontal
+            canvas_pitch.drawHLine(6, 36, 7); // q3 horizontal
+            // Map value to canvas position and clamp to safe range
+            pitch_pos = map(gyro_pitch, -90, 90, 0, 47);
+            if (isnan(pitch_pos) || pitch_pos < 0) pitch_pos = 0;
+            if (pitch_pos > 47) pitch_pos = 47;
+            // Cursor
+            canvas_pitch.fillRect(0, (int)pitch_pos, 1, (int)pitch_pos+1); // filled rectangle 2x2 pitch
+            dispSSD1306.display64->drawCanvas(118, 0, canvas_pitch);
+
+            dispSSD1306.display64->fillRect(118, 48, 118+8, 56); // corner
+
+            // Yaw scale
+            canvas_yaw.clear();
+            canvas_yaw.drawHLine(0, 5, 49);
+            canvas_yaw.drawVLine(0, 6, 9);   // left vertical
+            canvas_yaw.drawVLine(12, 6, 7);  // right horizontal
+            canvas_yaw.drawVLine(24, 6, 9);  // center vertical
+            canvas_yaw.drawVLine(36, 6, 7);  // left horizontal
+            // Map value to canvas position and clamp to safe range
+            yaw_pos = map(gyro_yaw, -180, 180, 0, 47);
+            if (isnan(yaw_pos) || yaw_pos < 0) yaw_pos = 0;
+            if (yaw_pos > 47) yaw_pos = 47;
+            // Cursor
+            canvas_yaw.fillRect((int)yaw_pos, 0, (int)yaw_pos+1, 1); // filled rectangle 2x2 yaw
+            dispSSD1306.display64->drawCanvas(127-49-10, 48, canvas_yaw);
+            
+            // Roll UAP
+            canvas_30_30_0.clear();
+            canvas_30_30_0.fillRect(8,  14, 20, 14); // base
+            canvas_30_30_0.fillRect(8,  11,  8, 14); // lref
+            canvas_30_30_0.fillRect(20, 11, 20, 14); // rref
+            canvas_30_30_0.rotate(canvas_30_30_1, (int)fooang); // test rotation
+            // canvas_30_30_0.rotate(canvas_30_30_1, (int)gyro_roll); // gyro roll
             fooang++;
             if (fooang>360) {fooang=0;}
-            dispSSD1306.display64->drawCanvas(64-20, 32-17, canvas_41_41_1);
-            // position values and draw attitude graphic (UAP)
+            dispSSD1306.display64->drawCanvas(68+10, 15, canvas_30_30_1);
           }
 
-          // raw acceleration values
+          // Angle Velocity
           else if (i_display==2) {
             // gyro accel x
             canvas_6charsx8.clear();
@@ -629,7 +676,7 @@ void taskDisplay(void * pvParameters) {
             // position values and draw axial acceleration graphic
           }
 
-          // raw magnetic field values
+          // Magnetic Field
           else if (i_display==3) {
             // gyro mag x
             canvas_60x8_0.clear();
