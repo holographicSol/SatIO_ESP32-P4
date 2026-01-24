@@ -87,13 +87,16 @@ NanoCanvas<7*8,8,1> canvas_8charsx8; // 7px x 8 chars
 NanoCanvas<7*7,8,1> canvas_7charsx8; // 7px x 7 chars
 NanoCanvas<7*6,8,1> canvas_6charsx8; // 7px x 6 chars
 
-NanoCanvas<30,30,1> canvas_30_30_0;
-NanoCanvas<30,30,1> canvas_30_30_1;
+int attitude_scale_size = 49;
+const lcduint_t canvas_size_roll_x = 36;
+const lcduint_t canvas_size_roll_y = 36;
+NanoCanvas<canvas_size_roll_x, canvas_size_roll_y, 1> canvas_roll_0;
+NanoCanvas<canvas_size_roll_x, canvas_size_roll_y, 1> canvas_roll_1;
 
 NanoCanvas<41,41,1> canvas_41_41_0;
 NanoCanvas<41,41,1> canvas_41_41_1;
 
-NanoCanvas<10,56,1> canvas_pitch;
+NanoCanvas<11,56,1> canvas_pitch;
 NanoCanvas<50,16,1> canvas_yaw;
 
 /* 3: add canvas */
@@ -622,92 +625,141 @@ void taskDisplay(void * pvParameters) {
             canvas_7charsx8.clear();
             canvas_7charsx8.printFixed(0, 0, String(gyro_yaw).c_str(), STYLE_BOLD);
             dispSSD1306.display64->drawCanvas(0, 20, canvas_7charsx8);
+
+            // -------------------------------------------
+            // Scale globals: Adjust sclale position
+            // -------------------------------------------
+            int attitude_scale_pos_x=39;
+            int attitude_scale_pos_y=5;
+
             // -------------------------------------------
             // Pitch scale
             // -------------------------------------------
+            int pitch_canvas_x=attitude_scale_pos_x+attitude_scale_size;
+            int pitch_canvas_y=attitude_scale_pos_y;
+            int pitch_tick_x=6;
+            int pitch_tick_y=0;
             canvas_pitch.clear();
-            canvas_pitch.drawVLine(5, 0, 49); // axis
-            canvas_pitch.drawHLine(6, 0, 8);  // end
-            canvas_pitch.drawHLine(6, 1, 9);  // end
-            canvas_pitch.drawHLine(6, 5, 6);  // q4
-            canvas_pitch.drawHLine(6, 6, 7);  // q4
-            canvas_pitch.drawHLine(6, 7, 6);  // q4
-            canvas_pitch.drawHLine(6, 12, 7); // top center
-            canvas_pitch.drawHLine(6, 17, 6);  // q3
-            canvas_pitch.drawHLine(6, 18, 7);  // q3
-            canvas_pitch.drawHLine(6, 19, 6);  // q3
-            canvas_pitch.drawHLine(4, 23, 5); // center
-            canvas_pitch.drawHLine(3, 24, 9); // center
-            canvas_pitch.drawHLine(4, 25, 5); // center
-            canvas_pitch.drawHLine(6, 29, 6);  // q2
-            canvas_pitch.drawHLine(6, 30, 7);  // q2
-            canvas_pitch.drawHLine(6, 31, 6);  // q2
-            canvas_pitch.drawHLine(6, 36, 7); // bottom center
-            canvas_pitch.drawHLine(6, 42, 6);  // q1
-            canvas_pitch.drawHLine(6, 43, 7);  // q1
-            canvas_pitch.drawHLine(6, 44, 6);  // q1
-            canvas_pitch.drawHLine(6, 48, 9); // begin
-            canvas_pitch.drawHLine(6, 49, 8); // begin
+            canvas_pitch.drawVLine(pitch_tick_x,    pitch_tick_y,     attitude_scale_size);   // axis line
+            canvas_pitch.drawHLine(pitch_tick_x+1,  pitch_tick_y,     pitch_tick_x+4);   // end
+            canvas_pitch.drawHLine(pitch_tick_x+1,  pitch_tick_y+1,   pitch_tick_x+4);   // end
+            canvas_pitch.drawHLine(pitch_tick_x+1,  pitch_tick_y+5,   pitch_tick_x+1);   // q4
+            canvas_pitch.drawHLine(pitch_tick_x+1,  pitch_tick_y+6,   pitch_tick_x+2);   // q4
+            canvas_pitch.drawHLine(pitch_tick_x+1,  pitch_tick_y+7,   pitch_tick_x+1);   // q4
+            canvas_pitch.drawHLine(pitch_tick_x+1,  pitch_tick_y+12,  pitch_tick_x+2);   // top center
+            canvas_pitch.drawHLine(pitch_tick_x+1,  pitch_tick_y+17,  pitch_tick_x+1);   // q3
+            canvas_pitch.drawHLine(pitch_tick_x+1,  pitch_tick_y+18,  pitch_tick_x+2);   // q3
+            canvas_pitch.drawHLine(pitch_tick_x+1,  pitch_tick_y+19,  pitch_tick_x+1);   // q3
+            canvas_pitch.drawHLine(pitch_tick_x-1,  pitch_tick_y+23,  pitch_tick_x+0);   // center
+            canvas_pitch.drawHLine(pitch_tick_x-2,  pitch_tick_y+24,  pitch_tick_x+4);   // center
+            canvas_pitch.drawHLine(pitch_tick_x-1,  pitch_tick_y+25,  pitch_tick_x+0);   // center
+            canvas_pitch.drawHLine(pitch_tick_x+1,  pitch_tick_y+29,  pitch_tick_x+1);   // q2
+            canvas_pitch.drawHLine(pitch_tick_x+1,  pitch_tick_y+30,  pitch_tick_x+2);   // q2
+            canvas_pitch.drawHLine(pitch_tick_x+1,  pitch_tick_y+31,  pitch_tick_x+1);   // q2
+            canvas_pitch.drawHLine(pitch_tick_x+1,  pitch_tick_y+36,  pitch_tick_x+2);   // bottom center
+            canvas_pitch.drawHLine(pitch_tick_x+1,  pitch_tick_y+42,  pitch_tick_x+1);   // q1
+            canvas_pitch.drawHLine(pitch_tick_x+1,  pitch_tick_y+43,  pitch_tick_x+2);   // q1
+            canvas_pitch.drawHLine(pitch_tick_x+1,  pitch_tick_y+44,  pitch_tick_x+1);   // q1
+            canvas_pitch.drawHLine(pitch_tick_x+1,  pitch_tick_y+48,  pitch_tick_x+4);   // begin
+            canvas_pitch.drawHLine(pitch_tick_x+1,  pitch_tick_y+49,  pitch_tick_x+4);   // begin
             // -------------------------------------------
             // Pitch mapped
             // -------------------------------------------
-            pitch_pos = map(gyro_pitch, -90, 90, 0, 47);
+            pitch_pos = map(gyro_pitch, -90, 90, 0, attitude_scale_size-2);
             if (isnan(pitch_pos) || pitch_pos < 0) pitch_pos = 0;
-            if (pitch_pos > 47) pitch_pos = 47;
+            if (pitch_pos > attitude_scale_size-2) pitch_pos = attitude_scale_size-2;
             // -------------------------------------------
             // Pitch slider
             // -------------------------------------------
             canvas_pitch.fillRect(0, (int)pitch_pos, 1, (int)pitch_pos+1); // filled rectangle 2x2 pitch
-            dispSSD1306.display64->drawCanvas(118, 0, canvas_pitch);
+            dispSSD1306.display64->drawCanvas(pitch_canvas_x, pitch_canvas_y, canvas_pitch);
             // -------------------------------------------
             // Yaw scale
             // -------------------------------------------
+            int yaw_canvas_x=attitude_scale_pos_x;
+            int yaw_canvas_y=attitude_scale_pos_y+attitude_scale_size;
+            int yaw_tick_x=0;
+            int yaw_tick_y=6;
             canvas_yaw.clear();
-            canvas_yaw.drawHLine(0, 5, 49); // axis
-            canvas_yaw.drawVLine(0, 6, 8);  // end
-            canvas_yaw.drawVLine(1, 6, 9);  // end
-            canvas_yaw.drawVLine(5, 6, 6);  // q4
-            canvas_yaw.drawVLine(6, 6, 7);  // q4
-            canvas_yaw.drawVLine(7, 6, 6);  // q4
-            canvas_yaw.drawVLine(12, 6, 7); // left center
-            canvas_yaw.drawVLine(17, 6, 6); // q3
-            canvas_yaw.drawVLine(18, 6, 7); // q3
-            canvas_yaw.drawVLine(19, 6, 6); // q3
-            canvas_yaw.drawVLine(23, 4, 5); // center
-            canvas_yaw.drawVLine(24, 3, 9); // center
-            canvas_yaw.drawVLine(25, 4, 5); // center
-            canvas_yaw.drawVLine(29, 6, 6); // q2
-            canvas_yaw.drawVLine(30, 6, 7); // q2
-            canvas_yaw.drawVLine(31, 6, 6); // q2
-            canvas_yaw.drawVLine(36, 6, 7); // right center
-            canvas_yaw.drawVLine(42, 6, 6); // q1
-            canvas_yaw.drawVLine(43, 6, 7); // q1
-            canvas_yaw.drawVLine(44, 6, 6); // q1
-            canvas_yaw.drawVLine(48, 6, 9); // begin
-            canvas_yaw.drawVLine(49, 6, 8); // begin
+            canvas_yaw.drawHLine(yaw_tick_x,     yaw_tick_y,    attitude_scale_size);   // axis line
+            canvas_yaw.drawVLine(yaw_tick_x,     yaw_tick_y+1,  yaw_tick_y+4);   // end
+            canvas_yaw.drawVLine(yaw_tick_x+1,   yaw_tick_y+1,  yaw_tick_y+4);   // end
+            canvas_yaw.drawVLine(yaw_tick_x+5,   yaw_tick_y+1,  yaw_tick_y+1);   // q4
+            canvas_yaw.drawVLine(yaw_tick_x+6,   yaw_tick_y+1,  yaw_tick_y+2);   // q4
+            canvas_yaw.drawVLine(yaw_tick_x+7,   yaw_tick_y+1,  yaw_tick_y+1);   // q4
+            canvas_yaw.drawVLine(yaw_tick_x+12,  yaw_tick_y+1,  yaw_tick_y+2);   // left center
+            canvas_yaw.drawVLine(yaw_tick_x+17,  yaw_tick_y+1,  yaw_tick_y+1);   // q3
+            canvas_yaw.drawVLine(yaw_tick_x+18,  yaw_tick_y+1,  yaw_tick_y+2);   // q3
+            canvas_yaw.drawVLine(yaw_tick_x+19,  yaw_tick_y+1,  yaw_tick_y+1);   // q3
+            canvas_yaw.drawVLine(yaw_tick_x+23,  yaw_tick_y-1,  yaw_tick_y+0);   // center
+            canvas_yaw.drawVLine(yaw_tick_x+24,  yaw_tick_y-2,  yaw_tick_y+4);   // center
+            canvas_yaw.drawVLine(yaw_tick_x+25,  yaw_tick_y-1,  yaw_tick_y+0);   // center
+            canvas_yaw.drawVLine(yaw_tick_x+29,  yaw_tick_y+1,  yaw_tick_y+1);   // q2
+            canvas_yaw.drawVLine(yaw_tick_x+30,  yaw_tick_y+1,  yaw_tick_y+2);   // q2
+            canvas_yaw.drawVLine(yaw_tick_x+31,  yaw_tick_y+1,  yaw_tick_y+1);   // q2
+            canvas_yaw.drawVLine(yaw_tick_x+36,  yaw_tick_y+1,  yaw_tick_y+2);   // right center
+            canvas_yaw.drawVLine(yaw_tick_x+42,  yaw_tick_y+1,  yaw_tick_y+1);   // q1
+            canvas_yaw.drawVLine(yaw_tick_x+43,  yaw_tick_y+1,  yaw_tick_y+2);   // q1
+            canvas_yaw.drawVLine(yaw_tick_x+44,  yaw_tick_y+1,  yaw_tick_y+1);   // q1
+            canvas_yaw.drawVLine(yaw_tick_x+48,  yaw_tick_y+1,  yaw_tick_y+4);   // begin
+            canvas_yaw.drawVLine(yaw_tick_x+49,  yaw_tick_y+1,  yaw_tick_y+4);   // begin
             // -------------------------------------------
             // Yaw mapped
             // -------------------------------------------
-            yaw_pos = map(gyro_yaw, -180, 180, 0, 47);
+            yaw_pos = map(gyro_yaw, -180, 180, 0, attitude_scale_size-2);
             if (isnan(yaw_pos) || yaw_pos < 0) yaw_pos = 0;
-            if (yaw_pos > 47) yaw_pos = 47;
+            if (yaw_pos > attitude_scale_size-2) yaw_pos = attitude_scale_size-2;
             // -------------------------------------------
             // Yaw slider
             // -------------------------------------------
             canvas_yaw.fillRect((int)yaw_pos, 0, (int)yaw_pos+1, 1); // filled rectangle 2x2 yaw
-            dispSSD1306.display64->drawCanvas(127-49-10, 48, canvas_yaw);
+            dispSSD1306.display64->drawCanvas(yaw_canvas_x, yaw_canvas_y, canvas_yaw);
+
             // -------------------------------------------
-            // Roll rotator
+            // Roll
             // -------------------------------------------
-            canvas_30_30_0.clear();
-            canvas_30_30_0.fillRect(8,  14, 20, 14); // base
-            canvas_30_30_0.fillRect(8,  11,  8, 14); // lref
-            canvas_30_30_0.fillRect(20, 11, 20, 14); // rref
-            canvas_30_30_0.rotate(canvas_30_30_1, (int)fooang); // test rotation
-            // canvas_30_30_0.rotate(canvas_30_30_1, (int)gyro_roll); // gyro roll
+            canvas_roll_0.clear();
+            canvas_roll_1.clear();
+            
+            int canvas_center_x = (canvas_size_roll_x - 1) / 2;
+            int canvas_center_y = (canvas_size_roll_y - 1) / 2;
+
+            // Serial.println("--------------------------------------------");
+
+            // Serial.println("canvas_center_x: " + String(canvas_center_x));
+            // Serial.println("canvas_center_y: " + String(canvas_center_y));
+
+            int canvas_roll_line_width = 30; // this is calculateed from available space in canvas size 36
+            int canvas_roll_line_width_half = canvas_roll_line_width/2;
+
+            // Serial.println("canvas_roll_line_width: " + String(canvas_roll_line_width));
+            // Serial.println("canvas_roll_line_width_half: " + String(canvas_roll_line_width_half));
+
+            canvas_roll_0.fillRect(canvas_center_x-canvas_roll_line_width_half,
+                                   canvas_center_y,
+                                   canvas_center_x+canvas_roll_line_width_half-1,
+                                   canvas_center_y);
+
+            // Serial.println("Draw line from x: " + String(canvas_center_x-canvas_roll_line_width_half+1) + " to " + String(canvas_center_x+canvas_roll_line_width_half-1) + " at y: " + String(canvas_center_y));
+
+            canvas_roll_0.rotate(canvas_roll_1, (int)fooang); // test roll
+            // canvas_roll_0.rotate(canvas_roll_1, (int)gyro_roll); // gyro roll
+            
             fooang++;
             if (fooang>360) {fooang=0;}
-            dispSSD1306.display64->drawCanvas(68+10, 15, canvas_30_30_1);
+            // fooang=0;
+            // original canvas
+            // dispSSD1306.display64->drawCanvas(attitude_scale_pos_y+23 + canvas_center_x,
+            //                       attitude_scale_pos_y+23 - canvas_center_y,
+            //                       canvas_roll_0);
+            // rotated canvas
+            dispSSD1306.display64->drawCanvas(attitude_scale_pos_y+23 + canvas_center_x,
+                                  attitude_scale_pos_y+23 - canvas_center_y,
+                                  canvas_roll_1);
+
+            // Serial.println("Draw roll at x: " + String(attitude_scale_pos_y+23 + canvas_center_x) + " y: " + String(attitude_scale_pos_y+23 - canvas_center_y));
+
+            // delay(1000); // note that for n seconds we can see correct placement after 1st run
           }
 
           /** ---------------------------------------------
@@ -744,8 +796,13 @@ void taskDisplay(void * pvParameters) {
             canvas_60x8_0.clear();
             canvas_60x8_0.printFixed(0, 0, String(gyro_mag_z).c_str(), STYLE_BOLD);
             dispSSD1306.display64->drawCanvas(0, 20, canvas_60x8_0);
-            // position values and draw axial magnetic field graphic
+            // position values and draw axial magnetic field graphic.
+            // log values time n to retain any potential visual on axial (directional) mag field anomalies.
           }
+
+          /** ---------------------------------------------
+           * Fast Input values (joystick, etc on analog/digital mux)
+           */
         }
       }
     }
