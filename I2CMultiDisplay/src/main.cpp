@@ -93,7 +93,7 @@ NanoCanvas<30,30,1> canvas_30_30_1;
 NanoCanvas<41,41,1> canvas_41_41_0;
 NanoCanvas<41,41,1> canvas_41_41_1;
 
-NanoCanvas<10,50,1> canvas_pitch;
+NanoCanvas<10,56,1> canvas_pitch;
 NanoCanvas<50,16,1> canvas_yaw;
 
 /* 3: add canvas */
@@ -577,7 +577,9 @@ void taskDisplay(void * pvParameters) {
           dispSSD1306.draw=false;
           setI2CMultiplexChannel(Wire, i2c_mux_0, i_display);
 
-          // Basic
+          /** ---------------------------------------------
+           * Basics
+           */
           if (i_display==0) {
             // satellite count
             canvas_6charsx8.clear();
@@ -598,57 +600,105 @@ void taskDisplay(void * pvParameters) {
             // position and style
           }
 
-          // Attitude
+          /** ---------------------------------------------
+           * Attitude
+           */
           else if (i_display==1) {
-
-            // gyro roll
+            // -------------------------------------------
+            // Value roll
+            // -------------------------------------------
             canvas_7charsx8.clear();
             canvas_7charsx8.printFixed(0, 0, String(gyro_roll).c_str(), STYLE_BOLD);
             dispSSD1306.display64->drawCanvas(0, 0, canvas_7charsx8);
-
-            // gyro pitch
+            // -------------------------------------------
+            // Value pitch
+            // -------------------------------------------
             canvas_7charsx8.clear();
             canvas_7charsx8.printFixed(0, 0, String(gyro_pitch).c_str(), STYLE_BOLD);
             dispSSD1306.display64->drawCanvas(0, 10, canvas_7charsx8);
-
-            // gyro yaw
+            // -------------------------------------------
+            // Value yaw
+            // -------------------------------------------
             canvas_7charsx8.clear();
             canvas_7charsx8.printFixed(0, 0, String(gyro_yaw).c_str(), STYLE_BOLD);
             dispSSD1306.display64->drawCanvas(0, 20, canvas_7charsx8);
-
+            // -------------------------------------------
             // Pitch scale
+            // -------------------------------------------
             canvas_pitch.clear();
-            canvas_pitch.drawVLine(5, 0, 49); // outer right vertical
-            canvas_pitch.drawHLine(6, 0, 9);  // q1 horizontal
-            canvas_pitch.drawHLine(6, 12, 7); // 12 horizontal
-            canvas_pitch.drawHLine(6, 24, 9); // center horizontal
-            canvas_pitch.drawHLine(6, 36, 7); // q3 horizontal
-            // Map value to canvas position and clamp to safe range
+            canvas_pitch.drawVLine(5, 0, 49); // axis
+            canvas_pitch.drawHLine(6, 0, 8);  // end
+            canvas_pitch.drawHLine(6, 1, 9);  // end
+            canvas_pitch.drawHLine(6, 5, 6);  // q4
+            canvas_pitch.drawHLine(6, 6, 7);  // q4
+            canvas_pitch.drawHLine(6, 7, 6);  // q4
+            canvas_pitch.drawHLine(6, 12, 7); // top center
+            canvas_pitch.drawHLine(6, 17, 6);  // q3
+            canvas_pitch.drawHLine(6, 18, 7);  // q3
+            canvas_pitch.drawHLine(6, 19, 6);  // q3
+            canvas_pitch.drawHLine(4, 23, 5); // center
+            canvas_pitch.drawHLine(3, 24, 9); // center
+            canvas_pitch.drawHLine(4, 25, 5); // center
+            canvas_pitch.drawHLine(6, 29, 6);  // q2
+            canvas_pitch.drawHLine(6, 30, 7);  // q2
+            canvas_pitch.drawHLine(6, 31, 6);  // q2
+            canvas_pitch.drawHLine(6, 36, 7); // bottom center
+            canvas_pitch.drawHLine(6, 42, 6);  // q1
+            canvas_pitch.drawHLine(6, 43, 7);  // q1
+            canvas_pitch.drawHLine(6, 44, 6);  // q1
+            canvas_pitch.drawHLine(6, 48, 9); // begin
+            canvas_pitch.drawHLine(6, 49, 8); // begin
+            // -------------------------------------------
+            // Pitch mapped
+            // -------------------------------------------
             pitch_pos = map(gyro_pitch, -90, 90, 0, 47);
             if (isnan(pitch_pos) || pitch_pos < 0) pitch_pos = 0;
             if (pitch_pos > 47) pitch_pos = 47;
-            // Cursor
+            // -------------------------------------------
+            // Pitch slider
+            // -------------------------------------------
             canvas_pitch.fillRect(0, (int)pitch_pos, 1, (int)pitch_pos+1); // filled rectangle 2x2 pitch
             dispSSD1306.display64->drawCanvas(118, 0, canvas_pitch);
-
-            dispSSD1306.display64->fillRect(118, 48, 118+8, 56); // corner
-
+            // -------------------------------------------
             // Yaw scale
+            // -------------------------------------------
             canvas_yaw.clear();
-            canvas_yaw.drawHLine(0, 5, 49);
-            canvas_yaw.drawVLine(0, 6, 9);   // left vertical
-            canvas_yaw.drawVLine(12, 6, 7);  // right horizontal
-            canvas_yaw.drawVLine(24, 6, 9);  // center vertical
-            canvas_yaw.drawVLine(36, 6, 7);  // left horizontal
-            // Map value to canvas position and clamp to safe range
+            canvas_yaw.drawHLine(0, 5, 49); // axis
+            canvas_yaw.drawVLine(0, 6, 8);  // end
+            canvas_yaw.drawVLine(1, 6, 9);  // end
+            canvas_yaw.drawVLine(5, 6, 6);  // q4
+            canvas_yaw.drawVLine(6, 6, 7);  // q4
+            canvas_yaw.drawVLine(7, 6, 6);  // q4
+            canvas_yaw.drawVLine(12, 6, 7); // left center
+            canvas_yaw.drawVLine(17, 6, 6); // q3
+            canvas_yaw.drawVLine(18, 6, 7); // q3
+            canvas_yaw.drawVLine(19, 6, 6); // q3
+            canvas_yaw.drawVLine(23, 4, 5); // center
+            canvas_yaw.drawVLine(24, 3, 9); // center
+            canvas_yaw.drawVLine(25, 4, 5); // center
+            canvas_yaw.drawVLine(29, 6, 6); // q2
+            canvas_yaw.drawVLine(30, 6, 7); // q2
+            canvas_yaw.drawVLine(31, 6, 6); // q2
+            canvas_yaw.drawVLine(36, 6, 7); // right center
+            canvas_yaw.drawVLine(42, 6, 6); // q1
+            canvas_yaw.drawVLine(43, 6, 7); // q1
+            canvas_yaw.drawVLine(44, 6, 6); // q1
+            canvas_yaw.drawVLine(48, 6, 9); // begin
+            canvas_yaw.drawVLine(49, 6, 8); // begin
+            // -------------------------------------------
+            // Yaw mapped
+            // -------------------------------------------
             yaw_pos = map(gyro_yaw, -180, 180, 0, 47);
             if (isnan(yaw_pos) || yaw_pos < 0) yaw_pos = 0;
             if (yaw_pos > 47) yaw_pos = 47;
-            // Cursor
+            // -------------------------------------------
+            // Yaw slider
+            // -------------------------------------------
             canvas_yaw.fillRect((int)yaw_pos, 0, (int)yaw_pos+1, 1); // filled rectangle 2x2 yaw
             dispSSD1306.display64->drawCanvas(127-49-10, 48, canvas_yaw);
-            
-            // Roll UAP
+            // -------------------------------------------
+            // Roll rotator
+            // -------------------------------------------
             canvas_30_30_0.clear();
             canvas_30_30_0.fillRect(8,  14, 20, 14); // base
             canvas_30_30_0.fillRect(8,  11,  8, 14); // lref
@@ -660,7 +710,9 @@ void taskDisplay(void * pvParameters) {
             dispSSD1306.display64->drawCanvas(68+10, 15, canvas_30_30_1);
           }
 
-          // Angle Velocity
+          /** ---------------------------------------------
+           * Angle Velocity
+           */
           else if (i_display==2) {
             // gyro accel x
             canvas_6charsx8.clear();
@@ -676,7 +728,9 @@ void taskDisplay(void * pvParameters) {
             // position values and draw axial acceleration graphic
           }
 
-          // Magnetic Field
+          /** ---------------------------------------------
+           * Magnetic Field
+           */
           else if (i_display==3) {
             // gyro mag x
             canvas_60x8_0.clear();
