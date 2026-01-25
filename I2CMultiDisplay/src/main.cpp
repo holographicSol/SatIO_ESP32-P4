@@ -1020,7 +1020,7 @@ void setup() {
       disp.display32->begin();
       disp.display32->clear();
       // test canvas
-      disp.canvas32->setFixedFont(ai_alien_font_5x5);
+      disp.canvas32->setFixedFont(ai_alien_font_6x5);
       disp.canvas32->clear();
       disp.canvas32->printFixed(1, 1, "SatIO", STYLE_NORMAL);
       disp.display32->drawCanvas(0, 0, *disp.canvas32);
@@ -1029,7 +1029,7 @@ void setup() {
       disp.display64->begin();
       disp.display64->clear();
       // test canvas
-      disp.canvas64->setFixedFont(ai_alien_font_5x5);
+      disp.canvas64->setFixedFont(ai_alien_font_6x5);
       disp.canvas64->clear();
       disp.canvas64->printFixed(1, 1, "SatIO", STYLE_NORMAL);
       disp.display64->drawCanvas(0, 0, *disp.canvas64);
@@ -1049,13 +1049,13 @@ void setup() {
     }
   }
 
-  canvas_60x8_0.setFixedFont(ai_alien_font_5x5);
-  canvas_6charsx8.setFixedFont(ai_alien_font_5x5);
-  canvas_7charsx8.setFixedFont(ai_alien_font_5x5);
-  canvas_8charsx8.setFixedFont(ai_alien_font_5x5);
+  canvas_60x8_0.setFixedFont(ai_alien_font_6x5);
+  canvas_6charsx8.setFixedFont(ai_alien_font_6x5);
+  canvas_7charsx8.setFixedFont(ai_alien_font_6x5);
+  canvas_8charsx8.setFixedFont(ai_alien_font_6x5);
   
-  canvas_41_41_0.setFixedFont(ai_alien_font_5x5);
-  canvas_41_41_1.setFixedFont(ai_alien_font_5x5);
+  canvas_41_41_0.setFixedFont(ai_alien_font_6x5);
+  canvas_41_41_1.setFixedFont(ai_alien_font_6x5);
 
   xSevenSegMutex = xSemaphoreCreateMutex();
 
