@@ -494,8 +494,31 @@ unsigned long current_time;
 static unsigned long display_loop_counter = 0;
 static unsigned long display_loop_last_time = 0;
 
+// -------------------------------------------
+// Attitude Globals
+// -------------------------------------------
 long pitch_pos=0;
 long yaw_pos=0;
+int attitude_scale_pos_x=64;
+int attitude_scale_pos_y=5;
+int pitch_canvas_x=attitude_scale_pos_x+attitude_scale_size;
+int pitch_canvas_y=attitude_scale_pos_y;
+int pitch_tick_x=8;
+int pitch_tick_y=0;
+int yaw_canvas_x=attitude_scale_pos_x;
+int yaw_canvas_y=attitude_scale_pos_y+attitude_scale_size;
+int yaw_tick_x=0;
+int yaw_tick_y=8;
+int canvas_center_x = ((canvas_size_roll_x - 1) / 2);
+int canvas_center_y = ((canvas_size_roll_y - 1) / 2);
+
+// Serial.println("--------------------------------------------");
+
+// Serial.println("canvas_center_x: " + String(canvas_center_x));
+// Serial.println("canvas_center_y: " + String(canvas_center_y));
+
+int canvas_roll_line_width = 23;
+int canvas_roll_line_width_half = canvas_roll_line_width/2;
 
 int fooang=0;
 
@@ -584,19 +607,19 @@ void taskDisplay(void * pvParameters) {
           if (i_display==0) {
             // satellite count
             canvas_6charsx8.clear();
-            canvas_6charsx8.printFixed(21 - (int(strlen(String(satellite_count).c_str()) * 7) /2), 0, String(satellite_count).c_str(), STYLE_BOLD);
+            canvas_6charsx8.printFixed(21 - (int(strlen(String(satellite_count).c_str()) * 7) /2), 0, String(satellite_count).c_str(), STYLE_NORMAL);
             dispSSD1306.display64->drawCanvas(0, 0, canvas_6charsx8);
             // gps precision
             canvas_6charsx8.clear();
-            canvas_6charsx8.printFixed(21 - (int(strlen(String(gps_precision).c_str()) * 7) /2), 0, String(gps_precision).c_str(), STYLE_BOLD);
+            canvas_6charsx8.printFixed(21 - (int(strlen(String(gps_precision).c_str()) * 7) /2), 0, String(gps_precision).c_str(), STYLE_NORMAL);
             dispSSD1306.display64->drawCanvas(128-42, 0, canvas_6charsx8);
             // local time
             canvas_8charsx8.clear();
-            canvas_8charsx8.printFixed(28 - (int(strlen(String(local_time_str).c_str()) * 7) /2), 0, String(local_time_str).c_str(), STYLE_BOLD);
+            canvas_8charsx8.printFixed(28 - (int(strlen(String(local_time_str).c_str()) * 7) /2), 0, String(local_time_str).c_str(), STYLE_NORMAL);
             dispSSD1306.display64->drawCanvas(64-28, 10, canvas_8charsx8);
             // local date
             canvas_8charsx8.clear();
-            canvas_8charsx8.printFixed(28 - (int(strlen(String(local_date_str).c_str()) * 7) /2), 0, String(local_date_str).c_str(), STYLE_BOLD);
+            canvas_8charsx8.printFixed(28 - (int(strlen(String(local_date_str).c_str()) * 7) /2), 0, String(local_date_str).c_str(), STYLE_NORMAL);
             dispSSD1306.display64->drawCanvas(64-28, 20, canvas_8charsx8);
             // position and style
           }
@@ -605,38 +628,35 @@ void taskDisplay(void * pvParameters) {
            * Attitude
            */
           else if (i_display==1) {
+            // 
+            /*
+              approx rows on SSD1309: 7
+              roll
+              pitch
+              yaw
+            */
             // -------------------------------------------
             // Value roll
             // -------------------------------------------
             canvas_7charsx8.clear();
-            canvas_7charsx8.printFixed(0, 0, String(gyro_roll).c_str(), STYLE_BOLD);
+            canvas_7charsx8.printFixed(0, 0, String(gyro_roll).c_str(), STYLE_NORMAL);
             dispSSD1306.display64->drawCanvas(0, 0, canvas_7charsx8);
             // -------------------------------------------
             // Value pitch
             // -------------------------------------------
             canvas_7charsx8.clear();
-            canvas_7charsx8.printFixed(0, 0, String(gyro_pitch).c_str(), STYLE_BOLD);
+            canvas_7charsx8.printFixed(0, 0, String(gyro_pitch).c_str(), STYLE_NORMAL);
             dispSSD1306.display64->drawCanvas(0, 10, canvas_7charsx8);
             // -------------------------------------------
             // Value yaw
             // -------------------------------------------
             canvas_7charsx8.clear();
-            canvas_7charsx8.printFixed(0, 0, String(gyro_yaw).c_str(), STYLE_BOLD);
+            canvas_7charsx8.printFixed(0, 0, String(gyro_yaw).c_str(), STYLE_NORMAL);
             dispSSD1306.display64->drawCanvas(0, 20, canvas_7charsx8);
-
-            // -------------------------------------------
-            // Scale globals: Adjust sclale position
-            // -------------------------------------------
-            int attitude_scale_pos_x=64;
-            int attitude_scale_pos_y=5;
 
             // -------------------------------------------
             // Pitch scale
             // -------------------------------------------
-            int pitch_canvas_x=attitude_scale_pos_x+attitude_scale_size;
-            int pitch_canvas_y=attitude_scale_pos_y;
-            int pitch_tick_x=8;
-            int pitch_tick_y=0;
             canvas_pitch.clear();
             canvas_pitch.drawVLine(pitch_tick_x,    pitch_tick_y,     attitude_scale_size);   // axis line
             canvas_pitch.drawHLine(pitch_tick_x+1,  pitch_tick_y,     pitch_tick_x+3);   // end
@@ -689,10 +709,6 @@ void taskDisplay(void * pvParameters) {
             // -------------------------------------------
             // Yaw scale
             // -------------------------------------------
-            int yaw_canvas_x=attitude_scale_pos_x;
-            int yaw_canvas_y=attitude_scale_pos_y+attitude_scale_size;
-            int yaw_tick_x=0;
-            int yaw_tick_y=8;
             canvas_yaw.clear();
             canvas_yaw.drawHLine(yaw_tick_x,     yaw_tick_y,    attitude_scale_size);   // axis line
             canvas_yaw.drawVLine(yaw_tick_x,     yaw_tick_y+1,  yaw_tick_y+3);   // end
@@ -748,17 +764,6 @@ void taskDisplay(void * pvParameters) {
             // -------------------------------------------
             canvas_roll_0.clear();
             canvas_roll_1.clear();
-            
-            int canvas_center_x = ((canvas_size_roll_x - 1) / 2);
-            int canvas_center_y = ((canvas_size_roll_y - 1) / 2);
-
-            // Serial.println("--------------------------------------------");
-
-            // Serial.println("canvas_center_x: " + String(canvas_center_x));
-            // Serial.println("canvas_center_y: " + String(canvas_center_y));
-
-            int canvas_roll_line_width = 23;
-            int canvas_roll_line_width_half = canvas_roll_line_width/2;
 
             // Serial.println("canvas_roll_line_width: " + String(canvas_roll_line_width));
             // Serial.println("canvas_roll_line_width_half: " + String(canvas_roll_line_width_half));
@@ -818,19 +823,19 @@ void taskDisplay(void * pvParameters) {
           }
 
           /** ---------------------------------------------
-           * Angle Velocity
+           * Acceleration (G Force)
            */
           else if (i_display==2) {
             // gyro accel x
             canvas_6charsx8.clear();
-            canvas_6charsx8.printFixed(0, 0, String(gyro_accel_x).c_str(), STYLE_BOLD);
+            canvas_6charsx8.printFixed(0, 0, String(gyro_accel_x).c_str(), STYLE_NORMAL);
             dispSSD1306.display64->drawCanvas(0, 0, canvas_6charsx8);
             // gyro accel y
-            canvas_6charsx8.printFixed(0, 0, String(gyro_accel_y).c_str(), STYLE_BOLD);
+            canvas_6charsx8.printFixed(0, 0, String(gyro_accel_y).c_str(), STYLE_NORMAL);
             dispSSD1306.display64->drawCanvas(0, 10, canvas_6charsx8);
             // gyro accel z
             canvas_6charsx8.clear();
-            canvas_6charsx8.printFixed(0, 0, String(gyro_accel_z).c_str(), STYLE_BOLD);
+            canvas_6charsx8.printFixed(0, 0, String(gyro_accel_z).c_str(), STYLE_NORMAL);
             dispSSD1306.display64->drawCanvas(0, 20, canvas_6charsx8);
             // position values and draw axial acceleration graphic
           }
@@ -841,15 +846,15 @@ void taskDisplay(void * pvParameters) {
           else if (i_display==3) {
             // gyro mag x
             canvas_60x8_0.clear();
-            canvas_60x8_0.printFixed(0, 0, String(gyro_mag_x).c_str(), STYLE_BOLD);
+            canvas_60x8_0.printFixed(0, 0, String(gyro_mag_x).c_str(), STYLE_NORMAL);
             dispSSD1306.display64->drawCanvas(0, 0, canvas_60x8_0);
             // gyro mag y
             canvas_60x8_0.clear();
-            canvas_60x8_0.printFixed(0, 0, String(gyro_mag_y).c_str(), STYLE_BOLD);
+            canvas_60x8_0.printFixed(0, 0, String(gyro_mag_y).c_str(), STYLE_NORMAL);
             dispSSD1306.display64->drawCanvas(0, 10, canvas_60x8_0);
             // gyro mag z
             canvas_60x8_0.clear();
-            canvas_60x8_0.printFixed(0, 0, String(gyro_mag_z).c_str(), STYLE_BOLD);
+            canvas_60x8_0.printFixed(0, 0, String(gyro_mag_z).c_str(), STYLE_NORMAL);
             dispSSD1306.display64->drawCanvas(0, 20, canvas_60x8_0);
             // position values and draw axial magnetic field graphic.
             // log values time n to retain any potential visual on axial (directional) mag field anomalies.
@@ -1015,18 +1020,18 @@ void setup() {
       disp.display32->begin();
       disp.display32->clear();
       // test canvas
-      disp.canvas32->setFixedFont(disp.font);
+      disp.canvas32->setFixedFont(ai_alien_font_5x5);
       disp.canvas32->clear();
-      disp.canvas32->printFixed(1, 1, "SatIO", STYLE_BOLD);
+      disp.canvas32->printFixed(1, 1, "SatIO", STYLE_NORMAL);
       disp.display32->drawCanvas(0, 0, *disp.canvas32);
     }
     else if (disp.type==SSD_128X64) {
       disp.display64->begin();
       disp.display64->clear();
       // test canvas
-      disp.canvas64->setFixedFont(disp.font);
+      disp.canvas64->setFixedFont(ai_alien_font_5x5);
       disp.canvas64->clear();
-      disp.canvas64->printFixed(1, 1, "SatIO", STYLE_BOLD);
+      disp.canvas64->printFixed(1, 1, "SatIO", STYLE_NORMAL);
       disp.display64->drawCanvas(0, 0, *disp.canvas64);
     }
   }
@@ -1044,13 +1049,13 @@ void setup() {
     }
   }
 
-  canvas_60x8_0.setFixedFont(ssd1306xled_font6x8);
-  canvas_6charsx8.setFixedFont(ssd1306xled_font6x8);
-  canvas_7charsx8.setFixedFont(ssd1306xled_font6x8);
-  canvas_8charsx8.setFixedFont(ssd1306xled_font6x8);
+  canvas_60x8_0.setFixedFont(ai_alien_font_5x5);
+  canvas_6charsx8.setFixedFont(ai_alien_font_5x5);
+  canvas_7charsx8.setFixedFont(ai_alien_font_5x5);
+  canvas_8charsx8.setFixedFont(ai_alien_font_5x5);
   
-  canvas_41_41_0.setFixedFont(ssd1306xled_font6x8);
-  canvas_41_41_1.setFixedFont(ssd1306xled_font6x8);
+  canvas_41_41_0.setFixedFont(ai_alien_font_5x5);
+  canvas_41_41_1.setFixedFont(ai_alien_font_5x5);
 
   xSevenSegMutex = xSemaphoreCreateMutex();
 
