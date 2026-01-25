@@ -661,12 +661,12 @@ void taskDisplay(void * pvParameters) {
           if (i_display==0) {
             // satellite count
             canvas_6chars.clear();
-            canvas_6chars.printFixed(21 - (int(strlen(String(satellite_count).c_str()) * 7) /2), 0, String(satellite_count).c_str(), STYLE_NORMAL);
+            canvas_6chars.printFixedAlign(String(satellite_count).c_str(), STYLE_NORMAL, ALIGN_LEFT, ALIGN_CENTER);
             dispSSD1306.display64->drawCanvas(0, 0, canvas_6chars);
             // gps precision
             canvas_6chars.clear();
-            canvas_6chars.printFixed(21 - (int(strlen(String(gps_precision).c_str()) * 7) /2), 0, String(gps_precision).c_str(), STYLE_NORMAL);
-            dispSSD1306.display64->drawCanvas(128-42, 0, canvas_6chars);
+            canvas_6chars.printFixedAlign(String(gps_precision).c_str(), STYLE_NORMAL, ALIGN_RIGHT, ALIGN_CENTER);
+            dispSSD1306.display64->drawCanvas(128-(font_width*6), 0, canvas_6chars);
             // local time
             canvas_8chars.clear();
             canvas_8chars.printFixed(28 - (int(strlen(String(local_time_str).c_str()) * 7) /2), 0, String(local_time_str).c_str(), STYLE_NORMAL);
@@ -700,13 +700,13 @@ void taskDisplay(void * pvParameters) {
             // Value pitch
             // -------------------------------------------
             canvas_6chars.clear();
-            canvas_6chars.printFixedAlign(String(gyro_pitch).c_str(), STYLE_NORMAL, ALIGN_RIGHT, ALIGN_MIDDLE);
+            canvas_6chars.printFixedAlign(String(gyro_pitch).c_str(), STYLE_NORMAL, ALIGN_RIGHT, ALIGN_CENTER);
             dispSSD1306.display64->drawCanvas(pitch_canvas_x-font_width*6, 0, canvas_6chars);
             // -------------------------------------------
             // G-Force Pitch
             // -------------------------------------------
             canvas_6chars.clear();
-            canvas_6chars.printFixedAlign(String(gyro_accel_y).c_str(), STYLE_NORMAL, ALIGN_RIGHT, ALIGN_MIDDLE);
+            canvas_6chars.printFixedAlign(String(gyro_accel_y).c_str(), STYLE_NORMAL, ALIGN_RIGHT, ALIGN_CENTER);
             dispSSD1306.display64->drawCanvas(pitch_canvas_x-font_width*6, 10, canvas_6chars);
 
             // -------------------------------------------
