@@ -777,24 +777,23 @@ void taskDisplay(void * pvParameters) {
             // center point
             canvas_roll_0.drawCircle(canvas_center_x,
                                      canvas_center_y,
-                                     3);
+                                     2);
             // reference left
             canvas_roll_0.drawVLine(canvas_center_x-canvas_roll_line_width_half,
-                                    canvas_center_y-3,
-                                    canvas_center_y+6);
+                                    canvas_center_y-2,
+                                    canvas_center_y+4);
             // reference lower left
             canvas_roll_0.drawHLine(canvas_center_x-canvas_roll_line_width_half,
-                                    canvas_center_y+6,
-                                    canvas_center_x-canvas_roll_line_width_half+5);
+                                    canvas_center_y+4,
+                                    canvas_center_x-canvas_roll_line_width_half+3);
             // reference right
             canvas_roll_0.drawVLine(canvas_center_x+canvas_roll_line_width_half,
-                                    canvas_center_y-3,
-                                    canvas_center_y+6);
+                                    canvas_center_y-2,
+                                    canvas_center_y+4);
             // reference lower right
             canvas_roll_0.drawHLine(canvas_center_x+canvas_roll_line_width_half,
-                                    canvas_center_y+6,
-                                    canvas_center_x+canvas_roll_line_width_half-5);
-
+                                    canvas_center_y+4,
+                                    canvas_center_x+canvas_roll_line_width_half-3);
             // Serial.println("Draw line from x: " + String(canvas_center_x-canvas_roll_line_width_half+1) + " to " + String(canvas_center_x+canvas_roll_line_width_half-1) + " at y: " + String(canvas_center_y));
 
             // test roll
