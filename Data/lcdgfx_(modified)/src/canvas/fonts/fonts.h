@@ -39,6 +39,8 @@ extern "C"
      * @{
      */
 
+    extern const PROGMEM uint8_t ai_alien_font_5x5[];
+
     /** Standard ASCII 6x8 font */
     extern const PROGMEM uint8_t ssd1306xled_font6x8[];
 
