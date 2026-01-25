@@ -36,36 +36,25 @@
 /**
  * @brief ETextAlignX Text alignment options.
  * 
- * Align text to left, center or right.
+ * @note Used in printFixedAlign() method.
  * 
- * Align Left: 0: align_left.
+ * ALIGN_CENTER - center alignment
  * 
- * Align Center: 1: align_center.
+ * ALIGN_LEFT   - left alignment
  * 
- * Align Right: 2: align_right.
+ * ALIGN_RIGHT  - right alignment
+ * 
+ * ALIGN_TOP    - top alignment
+ * 
+ * ALIGN_BOTTOM - bottom alignment
  */
 typedef enum {
-    ALIGN_LEFT = 0,
-    ALIGN_CENTER = 1,
-    ALIGN_RIGHT = 2
-} ETextAlignX;
-
-/**
- * @brief ETextAlignY Text alignment options.
- * 
- * Align text to top, middle or bottom.
- * 
- * Align Top: 0: align_top.
- * 
- * Align Middle: 1: align_middle.
- * 
- * Align Bottom: 2: align_bottom.
- */
-typedef enum {
-    ALIGN_TOP = 0,
-    ALIGN_MIDDLE = 1,
-    ALIGN_BOTTOM = 2
-} ETextAlignY;
+    ALIGN_CENTER = 0,
+    ALIGN_LEFT = 1,
+    ALIGN_RIGHT = 2,
+    ALIGN_TOP = 3,
+    ALIGN_BOTTOM = 4
+} ETextAlign;
 
 /**
  * @ingroup NANO_ENGINE_API_V2
@@ -339,10 +328,10 @@ public:
      * Prints text with horizontal and vertical alignment
      * @param ch - null-terminated string
      * @param style - font style
-     * @param align_x - horizontal alignment (ETextAlignX)
-     * @param align_y - vertical alignment (ETextAlignY)
+     * @param align_x - horizontal alignment (ETextAlign)
+     * @param align_y - vertical alignment (ETextAlign)
      */
-    void printFixedAlign(const char *ch, EFontStyle style, ETextAlignX align_x, ETextAlignY align_y);
+    void printFixedAlign(const char *ch, EFontStyle style, ETextAlign align_x, ETextAlign align_y);
 
     /**
      * @brief Sets canvas drawing mode
