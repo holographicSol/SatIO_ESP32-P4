@@ -34,6 +34,40 @@
 #include "canvas_types.h"
 
 /**
+ * @brief ETextAlignX Text alignment options.
+ * 
+ * Align text to left, center or right.
+ * 
+ * Align Left: 0: align_left.
+ * 
+ * Align Center: 1: align_center.
+ * 
+ * Align Right: 2: align_right.
+ */
+typedef enum {
+    ALIGN_LEFT = 0,
+    ALIGN_CENTER = 1,
+    ALIGN_RIGHT = 2
+} ETextAlignX;
+
+/**
+ * @brief ETextAlignY Text alignment options.
+ * 
+ * Align text to top, middle or bottom.
+ * 
+ * Align Top: 0: align_top.
+ * 
+ * Align Middle: 1: align_middle.
+ * 
+ * Align Bottom: 2: align_bottom.
+ */
+typedef enum {
+    ALIGN_TOP = 0,
+    ALIGN_MIDDLE = 1,
+    ALIGN_BOTTOM = 2
+} ETextAlignY;
+
+/**
  * @ingroup NANO_ENGINE_API_V2
  * @{
  */
@@ -292,6 +326,23 @@ public:
      * @note Supports only STYLE_NORMAL and STYLE_BOLD
      */
     void printFixedPgm(lcdint_t xpos, lcdint_t y, const char *ch, EFontStyle style = STYLE_NORMAL);
+
+    /**
+     * Prints text at (x, y) with alignment (left, center, right)
+     * @param xpos - x position (left edge for align_left, center for align_center, right edge for align_right)
+     * @param y - y position
+     * @param ch - null-terminated string
+     * @param style - font style
+     * @param align - alignment (ETextAlign)
+     */
+    /**
+     * Prints text with horizontal and vertical alignment
+     * @param ch - null-terminated string
+     * @param style - font style
+     * @param align_x - horizontal alignment (ETextAlignX)
+     * @param align_y - vertical alignment (ETextAlignY)
+     */
+    void printFixedAlign(const char *ch, EFontStyle style, ETextAlignX align_x, ETextAlignY align_y);
 
     /**
      * @brief Sets canvas drawing mode

@@ -217,6 +217,40 @@ void NanoCanvasOps<BPP>::printFixedPgm(lcdint_t xpos, lcdint_t y, const char *ch
     }
 }
 
+template <uint8_t BPP>
+void NanoCanvasOps<BPP>::printFixedAlign(const char *ch, EFontStyle style, ETextAlignX align_x, ETextAlignY align_y)
+{
+    lcduint_t text_width = m_font->getTextSize(ch);
+    lcduint_t text_height = m_font->getHeader().height;
+    lcdint_t xpos = 0;
+    lcdint_t ypos = 0;
+    switch (align_x) {
+        case ALIGN_CENTER:
+            xpos = (m_w - text_width) / 2;
+            break;
+        case ALIGN_RIGHT:
+            xpos = m_w - text_width;
+            break;
+        case ALIGN_LEFT:
+        default:
+            xpos = 0;
+            break;
+    }
+    switch (align_y) {
+        case ALIGN_MIDDLE:
+            ypos = (m_h - text_height) / 2;
+            break;
+        case ALIGN_BOTTOM:
+            ypos = m_h - text_height;
+            break;
+        case ALIGN_TOP:
+        default:
+            ypos = 0;
+            break;
+    }
+    printFixed(xpos, ypos, ch, style);
+}
+
 /////////////////////////////////////////////////////////////////////////////////
 //
 //                             1-BIT GRAPHICS
