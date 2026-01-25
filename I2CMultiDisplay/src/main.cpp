@@ -117,6 +117,8 @@ int roll_canvas_uap_half_width = roll_canvas_uap_width/2;
 
 /** ----------------------------------------------------------------------------
  * @brief Pitch Canvas (minimal design)
+ * @note axis may be removed and replaced with an external illuminated scale,
+ *       leaving just the slider cursor on the canvas which can save more space.
  */
 NanoCanvas<8,57,1> canvas_pitch;
 int pitch_canvas_width  = 8;   // full width for pitch display
@@ -131,6 +133,8 @@ long pitch_mapped       = 0;   // mapped pitch value for canvas
 
 /** ---------------------------------------------------------------------------
  * @brief Yaw Canvas (minimal design)
+ * @note axis may be removed and replaced with an external illuminated scale,
+ *       leaving just the slider cursor on the canvas which can save more space.
  */
 NanoCanvas<120,8,1> canvas_yaw;
 int yaw_canvas_width    = 120; // full width for yaw display minus some space for pitch display
@@ -685,27 +689,35 @@ void taskDisplay(void * pvParameters) {
             canvas_7chars.clear();
             canvas_7chars.printFixed(0, 0, String(gyro_roll).c_str(), STYLE_NORMAL);
             dispSSD1306.display64->drawCanvas(0, 0, canvas_7chars);
+            // -------------------------------------------
             // G-Force Roll
+            // -------------------------------------------
             canvas_6chars.clear();
             canvas_6chars.printFixed(0, 0, String(gyro_accel_x).c_str(), STYLE_NORMAL);
             dispSSD1306.display64->drawCanvas(0, 10, canvas_6chars);
+
             // -------------------------------------------
             // Value pitch
             // -------------------------------------------
-            canvas_7chars.clear();
-            canvas_7chars.printFixed(0, 0, String(gyro_pitch).c_str(), STYLE_NORMAL);
-            dispSSD1306.display64->drawCanvas(pitch_canvas_x-font_width*7, 0, canvas_7chars);
+            canvas_6chars.clear();
+            canvas_6chars.printFixed(0, 0, String(gyro_pitch).c_str(), STYLE_NORMAL);
+            dispSSD1306.display64->drawCanvas(pitch_canvas_x-font_width*6, 0, canvas_6chars);
+            // -------------------------------------------
             // G-Force Pitch
+            // -------------------------------------------
             canvas_6chars.clear();
             canvas_6chars.printFixed(0, 0, String(gyro_accel_y).c_str(), STYLE_NORMAL);
             dispSSD1306.display64->drawCanvas(pitch_canvas_x-font_width*6, 10, canvas_6chars);
+
             // -------------------------------------------
             // Value yaw
             // -------------------------------------------
             canvas_7chars.clear();
             canvas_7chars.printFixed(0, 0, String(gyro_yaw).c_str(), STYLE_NORMAL);
             dispSSD1306.display64->drawCanvas(0, yaw_canvas_y-font_height*2, canvas_7chars);
+            // -------------------------------------------
             // G-Force Yaw
+            // -------------------------------------------
             canvas_6chars.clear();
             canvas_6chars.printFixed(0, 0, String(gyro_accel_y).c_str(), STYLE_NORMAL);
             dispSSD1306.display64->drawCanvas(0, yaw_canvas_y-font_height, canvas_6chars);
@@ -714,6 +726,7 @@ void taskDisplay(void * pvParameters) {
             // Pitch Axis
             // -------------------------------------------
             canvas_pitch.clear();
+            // uncomment to draw axis line
             canvas_pitch.drawVLine(pitch_axis_x, pitch_axis_y, pitch_canvas_height);
             // -------------------------------------------
             // Pitch mapped
@@ -731,6 +744,7 @@ void taskDisplay(void * pvParameters) {
             // Yaw Axis
             // -------------------------------------------
             canvas_yaw.clear();
+            // uncomment to draw axis line
             canvas_yaw.drawHLine(yaw_axis_x, yaw_axis_y, yaw_canvas_width);
             // -------------------------------------------
             // Yaw mapped
