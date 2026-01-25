@@ -700,13 +700,13 @@ void taskDisplay(void * pvParameters) {
             // Value pitch
             // -------------------------------------------
             canvas_6chars.clear();
-            canvas_6chars.printFixed(0, 0, String(gyro_pitch).c_str(), STYLE_NORMAL);
+            canvas_6chars.printFixedAlign(String(gyro_pitch).c_str(), STYLE_NORMAL, ALIGN_RIGHT, ALIGN_MIDDLE);
             dispSSD1306.display64->drawCanvas(pitch_canvas_x-font_width*6, 0, canvas_6chars);
             // -------------------------------------------
             // G-Force Pitch
             // -------------------------------------------
             canvas_6chars.clear();
-            canvas_6chars.printFixed(0, 0, String(gyro_accel_y).c_str(), STYLE_NORMAL);
+            canvas_6chars.printFixedAlign(String(gyro_accel_y).c_str(), STYLE_NORMAL, ALIGN_RIGHT, ALIGN_MIDDLE);
             dispSSD1306.display64->drawCanvas(pitch_canvas_x-font_width*6, 10, canvas_6chars);
 
             // -------------------------------------------
