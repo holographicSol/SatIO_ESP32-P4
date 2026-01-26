@@ -1,6 +1,3 @@
-// Flag and timer for sync change
-bool sync_changed_flag = false;
-unsigned long sync_changed_time = 0;
 /*
 Written by Benjamin Jack Cullen.
 
@@ -26,9 +23,14 @@ Lcdgfx Library SSD1306 is currently used for the SSD1309 panels for larger more 
 #include "./multiplexers.h"
 #include "./strval.h"
 #include "./i2c_helper.h"
+#include "./dtoscinot.h"
 
 #include "freertos/semphr.h"
 SemaphoreHandle_t xSevenSegMutex = NULL;
+
+// Flag and timer for sync change
+bool sync_changed_flag = false;
+unsigned long sync_changed_time = 0;
 
 /** ----------------------------------------------------------------------------
  * Task Display.
@@ -94,6 +96,19 @@ NanoCanvas<font_width*9,  font_height, 1> canvas_9chars;  // 9 chars
 NanoCanvas<font_width*10, font_height, 1> canvas_10chars; // 10 chars
 NanoCanvas<font_width*11, font_height, 1> canvas_11chars; // 11 chars
 NanoCanvas<font_width*12, font_height, 1> canvas_12chars; // 12 chars
+NanoCanvas<font_width*13, font_height, 1> canvas_13chars; // 13 chars
+NanoCanvas<font_width*14, font_height, 1> canvas_14chars; // 14 chars
+NanoCanvas<font_width*15, font_height, 1> canvas_15chars; // 15 chars
+NanoCanvas<font_width*16, font_height, 1> canvas_16chars; // 16 chars
+NanoCanvas<font_width*17, font_height, 1> canvas_17chars; // 17 chars
+NanoCanvas<font_width*18, font_height, 1> canvas_18chars; // 18 chars
+NanoCanvas<font_width*19, font_height, 1> canvas_19chars; // 19 chars
+NanoCanvas<font_width*20, font_height, 1> canvas_20chars; // 20 chars
+NanoCanvas<font_width*21, font_height, 1> canvas_21chars; // 21 chars
+NanoCanvas<font_width*22, font_height, 1> canvas_22chars; // 22 chars
+NanoCanvas<font_width*23, font_height, 1> canvas_23chars; // 23 chars
+NanoCanvas<font_width*24, font_height, 1> canvas_24chars; // 24 chars
+NanoCanvas<font_width*25, font_height, 1> canvas_25chars; // 25 chars
 
 /** ----------------------------------------------------------------------------
  * SSD1306 Displays - Default Canvases.
@@ -208,6 +223,8 @@ CRGB leds[MAX_INDICATORS];
 void UpdateAllIndicators(int start, int end, int r, int g, int b) {
   for (int i=start; i<=end; i++) {leds[i] = CRGB(r,g,b);}
 }
+
+#include <math.h>
 
 /** ----------------------------------------------------------------------------
  * @brief Request event handler for Bus 1.
@@ -757,13 +774,13 @@ void taskDisplay(void * pvParameters) {
             // Value roll
             // -------------------------------------------
             canvas_7chars.clear();
-            canvas_7chars.printFixed(0, 0, String(gyro_roll).c_str(), STYLE_NORMAL);
+            canvas_7chars.printFixedAlign(String(gyro_roll).c_str(), STYLE_NORMAL, ALIGN_LEFT, ALIGN_CENTER);
             dispSSD1306.display64->drawCanvas(0, 0, canvas_7chars);
             // -------------------------------------------
             // G-Force Roll
             // -------------------------------------------
             canvas_6chars.clear();
-            canvas_6chars.printFixed(0, 0, String(gyro_accel_x).c_str(), STYLE_NORMAL);
+            canvas_6chars.printFixedAlign(String(gyro_accel_x).c_str(), STYLE_NORMAL, ALIGN_LEFT, ALIGN_CENTER);
             dispSSD1306.display64->drawCanvas(0, 10, canvas_6chars);
 
             // -------------------------------------------
@@ -783,13 +800,13 @@ void taskDisplay(void * pvParameters) {
             // Value yaw
             // -------------------------------------------
             canvas_7chars.clear();
-            canvas_7chars.printFixed(0, 0, String(gyro_yaw).c_str(), STYLE_NORMAL);
+            canvas_7chars.printFixedAlign(String(gyro_yaw).c_str(), STYLE_NORMAL, ALIGN_LEFT, ALIGN_CENTER);
             dispSSD1306.display64->drawCanvas(0, yaw_canvas_y-font_height*2, canvas_7chars);
             // -------------------------------------------
             // G-Force Yaw
             // -------------------------------------------
             canvas_6chars.clear();
-            canvas_6chars.printFixed(0, 0, String(gyro_accel_z).c_str(), STYLE_NORMAL);
+            canvas_6chars.printFixedAlign(String(gyro_accel_z).c_str(), STYLE_NORMAL, ALIGN_LEFT, ALIGN_CENTER);
             dispSSD1306.display64->drawCanvas(0, yaw_canvas_y-font_height, canvas_6chars);
 
             // -------------------------------------------
@@ -894,23 +911,41 @@ void taskDisplay(void * pvParameters) {
             // Serial.println("Draw roll at x: " + String(roll_canvas_y+23 + roll_canvas_center_x) + " y: " + String(roll_canvas_y+23 - roll_canvas_center_y));
           }
 
-          // /** ---------------------------------------------
-          //  * Acceleration (G Force)
-          //  */
-          // else if (i_display==2) {
-          //   // gyro accel x
-          //   canvas_6chars.clear();
-          //   canvas_6chars.printFixed(0, 0, String(gyro_accel_x).c_str(), STYLE_NORMAL);
-          //   dispSSD1306.display64->drawCanvas(0, 0, canvas_6chars);
-          //   // gyro accel y
-          //   canvas_6chars.printFixed(0, 0, String(gyro_accel_y).c_str(), STYLE_NORMAL);
-          //   dispSSD1306.display64->drawCanvas(0, 10, canvas_6chars);
-          //   // gyro accel z
-          //   canvas_6chars.clear();
-          //   canvas_6chars.printFixed(0, 0, String(gyro_accel_z).c_str(), STYLE_NORMAL);
-          //   dispSSD1306.display64->drawCanvas(0, 20, canvas_6chars);
-          //   // position values and draw axial acceleration graphic
-          // }
+          /** -------------------------------------------------------
+           * Large Number Test For upcoming altitude and speed values
+           */
+          else if (i_display==2) {
+            char buffer[32];
+            double value;
+            // test 0
+            memset(buffer, 0, sizeof(buffer));
+            value = 1000000000;
+            canvas_20chars.clear();
+            doubleToScientific(value, 8, buffer);
+            canvas_20chars.printFixed(0, 0, buffer, STYLE_NORMAL);
+            dispSSD1306.display64->drawCanvas(0, 0, canvas_20chars);
+            // test 1
+            memset(buffer, 0, sizeof(buffer));
+            value = 2500000;
+            canvas_20chars.clear();
+            doubleToScientific(value, 19, buffer);
+            canvas_20chars.printFixed(0, 0, buffer, STYLE_NORMAL);
+            dispSSD1306.display64->drawCanvas(0, 10, canvas_20chars);
+            // test 2
+            memset(buffer, 0, sizeof(buffer));
+            value = 2512345;
+            canvas_20chars.clear();
+            doubleToScientific(value, 19, buffer);
+            canvas_20chars.printFixed(0, 0, buffer, STYLE_NORMAL);
+            dispSSD1306.display64->drawCanvas(0, 20, canvas_20chars);
+            // test 1
+            memset(buffer, 0, sizeof(buffer));
+            value = 2512345.6789;
+            canvas_20chars.clear();
+            doubleToScientific(value, 19, buffer);
+            canvas_20chars.printFixed(0, 0, buffer, STYLE_NORMAL);
+            dispSSD1306.display64->drawCanvas(0, 30, canvas_20chars);
+          }
 
           /** ---------------------------------------------
            * Magnetic Field
@@ -1136,6 +1171,19 @@ void setup() {
   canvas_10chars.setFixedFont(ai_alien_font_6x5);
   canvas_11chars.setFixedFont(ai_alien_font_6x5);
   canvas_12chars.setFixedFont(ai_alien_font_6x5);
+  canvas_13chars.setFixedFont(ai_alien_font_6x5);
+  canvas_14chars.setFixedFont(ai_alien_font_6x5);
+  canvas_15chars.setFixedFont(ai_alien_font_6x5);
+  canvas_16chars.setFixedFont(ai_alien_font_6x5);
+  canvas_17chars.setFixedFont(ai_alien_font_6x5);
+  canvas_18chars.setFixedFont(ai_alien_font_6x5);
+  canvas_19chars.setFixedFont(ai_alien_font_6x5);
+  canvas_20chars.setFixedFont(ai_alien_font_6x5);
+  canvas_21chars.setFixedFont(ai_alien_font_6x5);
+  canvas_22chars.setFixedFont(ai_alien_font_6x5);
+  canvas_23chars.setFixedFont(ai_alien_font_6x5);
+  canvas_24chars.setFixedFont(ai_alien_font_6x5);
+  canvas_25chars.setFixedFont(ai_alien_font_6x5);
 
   xSevenSegMutex = xSemaphoreCreateMutex();
 
