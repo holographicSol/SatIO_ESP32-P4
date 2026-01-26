@@ -1,3 +1,6 @@
+// Flag and timer for sync change
+bool sync_changed_flag = false;
+unsigned long sync_changed_time = 0;
 /*
 Written by Benjamin Jack Cullen.
 
@@ -255,6 +258,9 @@ char local_date_str[32]="";
 
 char sync_time_str[32]="";
 char sync_date_str[32]="";
+
+char prev_sync_time_str[32]="";
+char prev_sync_date_str[32]="";
 
 float gyro_roll=0;
 float gyro_pitch=0;
@@ -703,20 +709,43 @@ void taskDisplay(void * pvParameters) {
             // local time
             canvas_8chars.clear();
             canvas_8chars.printFixedAlign(String(local_time_str).c_str(), STYLE_NORMAL, ALIGN_CENTER, ALIGN_CENTER);
-            dispSSD1306.display64->drawCanvas(64-28, 10, canvas_8chars);
+            dispSSD1306.display64->drawCanvas(64-(font_width*4), 10, canvas_8chars);
             // local date
             canvas_8chars.clear();
             canvas_8chars.printFixedAlign(String(local_date_str).c_str(), STYLE_NORMAL, ALIGN_CENTER, ALIGN_CENTER);
-            dispSSD1306.display64->drawCanvas(64-28, 20, canvas_8chars);
+            dispSSD1306.display64->drawCanvas(64-(font_width*4), 20, canvas_8chars);
             // sync time
-            canvas_8chars.clear();
-            canvas_8chars.printFixedAlign(String(sync_time_str).c_str(), STYLE_NORMAL, ALIGN_CENTER, ALIGN_CENTER);
-            dispSSD1306.display64->drawCanvas(64-28, 40, canvas_8chars);
-            // sync date
-            canvas_8chars.clear();
-            canvas_8chars.printFixedAlign(String(sync_date_str).c_str(), STYLE_NORMAL, ALIGN_CENTER, ALIGN_CENTER);
-            dispSSD1306.display64->drawCanvas(64-28, 50, canvas_8chars);
-            // position and style
+            // canvas_8chars.clear();
+            // canvas_8chars.printFixedAlign(String(sync_time_str).c_str(), STYLE_NORMAL, ALIGN_CENTER, ALIGN_CENTER);
+            // dispSSD1306.display64->drawCanvas(64-(font_width*4), 40, canvas_8chars);
+            // // sync date
+            // canvas_8chars.clear();
+            // canvas_8chars.printFixedAlign(String(sync_date_str).c_str(), STYLE_NORMAL, ALIGN_CENTER, ALIGN_CENTER);
+            // dispSSD1306.display64->drawCanvas(64-(font_width*4), 50, canvas_8chars);
+            // Detect sync change
+            if (strcmp(prev_sync_time_str, sync_time_str)!=0 ||
+              strcmp(prev_sync_date_str, sync_date_str)!=0) {
+              // copy new to previous
+              memset(prev_sync_time_str, 0, sizeof(prev_sync_time_str));
+              strncpy(prev_sync_time_str, sync_time_str, strlen(sync_time_str));
+              memset(prev_sync_date_str, 0, sizeof(prev_sync_date_str));
+              strncpy(prev_sync_date_str, sync_date_str, strlen(sync_date_str));
+              // Set flag and timer
+              sync_changed_flag = true;
+              sync_changed_time = millis();
+            }
+            // Show SYNC if changed recently
+            if (sync_changed_flag==true) {
+              canvas_8chars.clear();
+              canvas_8chars.invertColors();
+              canvas_8chars.printFixedAlign(String("  SYNC  ").c_str(), STYLE_NORMAL, ALIGN_CENTER, ALIGN_CENTER);
+              dispSSD1306.display64->drawCanvas(64-(font_width*4), 0, canvas_8chars);
+              canvas_8chars.invertColors();
+            }
+            else {
+              canvas_8chars.clear();
+              dispSSD1306.display64->drawCanvas(64-(font_width*4), 0, canvas_8chars);
+            }
           }
 
           /** ---------------------------------------------
@@ -915,6 +944,9 @@ void taskDisplay(void * pvParameters) {
     // -----------------------------------------------------
     display_loop_counter++;
     current_time = millis();
+    if (sync_changed_flag && (current_time - sync_changed_time >= 1000)) {
+      sync_changed_flag = false;
+    }
     if (current_time - display_loop_last_time >= 1000) {
       Serial.printf("Display Task: %lu loops/sec\n", display_loop_counter);
       display_loop_counter = 0;
