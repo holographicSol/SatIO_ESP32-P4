@@ -83,7 +83,7 @@ struct SATIOStruct satioData = {
     .padded_local_year = "00",
 
     .local_unixtime_uS = 0,
-
+    
     .rtcsync_hour = 0,
     .rtcsync_minute = 0,
     .rtcsync_second = 0,
@@ -749,6 +749,7 @@ void setRTCDateTime() {
   // Serial.println("[ " + String(satioData.local_unixtime_uS) + " ] sync time in setRTCDateTime");
   storeRTCSYNCTime();
   satioData.sync_rtc_immediately_flag=false;
+  
 }
 
 void syncRTC() {

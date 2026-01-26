@@ -88,6 +88,7 @@ struct SATIOStruct {
     char padded_local_year[MAX_GLOBAL_ELEMENT_SIZE];              // Padded local hour (SS)
 
     uint64_t local_unixtime_uS;                         // Local Unix time in microseconds
+    
     uint8_t rtcsync_hour;                               // RTC sync hour
     uint8_t rtcsync_minute;                             // RTC sync minute
     uint8_t rtcsync_second;                             // RTC sync second
@@ -101,10 +102,13 @@ struct SATIOStruct {
 
     char padded_rtc_sync_time_HHMMSS[MAX_GLOBAL_ELEMENT_SIZE]; // Padded RTC sync time (HHMMSS)
     char padded_rtc_sync_date_DDMMYYYY[MAX_GLOBAL_ELEMENT_SIZE]; // Padded RTC sync date
+
     uint32_t rtcsync_unixtime;                          // RTC sync Unix time
+    
     char rtcsync_latitude[MAX_GLOBAL_ELEMENT_SIZE];      // RTC sync latitude
     char rtcsync_longitude[MAX_GLOBAL_ELEMENT_SIZE];     // RTC sync longitude
     char rtcsync_altitude[MAX_GLOBAL_ELEMENT_SIZE];      // RTC sync altitude
+
     uint8_t rtc_hour;                                   // RTC current hour
     uint8_t rtc_minute;                                 // RTC current minute
     uint8_t rtc_second;                                 // RTC current second
@@ -113,10 +117,13 @@ struct SATIOStruct {
     uint8_t rtc_mday;                                   // RTC current day
     uint8_t rtc_wday;                                   // RTC current day of week
     char rtc_wday_name[MAX_GLOBAL_ELEMENT_SIZE];         // RTC weekday name
+
     char formatted_rtc_time[MAX_GLOBAL_ELEMENT_SIZE];    // Formatted RTC time
     char formatted_rtc_date[MAX_GLOBAL_ELEMENT_SIZE];    // Formatted RTC date
+
     char padded_rtc_time_HHMMSS[MAX_GLOBAL_ELEMENT_SIZE]; // Padded RTC time (HHMMSS)
     char padded_rtc_date_DDMMYYYY[MAX_GLOBAL_ELEMENT_SIZE]; // Padded RTC date
+
     uint32_t rtc_unixtime;                              // RTC Unix time
 
     int64_t utc_second_offset;                 // UTC offset in seconds
