@@ -719,7 +719,7 @@ void taskDisplay(void * pvParameters) {
             // G-Force Yaw
             // -------------------------------------------
             canvas_6chars.clear();
-            canvas_6chars.printFixed(0, 0, String(gyro_accel_y).c_str(), STYLE_NORMAL);
+            canvas_6chars.printFixed(0, 0, String(gyro_accel_z).c_str(), STYLE_NORMAL);
             dispSSD1306.display64->drawCanvas(0, yaw_canvas_y-font_height, canvas_6chars);
 
             // -------------------------------------------
