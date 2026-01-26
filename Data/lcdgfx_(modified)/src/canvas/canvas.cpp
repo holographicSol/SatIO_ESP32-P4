@@ -143,6 +143,127 @@ template <uint8_t BPP> void NanoCanvasOps<BPP>::drawCircle(lcdint_t xc, lcdint_t
     }
 }
 
+// experiment but keep because it makes interesting shapes when rotated
+// template <uint8_t BPP>
+// void NanoCanvasOps<BPP>::fillCircle(lcdint_t xc, lcdint_t yc, lcdint_t r)
+// {
+//     for (lcdint_t y = -r; y <= r; y++) {
+//         lcdint_t dx = (lcdint_t)std::sqrt(r * r - y * y);
+//         for (lcdint_t x = -dx; x <= dx; x++) {
+//             putPixel(xc + x, yc + y);
+//         }
+//     }
+// }
+
+template <uint8_t BPP>
+void NanoCanvasOps<BPP>::fillCircle(lcdint_t xc, lcdint_t yc, lcdint_t r)
+{
+    lcdint_t x = 0;
+    lcdint_t y = r;
+    lcdint_t d = 1 - r;
+    while (y >= x) {
+        // Draw horizontal scanlines between symmetric points
+        for (lcdint_t i = xc - x; i <= xc + x; i++) {
+            putPixel(i, yc + y);
+            putPixel(i, yc - y);
+        }
+        for (lcdint_t i = xc - y; i <= xc + y; i++) {
+            putPixel(i, yc + x);
+            putPixel(i, yc - x);
+        }
+        x++;
+        if (d < 0) {
+            d += 2 * x + 1;
+        } else {
+            y--;
+            d += 2 * (x - y) + 1;
+        }
+    }
+}
+
+// Draws the outline of a triangle (not filled)
+template <uint8_t BPP>
+void NanoCanvasOps<BPP>::drawTriangle(lcdint_t x0, lcdint_t y0, lcdint_t x1, lcdint_t y1, lcdint_t x2, lcdint_t y2)
+{
+    // Sort vertices by y (y0 <= y1 <= y2)
+    if (y0 > y1) { std::swap(y0, y1); std::swap(x0, x1); }
+    if (y1 > y2) { std::swap(y1, y2); std::swap(x1, x2); }
+    if (y0 > y1) { std::swap(y0, y1); std::swap(x0, x1); }
+
+    auto edgeInterp = [](lcdint_t x0, lcdint_t y0, lcdint_t x1, lcdint_t y1, lcdint_t y) -> lcdint_t {
+        if (y1 == y0) return x0;
+        return x0 + (x1 - x0) * (y - y0) / (y1 - y0);
+    };
+
+    // Draw all three triangle edges using a pixel-perfect Bresenham, ensuring all sides are present
+    // Draw a mathematically perfect triangle outline for all cases
+    // including small equilateral triangles (e.g., 3px per side)
+    // by rasterizing only the mathematically correct edge pixels for each side
+    // and avoiding overdraw at shared vertices.
+
+    // Helper: draw a line but skip the first pixel (for 2nd and 3rd sides)
+    auto drawEdgeSkipFirst = [this](lcdint_t x0, lcdint_t y0, lcdint_t x1, lcdint_t y1) {
+        lcdint_t dx = abs(x1 - x0), sx = x0 < x1 ? 1 : -1;
+        lcdint_t dy = -abs(y1 - y0), sy = y0 < y1 ? 1 : -1;
+        lcdint_t err = dx + dy, e2;
+        bool first = true;
+        while (true) {
+            if (!first) this->putPixel(x0, y0);
+            if (x0 == x1 && y0 == y1) break;
+            first = false;
+            e2 = 2 * err;
+            if (e2 >= dy) { err += dy; x0 += sx; }
+            if (e2 <= dx) { err += dx; y0 += sy; }
+        }
+    };
+    // Draw first edge fully, then each next edge skipping the first pixel to avoid double-pixel corners
+    auto drawEdge = [this](lcdint_t x0, lcdint_t y0, lcdint_t x1, lcdint_t y1) {
+        lcdint_t dx = abs(x1 - x0), sx = x0 < x1 ? 1 : -1;
+        lcdint_t dy = -abs(y1 - y0), sy = y0 < y1 ? 1 : -1;
+        lcdint_t err = dx + dy, e2;
+        while (true) {
+            this->putPixel(x0, y0);
+            if (x0 == x1 && y0 == y1) break;
+            e2 = 2 * err;
+            if (e2 >= dy) { err += dy; x0 += sx; }
+            if (e2 <= dx) { err += dx; y0 += sy; }
+        }
+    };
+    drawEdge(x0, y0, x1, y1);
+    drawEdgeSkipFirst(x1, y1, x2, y2);
+    drawEdgeSkipFirst(x2, y2, x0, y0);
+}
+
+// Draws a filled triangle using scanline rasterization (pixel-perfect)
+template <uint8_t BPP>
+void NanoCanvasOps<BPP>::fillTriangle(lcdint_t x0, lcdint_t y0, lcdint_t x1, lcdint_t y1, lcdint_t x2, lcdint_t y2)
+{
+    // Sort vertices by y (y0 <= y1 <= y2)
+    if (y0 > y1) { std::swap(y0, y1); std::swap(x0, x1); }
+    if (y1 > y2) { std::swap(y1, y2); std::swap(x1, x2); }
+    if (y0 > y1) { std::swap(y0, y1); std::swap(x0, x1); }
+
+    auto edgeInterp = [](lcdint_t x0, lcdint_t y0, lcdint_t x1, lcdint_t y1, lcdint_t y) -> lcdint_t {
+        if (y1 == y0) return x0;
+        return x0 + (x1 - x0) * (y - y0) / (y1 - y0);
+    };
+
+    // Upper part (y0 to y1)
+    for (lcdint_t y = y0; y <= y1; ++y) {
+        lcdint_t xa = edgeInterp(x0, y0, x2, y2, y);
+        lcdint_t xb = edgeInterp(x0, y0, x1, y1, y);
+        if (xa > xb) std::swap(xa, xb);
+        for (lcdint_t x = xa; x <= xb; ++x) putPixel(x, y);
+    }
+    // Lower part (y1+1 to y2)
+    for (lcdint_t y = y1 + 1; y <= y2; ++y) {
+        lcdint_t xa = edgeInterp(x0, y0, x2, y2, y);
+        lcdint_t xb = edgeInterp(x1, y1, x2, y2, y);
+        if (xa > xb) std::swap(xa, xb);
+        for (lcdint_t x = xa; x <= xb; ++x) putPixel(x, y);
+    }
+}
+
 template <uint8_t BPP> uint8_t NanoCanvasOps<BPP>::printChar(uint8_t c)
 {
     uint16_t unicode = m_font->unicode16FromUtf8(c);

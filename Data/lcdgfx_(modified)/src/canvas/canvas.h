@@ -235,6 +235,36 @@ public:
     void drawCircle(lcdint_t x, lcdint_t y, lcdint_t r) __attribute__((noinline));
 
     /**
+     * Draws a filled circle
+     * @param x horizontal position of circle center in pixels
+     * @param y vertical position of circle center in pixels
+     * @param r circle radius in pixels
+     */
+    void fillCircle(lcdint_t x, lcdint_t y, lcdint_t r) __attribute__((noinline));
+
+    /**
+     * Draws a triangle
+     * @param x0 horizontal position of first point in pixels
+     * @param y0 vertical position of first point in pixels
+     * @param x1 horizontal position of second point in pixels
+     * @param y1 vertical position of second point in pixels
+     * @param x2 horizontal position of third point in pixels
+     * @param y2 vertical position of third point in pixels
+     */
+    void drawTriangle(lcdint_t x0, lcdint_t y0, lcdint_t x1, lcdint_t y1, lcdint_t x2, lcdint_t y2) __attribute__((noinline));
+
+    /**
+     * Fills a triangle
+     * @param x0 horizontal position of first point in pixels
+     * @param y0 vertical position of first point in pixels
+     * @param x1 horizontal position of second point in pixels
+     * @param y1 vertical position of second point in pixels
+     * @param x2 horizontal position of third point in pixels
+     * @param y2 vertical position of third point in pixels
+     */
+    void fillTriangle(lcdint_t x0, lcdint_t y0, lcdint_t x1, lcdint_t y1, lcdint_t x2, lcdint_t y2) __attribute__((noinline));
+
+    /**
      * @brief Draws monochrome bitmap in color buffer using color, specified via setColor() method
      * Draws monochrome bitmap in color buffer using color, specified via setColor() method
      * @param x - position X in pixels
