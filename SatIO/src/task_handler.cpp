@@ -586,7 +586,7 @@ void tasMultiDisplay(void * pvParameters) {
     clearI2CLinkOutputPacket(IICLinkMultiDisplayController);
     write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 0, 0x0B); // command 11
     write_nchars_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 1, temp_buffer_multidisplay, strlen(temp_buffer_multidisplay));
-    writeI2CToSlaveBin(iic_0, IICLinkMultiDisplayController, I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0, 1+strlen(temp_buffer_multidisplay), iic_delay, "updateSSD1306");
+    writeI2CToSlaveBin(iic_2, IICLinkMultiDisplayController, I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0, 1+strlen(temp_buffer_multidisplay), iic_delay, "updateSSD1306");
 
     // GPS precision
     memset(temp_buffer_multidisplay, 0, sizeof(temp_buffer_multidisplay));
@@ -594,7 +594,7 @@ void tasMultiDisplay(void * pvParameters) {
     clearI2CLinkOutputPacket(IICLinkMultiDisplayController);
     write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 0, 0x0C); // command 12
     write_nchars_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 1, temp_buffer_multidisplay, strlen(temp_buffer_multidisplay));
-    writeI2CToSlaveBin(iic_0, IICLinkMultiDisplayController, I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0, 1+strlen(temp_buffer_multidisplay), iic_delay, "updateSSD1306");
+    writeI2CToSlaveBin(iic_2, IICLinkMultiDisplayController, I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0, 1+strlen(temp_buffer_multidisplay), iic_delay, "updateSSD1306");
 
     // time HHMMSS
     memset(temp_buffer_multidisplay, 0, sizeof(temp_buffer_multidisplay));
@@ -602,7 +602,7 @@ void tasMultiDisplay(void * pvParameters) {
     clearI2CLinkOutputPacket(IICLinkMultiDisplayController);
     write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 0, 0x0D); // command 13
     write_nchars_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 1, temp_buffer_multidisplay, strlen(temp_buffer_multidisplay));
-    writeI2CToSlaveBin(iic_0, IICLinkMultiDisplayController, I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0, 1+strlen(temp_buffer_multidisplay), iic_delay, "updateSSD1306");
+    writeI2CToSlaveBin(iic_2, IICLinkMultiDisplayController, I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0, 1+strlen(temp_buffer_multidisplay), iic_delay, "updateSSD1306");
 
     // date DDMMYY
     memset(temp_buffer_multidisplay, 0, sizeof(temp_buffer_multidisplay));
@@ -610,7 +610,7 @@ void tasMultiDisplay(void * pvParameters) {
     clearI2CLinkOutputPacket(IICLinkMultiDisplayController);
     write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 0, 0x0E); // command 14
     write_nchars_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 1, temp_buffer_multidisplay, strlen(temp_buffer_multidisplay));
-    writeI2CToSlaveBin(iic_0, IICLinkMultiDisplayController, I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0, 1+strlen(temp_buffer_multidisplay), iic_delay, "updateSSD1306");
+    writeI2CToSlaveBin(iic_2, IICLinkMultiDisplayController, I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0, 1+strlen(temp_buffer_multidisplay), iic_delay, "updateSSD1306");
 
     // RTC sync time HHMMSS
     memset(temp_buffer_multidisplay, 0, sizeof(temp_buffer_multidisplay));
@@ -618,7 +618,7 @@ void tasMultiDisplay(void * pvParameters) {
     clearI2CLinkOutputPacket(IICLinkMultiDisplayController);
     write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 0, 0x0F); // command 15
     write_nchars_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 1, temp_buffer_multidisplay, strlen(temp_buffer_multidisplay));
-    writeI2CToSlaveBin(iic_0, IICLinkMultiDisplayController, I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0, 1+strlen(temp_buffer_multidisplay), iic_delay, "updateSSD1306");
+    writeI2CToSlaveBin(iic_2, IICLinkMultiDisplayController, I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0, 1+strlen(temp_buffer_multidisplay), iic_delay, "updateSSD1306");
 
     // RTC sync date DDMMYY
     memset(temp_buffer_multidisplay, 0, sizeof(temp_buffer_multidisplay));
@@ -626,13 +626,13 @@ void tasMultiDisplay(void * pvParameters) {
     clearI2CLinkOutputPacket(IICLinkMultiDisplayController);
     write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 0, 0x10); // command 16
     write_nchars_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 1, temp_buffer_multidisplay, strlen(temp_buffer_multidisplay));
-    writeI2CToSlaveBin(iic_0, IICLinkMultiDisplayController, I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0, 1+strlen(temp_buffer_multidisplay), iic_delay, "updateSSD1306");
+    writeI2CToSlaveBin(iic_2, IICLinkMultiDisplayController, I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0, 1+strlen(temp_buffer_multidisplay), iic_delay, "updateSSD1306");
 
     // draw canvas
     clearI2CLinkOutputPacket(IICLinkMultiDisplayController);
     write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 0, 0x0A); // command 10
     write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 1, 0);
-    writeI2CToSlaveBin(iic_0, IICLinkMultiDisplayController, I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0, 2, iic_delay, "drawSSD1306Canvas");
+    writeI2CToSlaveBin(iic_2, IICLinkMultiDisplayController, I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0, 2, iic_delay, "drawSSD1306Canvas");
 
     /** ----------------------------------------------------------------------------
       DISPLAY 1: ATTITUDE
@@ -644,7 +644,7 @@ void tasMultiDisplay(void * pvParameters) {
     clearI2CLinkOutputPacket(IICLinkMultiDisplayController);
     write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 0, 0x15); // command 21
     write_nchars_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 1, temp_buffer_multidisplay, strlen(temp_buffer_multidisplay));
-    writeI2CToSlaveBin(iic_0, IICLinkMultiDisplayController, I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0, 1+strlen(temp_buffer_multidisplay), iic_delay, "updateSSD1306");
+    writeI2CToSlaveBin(iic_2, IICLinkMultiDisplayController, I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0, 1+strlen(temp_buffer_multidisplay), iic_delay, "updateSSD1306");
 
     // gyro angle y
     memset(temp_buffer_multidisplay, 0, sizeof(temp_buffer_multidisplay));
@@ -652,7 +652,7 @@ void tasMultiDisplay(void * pvParameters) {
     clearI2CLinkOutputPacket(IICLinkMultiDisplayController);
     write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 0, 0x16); // command 22
     write_nchars_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 1, temp_buffer_multidisplay, strlen(temp_buffer_multidisplay));
-    writeI2CToSlaveBin(iic_0, IICLinkMultiDisplayController, I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0, 1+strlen(temp_buffer_multidisplay), iic_delay, "updateSSD1306");
+    writeI2CToSlaveBin(iic_2, IICLinkMultiDisplayController, I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0, 1+strlen(temp_buffer_multidisplay), iic_delay, "updateSSD1306");
 
     // gyro angle z
     memset(temp_buffer_multidisplay, 0, sizeof(temp_buffer_multidisplay));
@@ -660,13 +660,13 @@ void tasMultiDisplay(void * pvParameters) {
     clearI2CLinkOutputPacket(IICLinkMultiDisplayController);
     write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 0, 0x17); // command 23
     write_nchars_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 1, temp_buffer_multidisplay, strlen(temp_buffer_multidisplay));
-    writeI2CToSlaveBin(iic_0, IICLinkMultiDisplayController, I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0, 1+strlen(temp_buffer_multidisplay), iic_delay, "updateSSD1306");
+    writeI2CToSlaveBin(iic_2, IICLinkMultiDisplayController, I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0, 1+strlen(temp_buffer_multidisplay), iic_delay, "updateSSD1306");
 
     // draw canvas
     clearI2CLinkOutputPacket(IICLinkMultiDisplayController);
     write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 0, 0x0A ); // command 10
     write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 1, 1);
-    writeI2CToSlaveBin(iic_0, IICLinkMultiDisplayController, I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0, 2, iic_delay, "drawSSD1306Canvas");
+    writeI2CToSlaveBin(iic_2, IICLinkMultiDisplayController, I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0, 2, iic_delay, "drawSSD1306Canvas");
 
     /** ----------------------------------------------------------------------------
       DISPLAY 2: ACCELLERATION
@@ -678,7 +678,7 @@ void tasMultiDisplay(void * pvParameters) {
     clearI2CLinkOutputPacket(IICLinkMultiDisplayController);
     write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 0, 0x1F); // command 31
     write_nchars_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 1, temp_buffer_multidisplay, strlen(temp_buffer_multidisplay));
-    writeI2CToSlaveBin(iic_0, IICLinkMultiDisplayController, I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0, 1+strlen(temp_buffer_multidisplay), iic_delay, "updateSSD1306");
+    writeI2CToSlaveBin(iic_2, IICLinkMultiDisplayController, I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0, 1+strlen(temp_buffer_multidisplay), iic_delay, "updateSSD1306");
 
     // accel y
     memset(temp_buffer_multidisplay, 0, sizeof(temp_buffer_multidisplay));
@@ -686,7 +686,7 @@ void tasMultiDisplay(void * pvParameters) {
     clearI2CLinkOutputPacket(IICLinkMultiDisplayController);
     write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 0, 0x20); // command 32
     write_nchars_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 1, temp_buffer_multidisplay, strlen(temp_buffer_multidisplay));
-    writeI2CToSlaveBin(iic_0, IICLinkMultiDisplayController, I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0, 1+strlen(temp_buffer_multidisplay), iic_delay, "updateSSD1306");
+    writeI2CToSlaveBin(iic_2, IICLinkMultiDisplayController, I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0, 1+strlen(temp_buffer_multidisplay), iic_delay, "updateSSD1306");
 
     // accel z
     memset(temp_buffer_multidisplay, 0, sizeof(temp_buffer_multidisplay));
@@ -694,13 +694,13 @@ void tasMultiDisplay(void * pvParameters) {
     clearI2CLinkOutputPacket(IICLinkMultiDisplayController);
     write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 0, 0x21); // command 33
     write_nchars_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 1, temp_buffer_multidisplay, strlen(temp_buffer_multidisplay));
-    writeI2CToSlaveBin(iic_0, IICLinkMultiDisplayController, I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0, 1+strlen(temp_buffer_multidisplay), iic_delay, "updateSSD1306");
+    writeI2CToSlaveBin(iic_2, IICLinkMultiDisplayController, I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0, 1+strlen(temp_buffer_multidisplay), iic_delay, "updateSSD1306");
 
     // draw canvas
     clearI2CLinkOutputPacket(IICLinkMultiDisplayController);
     write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 0, 0x0A ); // command 10
     write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 1, 2);
-    writeI2CToSlaveBin(iic_0, IICLinkMultiDisplayController, I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0, 2, iic_delay, "drawSSD1306Canvas");
+    writeI2CToSlaveBin(iic_2, IICLinkMultiDisplayController, I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0, 2, iic_delay, "drawSSD1306Canvas");
 
     /** ----------------------------------------------------------------------------
       DISPLAY 3: MAGNETIC FIELD
@@ -712,7 +712,7 @@ void tasMultiDisplay(void * pvParameters) {
     clearI2CLinkOutputPacket(IICLinkMultiDisplayController);
     write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 0, 0x29); // command 41
     write_nchars_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 1, temp_buffer_multidisplay, strlen(temp_buffer_multidisplay));
-    writeI2CToSlaveBin(iic_0, IICLinkMultiDisplayController, I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0, 1+strlen(temp_buffer_multidisplay), iic_delay, "updateSSD1306");
+    writeI2CToSlaveBin(iic_2, IICLinkMultiDisplayController, I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0, 1+strlen(temp_buffer_multidisplay), iic_delay, "updateSSD1306");
 
     // mag y
     memset(temp_buffer_multidisplay, 0, sizeof(temp_buffer_multidisplay));
@@ -720,7 +720,7 @@ void tasMultiDisplay(void * pvParameters) {
     clearI2CLinkOutputPacket(IICLinkMultiDisplayController);
     write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 0, 0x2A); // command 42
     write_nchars_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 1, temp_buffer_multidisplay, strlen(temp_buffer_multidisplay));
-    writeI2CToSlaveBin(iic_0, IICLinkMultiDisplayController, I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0, 1+strlen(temp_buffer_multidisplay), iic_delay, "updateSSD1306");
+    writeI2CToSlaveBin(iic_2, IICLinkMultiDisplayController, I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0, 1+strlen(temp_buffer_multidisplay), iic_delay, "updateSSD1306");
 
     // mag z
     memset(temp_buffer_multidisplay, 0, sizeof(temp_buffer_multidisplay));
@@ -728,13 +728,13 @@ void tasMultiDisplay(void * pvParameters) {
     clearI2CLinkOutputPacket(IICLinkMultiDisplayController);
     write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 0, 0x2B); // command 43
     write_nchars_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 1, temp_buffer_multidisplay, strlen(temp_buffer_multidisplay));
-    writeI2CToSlaveBin(iic_0, IICLinkMultiDisplayController, I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0, 1+strlen(temp_buffer_multidisplay), iic_delay, "updateSSD1306");
+    writeI2CToSlaveBin(iic_2, IICLinkMultiDisplayController, I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0, 1+strlen(temp_buffer_multidisplay), iic_delay, "updateSSD1306");
 
     // draw canvas
     clearI2CLinkOutputPacket(IICLinkMultiDisplayController);
     write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 0, 0x0A ); // command 10
     write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 1, 3);
-    writeI2CToSlaveBin(iic_0, IICLinkMultiDisplayController, I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0, 2, iic_delay, "drawSSD1306Canvas");
+    writeI2CToSlaveBin(iic_2, IICLinkMultiDisplayController, I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0, 2, iic_delay, "drawSSD1306Canvas");
 
     /** ----------------------------------------------------------------------------
      * Display 4: Fast input (analog/digital multiplexer)

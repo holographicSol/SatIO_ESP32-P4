@@ -227,19 +227,20 @@ void setup() {
   // --------------------------------------------------------------
   // Initialize I2C BUS 0: Display
   // --------------------------------------------------------------
-  // Serial.println("[IIC] intitializing multiplexer");
-  // for (int i=0; i<3; i++) {
-  //   setI2CMultiplexChannel(Wire, i2c_mux_0, i);
-  //   delay(200);
-  //   Serial.println("[IIC] intitializing display(s)");
-  //   ssd1306_display_0.begin();
-  //   ssd1306_display_0.clear();
-  //   // test canvas
-  //   canvas_128x64_0.setFixedFont(ssd1306xled_font6x8);
-  //   canvas_128x64_0.clear();
-  //   canvas_128x64_0.printFixed(1, 1, "SatIO", STYLE_BOLD);
-  //   ssd1306_display_0.drawCanvas(0, 0, canvas_128x64_0);
-  // }
+  // This bus is currently already intialized for RTC use.
+  // Warning! RTC and Display communication can currently occur simultaneously.
+  // Serial.println("[IIC] intitializing display controller");
+  // iic_0.setPins(IIC_BUS0_SDA, IIC_BUS0_SCL);
+  // iic_0.setBufferSize(256);
+  // iic_0.setTimeOut(1000);
+  // iic_0.begin(IIC_BUS0_SDA, IIC_BUS0_SCL, 200000UL);
+  // temporary bus
+  iic_2.setPins(IIC_BUS2_SDA, IIC_BUS2_SCL);
+  iic_2.setBufferSize(256);
+  iic_2.setTimeOut(1000);
+  iic_2.begin(IIC_BUS2_SDA, IIC_BUS2_SCL, 200000UL);
+  // iic_2.setClock(200000UL);
+  delay(200);
 
   // --------------------------------------------------------------
   // Initialize I2C BUS 1: Output port controller
@@ -259,12 +260,12 @@ void setup() {
   // --------------------------------------------------------------
   // Initialize I2C BUS 2: Input port controller
   // --------------------------------------------------------------
-  Serial.println("[IIC] intitializing input port controller");
-  iic_2.setPins(IIC_BUS2_SDA, IIC_BUS2_SCL);
-  iic_2.setBufferSize(256);
-  iic_2.setTimeOut(1000);
-  iic_2.begin(IIC_BUS2_SDA, IIC_BUS2_SCL);
-  iic_2.setClock(400000);
+  // Serial.println("[IIC] intitializing input port controller");
+  // iic_2.setPins(IIC_BUS2_SDA, IIC_BUS2_SCL);
+  // iic_2.setBufferSize(256);
+  // iic_2.setTimeOut(1000);
+  // iic_2.begin(IIC_BUS2_SDA, IIC_BUS2_SCL);
+  // iic_2.setClock(400000);
 
   // --------------------------------------------------------------
   // Initialize Multiplexer(s).
@@ -322,7 +323,11 @@ void setup() {
 
   createTaskGyro();                // (target: 200/ps)  Attitude
   createTaskMultiplexers();        // (target: 200/ps)  Fast general input
-  createTaskPortControllerInput(); // (target: 1/ps)    Slow general input
+
+  // currently disabled so that RTC and Display have exclusive use of I2C BUS 0 & 2.
+  // there are still 16 fast general IO's available on the AD multiplexer for general input.
+  // createTaskPortControllerInput(); // (target: 1/ps)    Slow general input
+
   createTaskSwitches();            // (target: approx. max 1000/ps) Fast general output
 
   myAstroBegin();
