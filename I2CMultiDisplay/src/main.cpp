@@ -292,6 +292,15 @@ int16_t gyro_mag_x=0;
 int16_t gyro_mag_y=0;
 int16_t gyro_mag_z=0;
 
+double speed_converted=0;
+char   speed_unit[8]="";
+
+double altitude_converted=0;
+char   altitude_unit[8]="";
+
+double deg_latitude=0;
+double deg_longitude=0;
+
 void receiveEventBus1Bin(size_t n_bytes_received) {
   if (n_bytes_received < 1) return;
   cmd = Wire1.read(); // expects uint8 command byte (up to 255 unique commands can be accepted). 
@@ -563,6 +572,90 @@ void receiveEventBus1Bin(size_t n_bytes_received) {
       value_char[str_len] = '\0'; // null terminate
       // update display value
       gyro_mag_z = atol(value_char);
+      // Serial.printf("[RX] SSD1306: value=%s\n", value_char);
+      drainBus(Wire1);
+      break;
+    }
+
+    /* Speed */
+    case 0x33: {
+      // value
+      str_len = n_bytes_received - 1; // deduct command byte
+      memset(value_char, 0, sizeof(value_char));
+      read_nchars_FromWire(Wire1, value_char, str_len);
+      value_char[str_len] = '\0'; // null terminate
+      // update display value
+      speed_converted = strtod(value_char, NULL);
+      // Serial.printf("[RX] SSD1306: value=%s\n", value_char);
+      drainBus(Wire1);
+      break;
+    }
+
+    /* Speed Unit */
+    case 0x34: {
+      // value
+      str_len = n_bytes_received - 1; // deduct command byte
+      memset(value_char, 0, sizeof(value_char));
+      read_nchars_FromWire(Wire1, value_char, str_len);
+      value_char[str_len] = '\0'; // null terminate
+      // update display value
+      strncpy(speed_unit, value_char, sizeof(speed_unit));
+      // Serial.printf("[RX] SSD1306: value=%s\n", value_char);
+      drainBus(Wire1);
+      break;
+    }
+
+    /* Altitude */
+    case 0x3D: {
+      // value
+      str_len = n_bytes_received - 1; // deduct command byte
+      memset(value_char, 0, sizeof(value_char));
+      read_nchars_FromWire(Wire1, value_char, str_len);
+      value_char[str_len] = '\0'; // null terminate
+      // update display value
+      altitude_converted = strtod(value_char, NULL);
+      // Serial.printf("[RX] SSD1306: value=%s\n", value_char);
+      drainBus(Wire1);
+      break;
+    }
+
+    /* Altitude Unit */
+    case 0x3E: {
+      // value
+      str_len = n_bytes_received - 1; // deduct command byte
+      memset(value_char, 0, sizeof(value_char));
+      read_nchars_FromWire(Wire1, value_char, str_len);
+      value_char[str_len] = '\0'; // null terminate
+      // update display value
+      strncpy(altitude_unit, value_char, sizeof(altitude_unit));
+      // Serial.printf("[RX] SSD1306: value=%s\n", value_char);
+      drainBus(Wire1);
+      break;
+    }
+
+    /* Latitude */
+    case 0x47: {
+      // value
+      str_len = n_bytes_received - 1; // deduct command byte
+      memset(value_char, 0, sizeof(value_char));
+      read_nchars_FromWire(Wire1, value_char, str_len);
+      value_char[str_len] = '\0'; // null terminate
+      // update display value
+      deg_latitude = strtod(value_char, NULL);
+      // Serial.printf("[RX] SSD1306: value=%s\n", value_char);
+      drainBus(Wire1);
+      break;
+    }
+
+    /* Longitude */
+    case 0x48: {
+      // value
+      str_len = n_bytes_received - 1; // deduct command byte
+      memset(value_char, 0, sizeof(value_char));
+      read_nchars_FromWire(Wire1, value_char, str_len);
+      value_char[str_len] = '\0'; // null terminate
+      // update display value
+      deg_longitude = strtod(value_char, NULL);
       // Serial.printf("[RX] SSD1306: value=%s\n", value_char);
       drainBus(Wire1);
       break;
@@ -912,39 +1005,36 @@ void taskDisplay(void * pvParameters) {
           }
 
           /** -------------------------------------------------------
-           * Large Number Test For upcoming altitude and speed values
+           * Altitude & Speed
            */
           else if (i_display==2) {
             char buffer[32];
-            double value;
-            // test 0
-            memset(buffer, 0, sizeof(buffer));
-            value = 1000000000;
+
+            // altitude
             canvas_20chars.clear();
-            doubleToScientific(value, 8, buffer);
-            canvas_20chars.printFixed(0, 0, buffer, STYLE_NORMAL);
-            dispSSD1306.display64->drawCanvas(0, 0, canvas_20chars);
-            // test 1
-            memset(buffer, 0, sizeof(buffer));
-            value = 2500000;
+            if (altitude_converted > 9999999999999) { // limit as required for display ( Karman line: 100,000 meters. Current 9.00 trillion = 15 chars )
+              memset(buffer, 0, sizeof(buffer));
+              doubleToScientific(altitude_converted, 15, buffer);
+              canvas_20chars.printFixedAlign(String(String(buffer) + " " + String(altitude_unit)).c_str(), STYLE_NORMAL, ALIGN_LEFT, ALIGN_CENTER);
+              dispSSD1306.display64->drawCanvas(0, 0, canvas_20chars);
+            }
+            else {
+              canvas_20chars.printFixedAlign(String(String(altitude_converted) + " " + String(altitude_unit)).c_str(), STYLE_NORMAL, ALIGN_LEFT, ALIGN_CENTER);
+              dispSSD1306.display64->drawCanvas(0, 0, canvas_20chars);
+            }
+
+            // speed
             canvas_20chars.clear();
-            doubleToScientific(value, 19, buffer);
-            canvas_20chars.printFixed(0, 0, buffer, STYLE_NORMAL);
-            dispSSD1306.display64->drawCanvas(0, 10, canvas_20chars);
-            // test 2
-            memset(buffer, 0, sizeof(buffer));
-            value = 2512345;
-            canvas_20chars.clear();
-            doubleToScientific(value, 19, buffer);
-            canvas_20chars.printFixed(0, 0, buffer, STYLE_NORMAL);
-            dispSSD1306.display64->drawCanvas(0, 20, canvas_20chars);
-            // test 1
-            memset(buffer, 0, sizeof(buffer));
-            value = 2512345.6789;
-            canvas_20chars.clear();
-            doubleToScientific(value, 19, buffer);
-            canvas_20chars.printFixed(0, 0, buffer, STYLE_NORMAL);
-            dispSSD1306.display64->drawCanvas(0, 30, canvas_20chars);
+            if (speed_converted > 9999999999999) { // limit as required for display ( current 9.00 trillion = 15 chars )
+              memset(buffer, 0, sizeof(buffer));
+              doubleToScientific(speed_converted, 15, buffer);
+              canvas_20chars.printFixedAlign(String(String(buffer) + " " + String(speed_unit)).c_str(), STYLE_NORMAL, ALIGN_LEFT, ALIGN_CENTER);
+              dispSSD1306.display64->drawCanvas(0, 10, canvas_20chars);
+            }
+            else {
+              canvas_20chars.printFixedAlign(String(String(speed_converted) + " " + String(speed_unit)).c_str(), STYLE_NORMAL, ALIGN_LEFT, ALIGN_CENTER);
+              dispSSD1306.display64->drawCanvas(0, 10, canvas_20chars);
+            }
           }
 
           /** ---------------------------------------------

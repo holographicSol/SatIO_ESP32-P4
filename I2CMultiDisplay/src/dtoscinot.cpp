@@ -20,7 +20,7 @@
  * 
  * @warning Minimum maxChars is 8.
  */
-char* doubleToScientific(double value, int maxChars=8, char *buffer) {
+char* doubleToScientific(double value, int maxChars, char *buffer) {
     if (maxChars <= 1) {
         buffer[0] = '\0';
         return buffer;
