@@ -83,19 +83,26 @@ struct SATIOStruct satioData = {
     .padded_local_year = "00",
 
     .local_unixtime_uS = 0,
+
     .rtcsync_hour = 0,
     .rtcsync_minute = 0,
     .rtcsync_second = 0,
     .rtcsync_year = 0,
     .rtcsync_month = 0,
     .rtcsync_day = 0,
-    .formatted_rtc_sync_date = "00/00/00",
+
+    .formatted_rtc_sync_time = "00:00:00",
+    .formatted_rtc_sync_date_DDMMYYYY = "00/00/00",
+    .formatted_rtc_sync_short_date_DDMMYY = "00/00/00",
+
     .padded_rtc_sync_time_HHMMSS = "000000",
     .padded_rtc_sync_date_DDMMYYYY = "00000000",
+
     .rtcsync_unixtime = 0,
     .rtcsync_latitude = "0.0",
     .rtcsync_longitude = "0.0",
     .rtcsync_altitude = "0.0",
+
     .rtc_hour = 0,
     .rtc_minute = 0,
     .rtc_second = 0,
@@ -609,35 +616,43 @@ void storeRTCSYNCTime(void) {
     padDigitsZero(satioData.rtcsync_hour, hour_str, MAX_GLOBAL_ELEMENT_SIZE);
     padDigitsZero(satioData.rtcsync_minute, min_str, MAX_GLOBAL_ELEMENT_SIZE);
     padDigitsZero(satioData.rtcsync_second, sec_str, MAX_GLOBAL_ELEMENT_SIZE);
-    memset(satioData.formatted_rtc_time, 0, sizeof(satioData.formatted_rtc_time));
-    snprintf(satioData.formatted_rtc_time, MAX_GLOBAL_ELEMENT_SIZE, "%s:%s:%s", hour_str, min_str, sec_str);
+    memset(satioData.formatted_rtc_sync_time, 0, sizeof(satioData.formatted_rtc_sync_time));
+    snprintf(satioData.formatted_rtc_sync_time, MAX_GLOBAL_ELEMENT_SIZE, "%s:%s:%s", hour_str, min_str, sec_str);
 
     // Format sync date (DD/MM/YYYY)
     char day_str[MAX_GLOBAL_ELEMENT_SIZE], month_str[MAX_GLOBAL_ELEMENT_SIZE], year_str[MAX_GLOBAL_ELEMENT_SIZE];
     padDigitsZero(satioData.rtcsync_day, day_str, MAX_GLOBAL_ELEMENT_SIZE);
     padDigitsZero(satioData.rtcsync_month, month_str, MAX_GLOBAL_ELEMENT_SIZE);
     padDigitsZero(satioData.rtcsync_year, year_str, MAX_GLOBAL_ELEMENT_SIZE);
-    memset(satioData.formatted_rtc_sync_date, 0, sizeof(satioData.formatted_rtc_sync_date));
-    snprintf(satioData.formatted_rtc_sync_date, MAX_GLOBAL_ELEMENT_SIZE, "%s/%s/%s", day_str, month_str, year_str);
 
-    // Format padded sync time (HHMMSS)
+    // Formatted sync date (DD/MM/YYYY)
+    memset(satioData.formatted_rtc_sync_date_DDMMYYYY, 0, sizeof(satioData.formatted_rtc_sync_date_DDMMYYYY));
+    snprintf(satioData.formatted_rtc_sync_date_DDMMYYYY, MAX_GLOBAL_ELEMENT_SIZE, "%s/%s/%s", day_str, month_str, year_str);
+
+    // Formatted sync short date (DD/MM/YY)
+    memset(satioData.formatted_rtc_sync_short_date_DDMMYY, 0, sizeof(satioData.formatted_rtc_sync_short_date_DDMMYY));
+    snprintf(satioData.formatted_rtc_sync_short_date_DDMMYY, MAX_GLOBAL_ELEMENT_SIZE, "%s/%s/%s", day_str, month_str, String(String(year_str[2]) + String(year_str[3])).c_str());
+
+    // Padded sync time (HHMMSS)
     memset(satioData.padded_rtc_sync_time_HHMMSS, 0, sizeof(satioData.padded_rtc_sync_time_HHMMSS));
     snprintf(satioData.padded_rtc_sync_time_HHMMSS, MAX_GLOBAL_ELEMENT_SIZE, "%s%s%s", hour_str, min_str, sec_str);
 
-    // Format padded sync date (DDMMYYYY)
+    // Padded sync date (DDMMYYYY)
     memset(satioData.padded_rtc_sync_date_DDMMYYYY, 0, sizeof(satioData.padded_rtc_sync_date_DDMMYYYY));
     snprintf(satioData.padded_rtc_sync_date_DDMMYYYY, MAX_GLOBAL_ELEMENT_SIZE, "%s%s%s", day_str, month_str, year_str);
 
-    // RTC sync location
+    // RTC sync latitude
     char temp_str[MAX_GLOBAL_ELEMENT_SIZE];
     snprintf(temp_str, MAX_GLOBAL_ELEMENT_SIZE, "%.7f", satioData.degrees_latitude);
     memset(satioData.rtcsync_latitude, 0, sizeof(satioData.rtcsync_latitude));
     strcpy(satioData.rtcsync_latitude, temp_str);
 
+    // RTC sync longitude
     snprintf(temp_str, MAX_GLOBAL_ELEMENT_SIZE, "%.7f", satioData.degrees_longitude);
     memset(satioData.rtcsync_longitude, 0, sizeof(satioData.rtcsync_longitude));
     strcpy(satioData.rtcsync_longitude, temp_str);
 
+    // RTC sync altitude
     memset(satioData.rtcsync_altitude, 0, sizeof(satioData.rtcsync_altitude));
     strcpy(satioData.rtcsync_altitude, gnggaData.altitude);
 }

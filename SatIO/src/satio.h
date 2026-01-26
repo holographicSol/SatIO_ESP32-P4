@@ -94,8 +94,11 @@ struct SATIOStruct {
     uint16_t rtcsync_year;                              // RTC sync year
     uint8_t rtcsync_month;                              // RTC sync month
     uint8_t rtcsync_day;                                // RTC sync day
+
     char formatted_rtc_sync_time[MAX_GLOBAL_ELEMENT_SIZE]; // Formatted RTC sync time
-    char formatted_rtc_sync_date[MAX_GLOBAL_ELEMENT_SIZE]; // Formatted RTC sync date
+    char formatted_rtc_sync_date_DDMMYYYY[MAX_GLOBAL_ELEMENT_SIZE]; // Formatted RTC sync date
+    char formatted_rtc_sync_short_date_DDMMYY[MAX_GLOBAL_ELEMENT_SIZE]; // Formatted RTC sync date
+
     char padded_rtc_sync_time_HHMMSS[MAX_GLOBAL_ELEMENT_SIZE]; // Padded RTC sync time (HHMMSS)
     char padded_rtc_sync_date_DDMMYYYY[MAX_GLOBAL_ELEMENT_SIZE]; // Padded RTC sync date
     uint32_t rtcsync_unixtime;                          // RTC sync Unix time
