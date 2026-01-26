@@ -599,34 +599,42 @@ void tasMultiDisplay(void * pvParameters) {
     // time HHMMSS
     memset(temp_buffer_multidisplay, 0, sizeof(temp_buffer_multidisplay));
     strcpy(temp_buffer_multidisplay, satioData.formatted_local_time_HHMMSS);
-    clearI2CLinkOutputPacket(IICLinkMultiDisplayController);
-    write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 0, 0x0D); // command 13
-    write_nchars_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 1, temp_buffer_multidisplay, strlen(temp_buffer_multidisplay));
-    writeI2CToSlaveBin(iic_2, IICLinkMultiDisplayController, I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0, 1+strlen(temp_buffer_multidisplay), iic_delay, "updateSSD1306");
-
+    if (strlen(temp_buffer_multidisplay)==8) { 
+      clearI2CLinkOutputPacket(IICLinkMultiDisplayController);
+      write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 0, 0x0D); // command 13
+      write_nchars_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 1, temp_buffer_multidisplay, strlen(temp_buffer_multidisplay));
+      writeI2CToSlaveBin(iic_2, IICLinkMultiDisplayController, I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0, 1+strlen(temp_buffer_multidisplay), iic_delay, "updateSSD1306");
+    }
+    
     // date DDMMYY
     memset(temp_buffer_multidisplay, 0, sizeof(temp_buffer_multidisplay));
     strcpy(temp_buffer_multidisplay, satioData.formatted_local_short_date_DDMMYY);
-    clearI2CLinkOutputPacket(IICLinkMultiDisplayController);
-    write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 0, 0x0E); // command 14
-    write_nchars_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 1, temp_buffer_multidisplay, strlen(temp_buffer_multidisplay));
-    writeI2CToSlaveBin(iic_2, IICLinkMultiDisplayController, I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0, 1+strlen(temp_buffer_multidisplay), iic_delay, "updateSSD1306");
+    if (strlen(temp_buffer_multidisplay)==8) { 
+      clearI2CLinkOutputPacket(IICLinkMultiDisplayController);
+      write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 0, 0x0E); // command 14
+      write_nchars_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 1, temp_buffer_multidisplay, strlen(temp_buffer_multidisplay));
+      writeI2CToSlaveBin(iic_2, IICLinkMultiDisplayController, I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0, 1+strlen(temp_buffer_multidisplay), iic_delay, "updateSSD1306");
+    }
 
     // RTC sync time HHMMSS
     memset(temp_buffer_multidisplay, 0, sizeof(temp_buffer_multidisplay));
     strcpy(temp_buffer_multidisplay, satioData.formatted_rtc_sync_time);
-    clearI2CLinkOutputPacket(IICLinkMultiDisplayController);
-    write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 0, 0x0F); // command 15
-    write_nchars_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 1, temp_buffer_multidisplay, strlen(temp_buffer_multidisplay));
-    writeI2CToSlaveBin(iic_2, IICLinkMultiDisplayController, I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0, 1+strlen(temp_buffer_multidisplay), iic_delay, "updateSSD1306");
+    if (strlen(temp_buffer_multidisplay)==8) { 
+      clearI2CLinkOutputPacket(IICLinkMultiDisplayController);
+      write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 0, 0x0F); // command 15
+      write_nchars_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 1, temp_buffer_multidisplay, strlen(temp_buffer_multidisplay));
+      writeI2CToSlaveBin(iic_2, IICLinkMultiDisplayController, I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0, 1+strlen(temp_buffer_multidisplay), iic_delay, "updateSSD1306");
+    }
 
     // RTC sync date DDMMYY
     memset(temp_buffer_multidisplay, 0, sizeof(temp_buffer_multidisplay));
     strcpy(temp_buffer_multidisplay, satioData.formatted_rtc_sync_short_date_DDMMYY);
-    clearI2CLinkOutputPacket(IICLinkMultiDisplayController);
-    write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 0, 0x10); // command 16
-    write_nchars_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 1, temp_buffer_multidisplay, strlen(temp_buffer_multidisplay));
-    writeI2CToSlaveBin(iic_2, IICLinkMultiDisplayController, I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0, 1+strlen(temp_buffer_multidisplay), iic_delay, "updateSSD1306");
+    if (strlen(temp_buffer_multidisplay)==8) {
+      clearI2CLinkOutputPacket(IICLinkMultiDisplayController);
+      write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 0, 0x10); // command 16
+      write_nchars_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 1, temp_buffer_multidisplay, strlen(temp_buffer_multidisplay));
+      writeI2CToSlaveBin(iic_2, IICLinkMultiDisplayController, I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0, 1+strlen(temp_buffer_multidisplay), iic_delay, "updateSSD1306");
+    }
 
     // draw canvas
     clearI2CLinkOutputPacket(IICLinkMultiDisplayController);
