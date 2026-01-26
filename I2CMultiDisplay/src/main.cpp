@@ -669,11 +669,11 @@ void taskDisplay(void * pvParameters) {
             dispSSD1306.display64->drawCanvas(128-(font_width*6), 0, canvas_6chars);
             // local time
             canvas_8chars.clear();
-            canvas_8chars.printFixed(28 - (int(strlen(String(local_time_str).c_str()) * 7) /2), 0, String(local_time_str).c_str(), STYLE_NORMAL);
+            canvas_8chars.printFixedAlign(String(local_time_str).c_str(), STYLE_NORMAL, ALIGN_CENTER, ALIGN_CENTER);
             dispSSD1306.display64->drawCanvas(64-28, 10, canvas_8chars);
             // local date
             canvas_8chars.clear();
-            canvas_8chars.printFixed(28 - (int(strlen(String(local_date_str).c_str()) * 7) /2), 0, String(local_date_str).c_str(), STYLE_NORMAL);
+            canvas_8chars.printFixedAlign(String(local_date_str).c_str(), STYLE_NORMAL, ALIGN_CENTER, ALIGN_CENTER);
             dispSSD1306.display64->drawCanvas(64-28, 20, canvas_8chars);
             // position and style
           }
@@ -776,10 +776,11 @@ void taskDisplay(void * pvParameters) {
             //                        roll_canvas_center_x+roll_canvas_uap_half_width,
             //                        roll_canvas_center_y);
 
-            // center point
+            // circular center
             canvas_roll_0.drawCircle(roll_canvas_center_x,
                                      roll_canvas_center_y,
                                      2);
+
             // reference left
             canvas_roll_0.drawVLine(roll_canvas_center_x-roll_canvas_uap_half_width,
                                     roll_canvas_center_y-2,
