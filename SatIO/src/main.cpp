@@ -225,7 +225,7 @@ void setup() {
   delay(200);
 
   // --------------------------------------------------------------
-  // Initialize I2C BUS 0: Display
+  // Initialize I2C BUS 2: Display
   // --------------------------------------------------------------
   // This bus is currently already intialized for RTC use.
   // Warning! RTC and Display communication can currently occur simultaneously.
@@ -260,6 +260,16 @@ void setup() {
   // --------------------------------------------------------------
   // Initialize I2C BUS 2: Input port controller
   // --------------------------------------------------------------
+  /*
+    Disabled until esp32p4 rtc has a battery, until then an
+    external rtc is used and occupying i2c bus 0 exclusively and
+    multi display controller may also be preferred to have its own bus
+    along with output port controller.
+    For performanmce reasons it may be preferred for input port
+    controller to have its own bus, especially if utilizing all pins,
+    as with the output port controller, else there will be considerable
+    delays waiting for bus access for any other devices on the same bus.
+  */
   // Serial.println("[IIC] intitializing input port controller");
   // iic_2.setPins(IIC_BUS2_SDA, IIC_BUS2_SCL);
   // iic_2.setBufferSize(256);
