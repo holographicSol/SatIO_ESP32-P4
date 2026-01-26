@@ -136,8 +136,8 @@ long pitch_mapped       = 0;   // mapped pitch value for canvas
  * @note axis may be removed and replaced with an external illuminated scale,
  *       leaving just the slider cursor on the canvas which can save more space.
  */
-NanoCanvas<120,8,1> canvas_yaw;
-int yaw_canvas_width    = 120; // full width for yaw display minus some space for pitch display
+NanoCanvas<122,8,1> canvas_yaw;
+int yaw_canvas_width    = 122; // full width for yaw display minus some space for pitch display
 int yaw_canvas_height   = 8;   // full height for yaw display
 int yaw_canvas_x        = 0;   // x position on screen
 int yaw_canvas_y        = 57;  // y position on screen
@@ -252,6 +252,9 @@ float gps_precision=0;
 
 char local_time_str[32]="";
 char local_date_str[32]="";
+
+char sync_time_str[32]="";
+char sync_date_str[32]="";
 
 float gyro_roll=0;
 float gyro_pitch=0;
@@ -381,6 +384,36 @@ void receiveEventBus1Bin(size_t n_bytes_received) {
       // update display value
       memset(local_date_str, 0, sizeof(local_date_str));
       strncpy(local_date_str, value_char, strlen(value_char));
+      // Serial.printf("[RX] SSD1306: value=%s\n", value_char);
+      drainBus(Wire1);
+      break;
+    }
+
+    /* Sync time string */
+    case 0x0F: {
+      // value
+      str_len = n_bytes_received - 1; // deduct command byte
+      memset(value_char, 0, sizeof(value_char));
+      read_nchars_FromWire(Wire1, value_char, str_len);
+      value_char[str_len] = '\0'; // null terminate
+      // update display value
+      memset(sync_time_str, 0, sizeof(sync_time_str));
+      strncpy(sync_time_str, value_char, strlen(value_char));
+      // Serial.printf("[RX] SSD1306: value=%s\n", value_char);
+      drainBus(Wire1);
+      break;
+    }
+
+    /* Sync time string */
+    case 0x10: {
+      // value
+      str_len = n_bytes_received - 1; // deduct command byte
+      memset(value_char, 0, sizeof(value_char));
+      read_nchars_FromWire(Wire1, value_char, str_len);
+      value_char[str_len] = '\0'; // null terminate
+      // update display value
+      memset(sync_date_str, 0, sizeof(sync_date_str));
+      strncpy(sync_date_str, value_char, strlen(value_char));
       // Serial.printf("[RX] SSD1306: value=%s\n", value_char);
       drainBus(Wire1);
       break;
@@ -675,6 +708,14 @@ void taskDisplay(void * pvParameters) {
             canvas_8chars.clear();
             canvas_8chars.printFixedAlign(String(local_date_str).c_str(), STYLE_NORMAL, ALIGN_CENTER, ALIGN_CENTER);
             dispSSD1306.display64->drawCanvas(64-28, 20, canvas_8chars);
+            // sync time
+            canvas_8chars.clear();
+            canvas_8chars.printFixedAlign(String(sync_time_str).c_str(), STYLE_NORMAL, ALIGN_CENTER, ALIGN_CENTER);
+            dispSSD1306.display64->drawCanvas(64-28, 40, canvas_8chars);
+            // sync date
+            canvas_8chars.clear();
+            canvas_8chars.printFixedAlign(String(sync_date_str).c_str(), STYLE_NORMAL, ALIGN_CENTER, ALIGN_CENTER);
+            dispSSD1306.display64->drawCanvas(64-28, 50, canvas_8chars);
             // position and style
           }
 
