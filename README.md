@@ -347,36 +347,6 @@ Other
 
 -----
 
-  Wiring For Keystudio ESP32 PLUS Development Board:
-
-          ESP32: 1st ATMEGA2560 with shield as Port Controller (not on multiplexer):
-          ESP32: I2C SDA -> ATMEGA2560: I2C SDA
-          ESP32: I2C SCL -> ATMEGA2560: I2C SCL
-
-          Other ESP32 I2C Devices (not on multiplexer):
-          ESP32: SDA0 SCL0 -> DS3231 (RTC): SDA, SCL (5v)
-
-          ESP32 i2C: I2C Multiplexing (3.3v) (for peripherals):
-          ESP32: i2C -> TCA9548A: SDA, SCL
-
-          ESP32: Analog/Digital Multiplexing (3.3v) (for peripherals):
-          ESP32: io4    -> CD74HC4067: SIG
-          ESP32: io32   -> CD74HC4067: S0
-          ESP32: io33   -> CD74HC4067: S1
-          ESP32: io16   -> CD74HC4067: S2
-          ESP32: io17   -> CD74HC4067: S3
-          CD74HC4067 C0 -> DHT11: SIG
-
-          ESP32: WTGPS300P (5v) (for getting a downlink):
-          ESP32: io27 RXD -> WTGPS300P: TXD
-          ESP32: null TXD -> WTGPS300P: RXD
-
-          ESP32: WT901 9-Axis Gyro:
-          ESP32: Serial2 RXD -> WT901 TXD
-          ESP32: Serial2 TXD -> WT901 RXD
-          
------
-
     To Do: AI I2C modules returning int's as classifiers.
     To Do: SRTM data. Use NASA shuttle radar topographical mission data.
     To Do: Ability to add custom IIC sensor modules after flashing.
@@ -389,6 +359,7 @@ Other
   https://drive.google.com/drive/folders/13yynSxkKL-zxb7iLSkg0v0VXkSLgmtW-?usp=sharing
 
 -----
+
 
 
 
