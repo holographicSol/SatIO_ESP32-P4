@@ -187,8 +187,9 @@ Ssd1306Display ssd1306_displays[MAX_SSD1306_DISPLAYS] = {
  */
 #define MAX_BRIGHTNESS_STAGE 6
 uint8_t brightness_stage = 5;
-const int LED_BRIGHTNESS_LEVELS[MAX_BRIGHTNESS_STAGE]  = {0, 1, 50, 100, 200, 255}; // adjust as required (0-255)
-const int SEG_BRIGHTNESS_LEVELS[MAX_BRIGHTNESS_STAGE]  = {0, 1, 2, 3, 4, 7}; // adjust as required (0-7)
+const int LED_BRIGHTNESS_LEVELS[MAX_BRIGHTNESS_STAGE]      = {0, 1, 50, 100, 200, 255}; // adjust as required (0-255)
+const int SEG_BRIGHTNESS_LEVELS[MAX_BRIGHTNESS_STAGE]      = {0, 1, 2,    3,   4,   7}; // adjust as required (0-7)
+const int SSD1309_BRIGHTNESS_LEVELS[MAX_BRIGHTNESS_STAGE]  = {0, 1, 50, 100, 200, 255}; // adjust as required (0-255)
 
 /**----------------------------------------------------------------------------
  * Interrupts.
@@ -737,10 +738,12 @@ void taskDisplay(void * pvParameters) {
           if (dispSSD1306.type==SSD_128X32) {
             dispSSD1306.canvas32->clear();
             dispSSD1306.display32->drawCanvas(0, 0, *dispSSD1306.canvas32);
+            // dispSSD1306.display32->getInterface().displayOff();
           }
           else if (dispSSD1306.type==SSD_128X64) {
             dispSSD1306.canvas64->clear();
             dispSSD1306.display64->drawCanvas(0, 0, *dispSSD1306.canvas64);
+            // dispSSD1306.display64->getInterface().displayOff();
           }
         }
       }
@@ -754,9 +757,13 @@ void taskDisplay(void * pvParameters) {
           setI2CMultiplexChannel(Wire, i2c_mux_0, i_display);
           if (dispSSD1306.type==SSD_128X32) {
             // send brightness/contrast command if supported
+            if (dispSSD1306.display32) {
+                dispSSD1306.display32->getInterface().setContrast(SSD1309_BRIGHTNESS_LEVELS[brightness_stage]);
+            }
           }
           else if (dispSSD1306.type==SSD_128X64) {
             // send brightness/contrast command if supported
+            dispSSD1306.display64->getInterface().setContrast(SSD1309_BRIGHTNESS_LEVELS[brightness_stage]);
           }
         }
       }
