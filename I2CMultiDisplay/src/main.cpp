@@ -767,7 +767,7 @@ void taskDisplay(void * pvParameters) {
           }
         }
       }
-      interruptMaster();
+      // interruptMaster();
     }
     // -----------------------------------------------------
     // Update Displays
@@ -1076,7 +1076,7 @@ void taskDisplay(void * pvParameters) {
     // -----------------------------------------------------
     display_loop_counter++;
     current_time = millis();
-    if (sync_changed_flag && (current_time - sync_changed_time >= 1000)) {
+    if (sync_changed_flag && (current_time - sync_changed_time >= 500)) {
       sync_changed_flag = false;
     }
     if (current_time - display_loop_last_time >= 1000) {
@@ -1102,7 +1102,7 @@ void createTaskDisplay() {
     "TaskDisplay",           /* Name of the task */
     TASK_DISPLAY_STACK_SIZE, /* Stack size in words */
     NULL,                    /* Task input parameter */
-    2,   /* Priority of the task */
+    5,                       /* Priority of the task */
     &TaskDisplay,            /* Task handle. */
     TASK_DISPLAY_CORE);      /* Core where the task should run */
 }
@@ -1153,7 +1153,7 @@ void setup() {
   // ------------------------------------------------------------
   Wire.setPins(IIC_BUS0_SDA, IIC_BUS0_SCL);
   
-  if (!Wire.begin(IIC_BUS0_SDA, IIC_BUS0_SCL, 800000))
+  if (!Wire.begin(IIC_BUS0_SDA, IIC_BUS0_SCL, I2C_CLOCK_Hz_BUS0))
     {Serial.printf("[I2C] master failed to start (SDA=%d SCL=%d)\n",
                    IIC_BUS0_SDA,
                    IIC_BUS0_SCL
@@ -1163,7 +1163,7 @@ void setup() {
                    IIC_BUS0_SDA,
                    IIC_BUS0_SCL
                   );}
-  Wire.setTimeOut(1000);
+  Wire.setTimeOut(I2C_TIMEOUT_MS_BUS0);
   
   // ------------------------------------------------------------
   // I2C Slave Initialization
@@ -1181,7 +1181,7 @@ void setup() {
                    IIC_BUS1_SDA,
                    IIC_BUS1_SCL
                   );}
-  Wire1.setTimeOut(1000);
+  Wire1.setTimeOut(I2C_TIMEOUT_MS_BUS1);
 
   // ------------------------------------------------------------
   // Initialize I2C Multiplexers
