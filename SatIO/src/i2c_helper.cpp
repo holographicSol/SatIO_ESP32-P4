@@ -22,6 +22,8 @@
 
 #include <Arduino.h>
 #include <Wire.h>
+#include "driver/i2c_slave.h"
+#include "esp_err.h"
 #include "i2c_helper.h"
 
 TwoWire iic_0(0);
@@ -32,9 +34,12 @@ IICLink I2CLinkBus0;
 IICLink I2CLinkBus1;
 IICLink I2CLinkBus2;
 
+// #####################################################################################################################
+// ## BEGIN WIRE I2C SLAVE REQUEST CHAR BLOCKS
+// #####################################################################################################################
+
 /** ----------------------------------------------------------------------------
  * @brief Request event handler for Bus 0
- * 
  * @warning Customize to use locally (backup first) or copy into project!
 */
 // void requestEventBus0Chars() {
@@ -45,9 +50,9 @@ IICLink I2CLinkBus2;
 //     writeI2CToMasterChars(iic_0, I2CLinkBus0, 0);
 //   }
 // }
+
 /** ----------------------------------------------------------------------------
  * @brief Request event handler for Bus 1
- * 
  * @warning Customize to use locally (backup first) or copy into project!
 */
 // void requestEventBus1Chars() {
@@ -58,9 +63,9 @@ IICLink I2CLinkBus2;
 //     writeI2CToMasterChars(iic_1, I2CLinkBus1, 0);
 //   }
 // }
+
 /** ----------------------------------------------------------------------------
  * @brief Request event handler for Bus 2
- * 
  * @warning Customize to use locally (backup first) or copy into project!
 */
 // void requestEventBus2Chars() {
@@ -72,9 +77,12 @@ IICLink I2CLinkBus2;
 //   }
 // }
 
+// #####################################################################################################################
+// ## BEGIN WIRE I2C SLAVE RECEIVE CHAR BLOCKS
+// #####################################################################################################################
+
 /** ----------------------------------------------------------------------------
  * @brief Receive event handler for Bus 0
- * 
  * @warning Customize to use locally (backup first) or copy into project!
 */
 // void receiveEventBus0Chars(size_t n_bytes_received) {
@@ -97,9 +105,9 @@ IICLink I2CLinkBus2;
 //     I2CLinkBus0.token = strtok(NULL, ",");
 //   }
 // }
+
 /** ----------------------------------------------------------------------------
  * @brief Receive event handler for Bus 1
- * 
  * @warning Customize to use locally (backup first) or copy into project!
 */
 // void receiveEventBus1Chars(size_t n_bytes_received) {
@@ -122,9 +130,9 @@ IICLink I2CLinkBus2;
 //     I2CLinkBus1.token = strtok(NULL, ",");
 //   }
 // }
+
 /** ----------------------------------------------------------------------------
  * @brief Receive event handler for Bus 2
- * 
  * @warning Customize to use locally (backup first) or copy into project!
 */
 // void receiveEventBus2Chars(size_t n_bytes_received) {
@@ -148,9 +156,12 @@ IICLink I2CLinkBus2;
 //   }
 // }
 
+// #####################################################################################################################
+// ## BEGIN WIRE I2C SLAVE REQUEST BINARY BLOCKS
+// #####################################################################################################################
+
 /** ----------------------------------------------------------------------------
  * @brief Request binary event handler for Bus 0
- * 
  * @warning Customize to use locally (backup first) or copy into project!
  */
 // void requestEventBus0Bin() {
@@ -169,7 +180,6 @@ IICLink I2CLinkBus2;
 
 /** ----------------------------------------------------------------------------
  * @brief Request binary event handler for Bus 1
- * 
  * @warning Customize to use locally (backup first) or copy into project!
  */
 // void requestEventBus1Bin() {
@@ -188,7 +198,6 @@ IICLink I2CLinkBus2;
 
 /** ----------------------------------------------------------------------------
  * @brief Request binary event handler for Bus 2
- * 
  * @warning Customize to use locally (backup first) or copy into project!
  */
 // void requestEventBus2Bin() {
@@ -205,9 +214,12 @@ IICLink I2CLinkBus2;
 //   }
 // }
 
+// #####################################################################################################################
+// ## BEGIN WIRE I2C SLAVE RECEIVE BINARY BLOCKS
+// #####################################################################################################################
+
 /** ----------------------------------------------------------------------------
  * @brief Receive binary event handler for Bus 0
- * 
  * @warning Customize to use locally (backup first) or copy into project!
 */
 // void receiveEventBus0Bin(size_t n_bytes_received) {
@@ -228,7 +240,6 @@ IICLink I2CLinkBus2;
 
 /** ----------------------------------------------------------------------------
  * @brief Receive binary event handler for Bus 1
- * 
  * @warning Customize to use locally (backup first) or copy into project!
 */
 // void receiveEventBus1Bin(size_t n_bytes_received) {
@@ -249,7 +260,6 @@ IICLink I2CLinkBus2;
 
 /** ----------------------------------------------------------------------------
  * @brief Receive binary event handler for Bus 2
- * 
  * @warning Customize to use locally (backup first) or copy into project!
 */
 // void receiveEventBus2Bin(size_t n_bytes_received) {
@@ -267,6 +277,358 @@ IICLink I2CLinkBus2;
 //     }
 //   }
 // }
+
+// #####################################################################################################################
+// ## BEGIN ESPIDF I2C SLAVE REQUEST BLOCKS
+// #####################################################################################################################
+
+/** ----------------------------------------------------------------------------
+ * @brief Request event handler for Bus 0 using ESPIDF I2C Slave Driver
+ * @warning Customize to use locally (backup first) or copy into project!
+ */
+// bool onRequestESPIDFBus0(i2c_slave_dev_handle_t i2c_slave,
+//                          const i2c_slave_stretch_event_data_t *event_data,
+//                          void *user_data)
+// {
+//   Serial.println("[onRequestESPIDFBus0Bin] ID: " + String(I2CLinkBus0.REQUEST_ID));
+//   switch (I2CLinkBus0.REQUEST_ID) {
+//     case 0x01: {
+//     // -----------------------------------------------------------------------
+//     // example response data for request ID 0x01
+//     // -----------------------------------------------------------------------
+//       memset(I2CLinkBus0.OUTPUT_PACKET, 0, sizeof(I2CLinkBus0.OUTPUT_PACKET));
+//       write_uint8_ToPacket(I2CLinkBus0.OUTPUT_PACKET, 0, 0x00); // include a junk byte...
+//       write_uint8_ToPacket(I2CLinkBus0.OUTPUT_PACKET, 1, 0xAB); // actual data 171
+//       write_uint8_ToPacket(I2CLinkBus0.OUTPUT_PACKET, 2, 0xCD); // actual data 205
+//       i2c_slave_transmit(i2c_slave, I2CLinkBus0.OUTPUT_PACKET, 3, I2C_TIMEOUT_MS_BUS0);
+//       break;
+//     }
+//     // -----------------------------------------------------------------------
+//     // example default: undefined request ID
+//     // -----------------------------------------------------------------------
+//     default: {
+//       Serial.println("[onRequestESPIDFBus0Bin] undefine request ID: " + String(I2CLinkBus0.REQUEST_ID));
+//       break;
+//     }
+//   }
+//   return true;
+// }
+
+/** ----------------------------------------------------------------------------
+ * @brief Request event handler for Bus 1 using ESPIDF I2C Slave Driver
+ * @warning Customize to use locally (backup first) or copy into project!
+ */
+// bool onRequestESPIDFBus1(i2c_slave_dev_handle_t i2c_slave,
+//                          const i2c_slave_stretch_event_data_t *event_data,
+//                          void *user_data)
+// {
+//   Serial.println("[onRequestESPIDFBus1Bin] ID: " + String(I2CLinkBus1.REQUEST_ID));
+//   switch (I2CLinkBus1.REQUEST_ID) {
+//     // -----------------------------------------------------------------------
+//     // example response data for request ID 0x01
+//     // -----------------------------------------------------------------------
+//     case 0x01: {
+//       // example response data for request ID 0x01
+//       memset(I2CLinkBus1.OUTPUT_PACKET, 0, sizeof(I2CLinkBus1.OUTPUT_PACKET));
+//       write_uint8_ToPacket(I2CLinkBus1.OUTPUT_PACKET, 0, 0x00); // include a junk byte...
+//       write_uint8_ToPacket(I2CLinkBus1.OUTPUT_PACKET, 1, 0xAB); // actual data 171
+//       write_uint8_ToPacket(I2CLinkBus1.OUTPUT_PACKET, 2, 0xCD); // actual data 205
+//       i2c_slave_transmit(i2c_slave, I2CLinkBus1.OUTPUT_PACKET, 3, I2C_TIMEOUT_MS_BUS1);
+//       break;
+//     }
+//     // -----------------------------------------------------------------------
+//     // example default: undefined request ID
+//     // -----------------------------------------------------------------------
+//     default: {
+//       Serial.println("[onRequestESPIDFBus1Bin] undefine request ID: " + String(I2CLinkBus1.REQUEST_ID));
+//       break;
+//     }
+//   }
+//   return true;
+// }
+
+/** ----------------------------------------------------------------------------
+ * @brief Request event handler for Bus 2 using ESPIDF I2C Slave Driver
+ * @warning Customize to use locally (backup first) or copy into project!
+ */
+// bool onRequestESPIDFBus2(i2c_slave_dev_handle_t i2c_slave,
+//                          const i2c_slave_stretch_event_data_t *event_data,
+//                          void *user_data)
+// {
+//   Serial.println("[onRequestESPIDFBus2Bin] ID: " + String(I2CLinkBus2.REQUEST_ID));
+//   switch (I2CLinkBus2.REQUEST_ID) {
+//     // -----------------------------------------------------------------------
+//     // example response data for request ID 0x01
+//     // -----------------------------------------------------------------------
+//     case 0x01: {
+//       // example response data for request ID 0x01
+//       memset(I2CLinkBus2.OUTPUT_PACKET, 0, sizeof(I2CLinkBus2.OUTPUT_PACKET));
+//       write_uint8_ToPacket(I2CLinkBus2.OUTPUT_PACKET, 0, 0x00); // include a junk byte...
+//       write_uint8_ToPacket(I2CLinkBus2.OUTPUT_PACKET, 1, 0xAB); // actual data 171
+//       write_uint8_ToPacket(I2CLinkBus2.OUTPUT_PACKET, 2, 0xCD); // actual data 205
+//       i2c_slave_transmit(i2c_slave, I2CLinkBus2.OUTPUT_PACKET, 3, I2C_TIMEOUT_MS_BUS2);
+//       break;
+//     }
+//     // -----------------------------------------------------------------------
+//     // example default: undefined request ID
+//     // -----------------------------------------------------------------------
+//     default: {
+//       Serial.println("[onRequestESPIDFBus2Bin] undefine request ID: " + String(I2CLinkBus2.REQUEST_ID));
+//       break;
+//     }
+//   }
+//   return true;
+// }
+
+// #####################################################################################################################
+// ## BEGIN ESPIDF I2C SLAVE RECEIVE BLOCKS
+// #####################################################################################################################
+
+/** ----------------------------------------------------------------------------
+ * @brief I2C Slave receive event callback: Bus 0
+ * @warning Customize to use locally (backup first) or copy into project!
+ */
+// bool onReceiveESPIDFBus0(i2c_slave_dev_handle_t i2c_slave,
+//                const i2c_slave_rx_done_event_data_t  *evt_data,
+//                void *arg)
+// {
+//   // Serial.println("[slave] onReceiveESPIDFBus0 event triggered");
+//   I2CLinkBus0.n_bytes_received = (uint8_t)evt_data->buffer[0];
+//   I2CLinkBus0.on_receive_flag = true;
+//   return true;
+// }
+
+/** ----------------------------------------------------------------------------
+ * @brief I2C Slave process received data: Bus 0
+ * @note Call this function regularly in task to process received data.
+ * @note i2c_slave_receive() is called again after processing to re-arm the receiver.
+ */
+// void processReceivedDataBus0() {
+//   if (!I2CLinkBus0.on_receive_flag) {return;}
+//   // ---------------------------------------------------------------------------
+//   // uncomment for debug (performance cost)
+//   // ---------------------------------------------------------------------------
+//   // Serial.printf("[slave] Received %d bytes\n", I2CLinkBus0.n_bytes_received);
+//   // Serial.print("[slave] Data: ");
+//   // for (int i = 0; i < I2CLinkBus0.n_bytes_received; i++) {
+//   //   Serial.printf("0x%02X ", I2CLinkBus0.INPUT_PACKET[i]);
+//   // }
+//   // Serial.println();
+//   // ---------------------------------------------------------------------------
+//   // example command processing
+//   // ---------------------------------------------------------------------------
+//   uint8_t cmd = I2CLinkBus0.INPUT_PACKET[0];
+//   switch (cmd) {
+//     // -------------------------------------------------------------------------
+//     // example command 0x01: set request ID for next master read
+//     // -------------------------------------------------------------------------
+//     case 0x01: {
+//       Serial.println("[slave] Processing command 0x01");
+//       I2CLinkBus0.REQUEST_ID = 0x01;
+//       break;
+//     }
+//     // -------------------------------------------------------------------------
+//     // example default: unknown command
+//     // -------------------------------------------------------------------------
+//     default: {Serial.printf("[slave] Unknown command: 0x%02X\n", cmd); break;}
+//   }
+//   // ---------------------------------------------------------------------------
+//   // re-arm receiver for next data
+//   // ---------------------------------------------------------------------------
+//   I2CLinkBus0.on_receive_flag = false;
+//   i2c_slave_receive(slave_handle_bus0, I2CLinkBus0.INPUT_PACKET, MAX_IIC_BUFFER_SIZE);
+// }
+
+/** ----------------------------------------------------------------------------
+ * @brief I2C Slave receive event callback: Bus 1
+ * @warning Customize to use locally (backup first) or copy into project!
+ */
+// bool onReceiveESPIDFBus1(i2c_slave_dev_handle_t i2c_slave,
+//                const i2c_slave_rx_done_event_data_t  *evt_data,
+//                void *arg)
+// {
+//   // Serial.println("[slave] onReceiveESPIDFBus1 event triggered");
+//   I2CLinkBus1.n_bytes_received = (uint8_t)evt_data->buffer[0];
+//   I2CLinkBus1.on_receive_flag = true;
+//   return true;
+// }
+
+/** ----------------------------------------------------------------------------
+ * @brief I2C Slave process received data: Bus 1
+ * @note Call this function regularly in task to process received data.
+ * @note i2c_slave_receive() is called again after processing to re-arm the receiver.
+ */
+// void processReceivedDataBus1() {
+//   if (!I2CLinkBus1.on_receive_flag) {return;}
+//   // ---------------------------------------------------------------------------
+//   // uncomment for debug (performance cost)
+//   // ---------------------------------------------------------------------------
+//   // Serial.printf("[slave] Received %d bytes\n", I2CLinkBus1.n_bytes_received);
+//   // Serial.print("[slave] Data: ");
+//   // for (int i = 0; i < I2CLinkBus1.n_bytes_received; i++) {
+//   //   Serial.printf("0x%02X ", I2CLinkBus1.INPUT_PACKET[i]);
+//   // }
+//   // Serial.println();
+//   // ---------------------------------------------------------------------------
+//   // example command processing
+//   // ---------------------------------------------------------------------------
+//   uint8_t cmd = I2CLinkBus1.INPUT_PACKET[0];
+//   switch (cmd) {
+//     // -------------------------------------------------------------------------
+//     // example command 0x01: set request ID for next master read
+//     // -------------------------------------------------------------------------
+//     case 0x01: {
+//       Serial.println("[slave] Processing command 0x01");
+//       I2CLinkBus1.REQUEST_ID = 0x01;
+//       break;
+//     }
+//     // -------------------------------------------------------------------------
+//     // example default: unknown command
+//     // -------------------------------------------------------------------------
+//     default: {Serial.printf("[slave] Unknown command: 0x%02X\n", cmd); break;}
+//   }
+//   // ---------------------------------------------------------------------------
+//   // re-arm receiver for next data
+//   // ---------------------------------------------------------------------------
+//   I2CLinkBus1.on_receive_flag = false;
+//   i2c_slave_receive(slave_handle_bus1, I2CLinkBus1.INPUT_PACKET, MAX_IIC_BUFFER_SIZE);
+// }
+
+/** ----------------------------------------------------------------------------
+ * @brief I2C Slave receive event callback: Bus 2
+ * @warning Customize to use locally (backup first) or copy into project!
+ */
+// bool onReceiveESPIDFBus2(i2c_slave_dev_handle_t i2c_slave,
+//                const i2c_slave_rx_done_event_data_t  *evt_data,
+//                void *arg)
+// {
+//   // Serial.println("[slave] onReceiveESPIDFBus0 event triggered");
+//   I2CLinkBus2.n_bytes_received = (uint8_t)evt_data->buffer[0];
+//   I2CLinkBus2.on_receive_flag = true;
+//   return true;
+// }
+
+/** ----------------------------------------------------------------------------
+ * @brief I2C Slave process received data: Bus 2
+ * @note Call this function regularly in task to process received data.
+ * @note i2c_slave_receive() is called again after processing to re-arm the receiver.
+ */
+// void processReceivedDataBus2() {
+//   if (!I2CLinkBus2.on_receive_flag) {return;}
+//   // ---------------------------------------------------------------------------
+//   // uncomment for debug (performance cost)
+//   // ---------------------------------------------------------------------------
+//   // Serial.printf("[slave] Received %d bytes\n", I2CLinkBus2.n_bytes_received);
+//   // Serial.print("[slave] Data: ");
+//   // for (int i = 0; i < I2CLinkBus2.n_bytes_received; i++) {
+//   //   Serial.printf("0x%02X ", I2CLinkBus2.INPUT_PACKET[i]);
+//   // }
+//   // Serial.println();
+//   // ---------------------------------------------------------------------------
+//   // example command processing
+//   // ---------------------------------------------------------------------------
+//   uint8_t cmd = I2CLinkBus2.INPUT_PACKET[0];
+//   switch (cmd) {
+//     // -------------------------------------------------------------------------
+//     // example command 0x01: set request ID for next master read
+//     // -------------------------------------------------------------------------
+//     case 0x01: {
+//       Serial.println("[slave] Processing command 0x01");
+//       I2CLinkBus2.REQUEST_ID = 0x01;
+//       break;
+//     }
+//     // -------------------------------------------------------------------------
+//     // example default: unknown command
+//     // -------------------------------------------------------------------------
+//     default: {Serial.printf("[slave] Unknown command: 0x%02X\n", cmd); break;}
+//   }
+//   // ---------------------------------------------------------------------------
+//   // re-arm receiver for next data
+//   // ---------------------------------------------------------------------------
+//   I2CLinkBus2.on_receive_flag = false;
+//   i2c_slave_receive(slave_handle_bus2, I2CLinkBus2.INPUT_PACKET, MAX_IIC_BUFFER_SIZE);
+// }
+
+// #####################################################################################################################
+// ## BEGIN ESPIDF I2C SLAVE CONFIGFURATION BLOCKS
+// #####################################################################################################################
+
+/** ----------------------------------------------------------------------------
+ * @brief I2C Slave Configuration for Bus 0 using ESPIDF I2C Slave Driver
+ * @warning Customize to use locally (backup first) or copy into project!
+ */
+// i2c_slave_config_t slv_config_bus0 = {
+//     .i2c_port = 0,
+//     .sda_io_num = (gpio_num_t)IIC_BUS0_SDA,
+//     .scl_io_num = (gpio_num_t)IIC_BUS0_SCL,
+//     .clk_source = I2C_CLK_SRC_DEFAULT,
+//     .send_buf_depth = MAX_IIC_BUFFER_SIZE,
+//     .slave_addr = SLAVE_ADDR_BUS0, // 7-bit address
+// };
+// i2c_slave_dev_handle_t slave_handle_bus0;
+
+/** ----------------------------------------------------------------------------
+ * @brief I2C Slave Configuration for Bus 1 using ESPIDF I2C Slave Driver
+ * @warning Customize to use locally (backup first) or copy into project!
+ */
+// i2c_slave_config_t slv_config_bus1 = {
+//     .i2c_port = 1,
+//     .sda_io_num = (gpio_num_t)IIC_BUS1_SDA,
+//     .scl_io_num = (gpio_num_t)IIC_BUS1_SCL,
+//     .clk_source = I2C_CLK_SRC_DEFAULT,
+//     .send_buf_depth = MAX_IIC_BUFFER_SIZE,
+//     .slave_addr = SLAVE_ADDR_BUS1, // 7-bit address
+// };
+// i2c_slave_dev_handle_t slave_handle_bus1;
+
+/** ----------------------------------------------------------------------------
+ * @brief I2C Slave Configuration for Bus 2 using ESPIDF I2C Slave Driver
+ * @warning Customize to use locally (backup first) or copy into project!
+ */
+// i2c_slave_config_t slv_config_bus2 = {
+//     .i2c_port = 2,
+//     .sda_io_num = (gpio_num_t)IIC_BUS2_SDA,
+//     .scl_io_num = (gpio_num_t)IIC_BUS2_SCL,
+//     .clk_source = I2C_CLK_SRC_DEFAULT,
+//     .send_buf_depth = MAX_IIC_BUFFER_SIZE,
+//     .slave_addr = SLAVE_ADDR_BUS2, // 7-bit address
+// };
+// i2c_slave_dev_handle_t slave_handle_bus2;
+
+// #####################################################################################################################
+// ## BEGIN ESPIDF I2C SLAVE CALLBACK BLOCKS
+// #####################################################################################################################
+
+/** ----------------------------------------------------------------------------
+ * @brief Callbacks structure for Bus 0 using ESPIDF I2C Slave Driver
+ * @warning Customize to use locally (backup first) or copy into project!
+ */
+// i2c_slave_event_callbacks_t cbs_bus0 = {
+//   .on_stretch_occur = onRequestESPIDFBus0Bin,
+//   .on_recv_done = onReceiveESPIDFBus0Bin,
+// };
+
+/** ----------------------------------------------------------------------------
+ * @brief Callbacks structure for Bus 1 using ESPIDF I2C Slave Driver
+ * @warning Customize to use locally (backup first) or copy into project!
+ */
+// i2c_slave_event_callbacks_t cbs_bus1 = {
+//   .on_stretch_occur = onRequestESPIDFBus1Bin,
+//   .on_recv_done = onReceiveESPIDFBus1Bin,
+// };
+
+/** ----------------------------------------------------------------------------
+ * @brief Callbacks structure for Bus 2 using ESPIDF I2C Slave Driver
+ * @warning Customize to use locally (backup first) or copy into project!
+ */
+// i2c_slave_event_callbacks_t cbs_bus2 = {
+//   .on_stretch_occur = onRequestESPIDFBus2Bin,
+//   .on_recv_done = onReceiveESPIDFBus2Bin,
+// };
+
+// #####################################################################################################################
+// ## END ESPIDF I2C SLAVE CALLBACK BLOCKS
+// #####################################################################################################################
 
 /** ----------------------------------------------------------------------------
  * Prints a human-readable description of Wire.endTransmission() error codes
@@ -356,6 +718,14 @@ void clearI2CLinkInputPacket(IICLink &iic_link) {
  */
 void clearI2CLinkOutputPacket(IICLink &iic_link) {
   memset(iic_link.OUTPUT_PACKET, 0, sizeof(iic_link.OUTPUT_PACKET));
+}
+
+/** ----------------------------------------------------------------------------
+ * @brief Drains all available bytes from the I2C wire.
+ * @param wire Specify TwoWire instance.
+ */
+void drainBus(TwoWire &wire) {
+  while (wire.available()) {wire.read();}
 }
 
 /** ----------------------------------------------------------------------------
@@ -469,7 +839,7 @@ void requestFromSlaveChars(TwoWire &wire,
 void writeI2CToSlaveBin(TwoWire &wire,
                         IICLink &iic_link,
                         int address,
-                        long len_packet,
+                        size_t len_packet,
                         long delayMs,
                         String debugTag) {
   
@@ -488,7 +858,7 @@ void writeI2CToSlaveBin(TwoWire &wire,
  */
 void writeI2CToMasterBin(TwoWire &wire,
                          IICLink &iic_link,
-                         long len_packet,
+                         size_t len_packet,
                          long delayMs) {
   wire.write(iic_link.OUTPUT_PACKET, len_packet);
   delay(delayMs); // Allow time for receiving device to process data.
@@ -507,7 +877,7 @@ void writeI2CToMasterBin(TwoWire &wire,
 void requestFromSlaveBin(TwoWire &wire,
                          IICLink &iic_link,
                          int address,
-                         long len_packet,
+                         size_t len_packet,
                          long request_id,
                          size_t len_expected,
                          long delayMs,
@@ -583,7 +953,7 @@ bool requestFromSlaveBinNoID(TwoWire &wire,
  * @warning Specified value is expected to be uint8_t.
  */
 void read_uint8_FromWire(TwoWire &wire, uint8_t &value) {
-  value = wire.read(); 
+  value = wire.read();
 }
 
 /**

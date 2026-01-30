@@ -218,9 +218,9 @@ void setup() {
   // --------------------------------------------------------------
   Serial.println("[IIC] intitializing RTC");
   iic_0.setPins(IIC_BUS0_SDA, IIC_BUS0_SCL);
-  iic_0.setBufferSize(256);
-  iic_0.setTimeOut(1000);
-  iic_0.begin(IIC_BUS0_SDA, IIC_BUS0_SCL, 200000UL);
+  iic_0.setBufferSize(MAX_IIC_BUFFER_SIZE);
+  iic_0.setTimeOut(I2C_TIMEOUT_MS_BUS0);
+  iic_0.begin(IIC_BUS0_SDA, IIC_BUS0_SCL, I2C_CLOCK_Hz_BUS0);
   rtc.begin(&iic_0);
   delay(200);
 
@@ -231,15 +231,15 @@ void setup() {
   // Warning! RTC and Display communication can currently occur simultaneously.
   // Serial.println("[IIC] intitializing display controller");
   // iic_0.setPins(IIC_BUS0_SDA, IIC_BUS0_SCL);
-  // iic_0.setBufferSize(256);
-  // iic_0.setTimeOut(1000);
-  // iic_0.begin(IIC_BUS0_SDA, IIC_BUS0_SCL, 200000UL);
+  // iic_0.setBufferSize(MAX_IIC_BUFFER_SIZE_BUS0);
+  // iic_0.setTimeOut(I2C_TIMEOUT_MS_BUS0);
+  // iic_0.begin(IIC_BUS0_SDA, IIC_BUS0_SCL, I2C_CLOCK_Hz_BUS0);
   // temporary bus
   iic_2.setPins(IIC_BUS2_SDA, IIC_BUS2_SCL);
-  iic_2.setBufferSize(256);
-  iic_2.setTimeOut(1000);
-  iic_2.begin(IIC_BUS2_SDA, IIC_BUS2_SCL, 200000UL);
-  // iic_2.setClock(200000UL);
+  iic_2.setBufferSize(MAX_IIC_BUFFER_SIZE);
+  iic_2.setTimeOut(I2C_TIMEOUT_MS_BUS2);
+  iic_2.begin(IIC_BUS2_SDA, IIC_BUS2_SCL, I2C_CLOCK_Hz_BUS2);
+  // iic_2.setClock(I2C_CLOCK_Hz_BUS2);
   delay(200);
 
   // --------------------------------------------------------------
@@ -247,14 +247,14 @@ void setup() {
   // --------------------------------------------------------------
   Serial.println("[IIC] intitializing output port controller");
   iic_1.setPins(IIC_BUS1_SDA, IIC_BUS1_SCL);
-  iic_1.setBufferSize(256);
-  iic_1.setTimeOut(1000);
-  iic_1.begin(IIC_BUS1_SDA, IIC_BUS1_SCL);
+  iic_1.setBufferSize(MAX_IIC_BUFFER_SIZE);
+  iic_1.setTimeOut(I2C_TIMEOUT_MS_BUS1);
+  iic_1.begin(IIC_BUS1_SDA, IIC_BUS1_SCL, I2C_CLOCK_Hz_BUS1);
   // iic_1.setClock(400000); // ATMEGA2560 no resistors     good
   // iic_1.setClock(200000); // ESP32 no resistors          good
   // iic_1.setClock(200000); // ESP32 2.2k resistor         good
   // iic_1.setClock(250000); // ATMEGA2560 2.2k resistor    good
-  iic_1.setClock(800000); // ATMEGA2560 2.2k resistor       good (+-4ns rise time)
+  iic_1.setClock(I2C_CLOCK_Hz_BUS1);
   writeOutputPortControllerClear(iic_1, I2C_ADDR_OUTPUT_PORTCONTROLLER);
 
   // --------------------------------------------------------------
@@ -272,8 +272,8 @@ void setup() {
   */
   // Serial.println("[IIC] intitializing input port controller");
   // iic_2.setPins(IIC_BUS2_SDA, IIC_BUS2_SCL);
-  // iic_2.setBufferSize(256);
-  // iic_2.setTimeOut(1000);
+  // iic_2.setBufferSize(MAX_IIC_BUFFER_SIZE_BUS2);
+  // iic_2.setTimeOut(I2C_TIMEOUT_MS_BUS2);
   // iic_2.begin(IIC_BUS2_SDA, IIC_BUS2_SCL);
   // iic_2.setClock(400000);
 

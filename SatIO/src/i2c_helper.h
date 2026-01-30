@@ -28,38 +28,91 @@
 #include <Arduino.h>
 #include <Wire.h>
 
+// #####################################################################################################################
+// ## BEGIN SLAVE ADDRESSES (1 PER BUS)
+// #####################################################################################################################
+
 // #define SLAVE_ADDR_BUS0 0 // uncomment to set address if required.
 // #define SLAVE_ADDR_BUS1 0 // uncomment to set address if required.
 // #define SLAVE_ADDR_BUS2 0 // uncomment to set address if required.
 
-#define IIC_BUS0_SDA 2 // uncomment to set pin if required.
-#define IIC_BUS0_SCL 3 // uncomment to set pin if required.
-
-#define IIC_BUS1_SDA 4 // uncomment to set pin if required.
-#define IIC_BUS1_SCL 5 // uncomment to set pin if required.
-
-#define IIC_BUS2_SDA 7 // uncomment to set pin if required.
-#define IIC_BUS2_SCL 8 // uncomment to set pin if required.
-
-#define I2C_MAX_TOKENS 32
-#define MAX_IIC_BUFFER_SIZE 32
+// #####################################################################################################################
+// ## BEGIN PERIPHERAL SLAVE ADDRESSES (N PER BUS)
+// #####################################################################################################################
 
 #define I2C_ADDR_CONTROL_PAD 8
 #define I2C_ADDR_OUTPUT_PORTCONTROLLER 9
 #define I2C_ADDR_INPUT_PORTCONTROLLER  10
 
+// #####################################################################################################################
+// ## BEGIN I2C BUS PINS
+// #####################################################################################################################
+
+#define IIC_BUS0_SDA 2 // uncomment to set pin if required.
+#define IIC_BUS0_SCL 3 // uncomment to set pin if required.
+#define IIC_BUS1_SDA 4 // uncomment to set pin if required.
+#define IIC_BUS1_SCL 5 // uncomment to set pin if required.
+#define IIC_BUS2_SDA 7 // uncomment to set pin if required.
+#define IIC_BUS2_SCL 8 // uncomment to set pin if required.
+
+// #####################################################################################################################
+// ## BEGIN I2C BUS TIMEOUTS
+// #####################################################################################################################
+
+#define I2C_TIMEOUT_MS_BUS0 50
+#define I2C_TIMEOUT_MS_BUS1 50
+#define I2C_TIMEOUT_MS_BUS2 50
+
+// #####################################################################################################################
+// ## BEGIN I2C BUS CLOCK SPEEDS
+// #####################################################################################################################
+
+#define I2C_CLOCK_Hz_BUS0 200000 // 200kHz
+#define I2C_CLOCK_Hz_BUS1 800000 // 800kHz
+#define I2C_CLOCK_Hz_BUS2 200000 // 100kHz
+
+// #####################################################################################################################
+// ## BEGIN I2C BUS LIMITS
+// #####################################################################################################################
+
+#define I2C_MAX_TOKENS 32
+#define MAX_IIC_BUFFER_SIZE 32
+
+// #####################################################################################################################
+// ## BEGIN DEFAULT TWOWIRE INSTANCES
+// #####################################################################################################################
+
 extern TwoWire iic_0; // Uncomment to use global I2C bus 0 wire instance
 extern TwoWire iic_1; // Uncomment to use global I2C bus 0 wire instance
 extern TwoWire iic_2; // Uncomment to use global I2C bus 0 wire instance
 
+// #####################################################################################################################
+// ## BEGIN ESPIDF I2C SLAVE CONFIGURATION BLOCKS
+// #####################################################################################################################
+
+// extern i2c_slave_config_t slv_config_bus0; // Uncomment to use global I2C bus 0 slave config instance
+// extern i2c_slave_dev_handle_t slave_handle_bus0; // Uncomment to use global I2C bus 0 slave handle instance
+
+// extern i2c_slave_config_t slv_config_bus1; // Uncomment to use global I2C bus 1 slave config instance
+// extern i2c_slave_dev_handle_t slave_handle_bus1; // Uncomment to use global I2C bus 1 slave handle instance
+
+// extern i2c_slave_config_t slv_config_bus2; // Uncomment to use global I2C bus 2 slave config instance
+// extern i2c_slave_dev_handle_t slave_handle_bus2; // Uncomment to use global I2C bus 2 slave handle instance
+
+// #####################################################################################################################
+// ## BEGIN ESPIDF I2C SLAVE CALLBACK BLOCKS
+// #####################################################################################################################
+
+// extern i2c_slave_event_callbacks_t cbs_bus0; // Uncomment to use global I2C bus 0 slave callbacks instance
+// extern i2c_slave_event_callbacks_t cbs_bus1; // Uncomment to use global I2C bus 1 slave callbacks instance
+// extern i2c_slave_event_callbacks_t cbs_bus2; // Uncomment to use global I2C bus 2 slave callbacks instance
+
+// #####################################################################################################################
+// ## BEGIN DEFAULT IICLINK DATA STRUCTURE
+// #####################################################################################################################
+
 /**
- * @brief Creates a standard data structure that can be used per device.
- * 
- *        The intention here is to simplify value initialization for buffers &
- *        other value types that may be useful when communicating with certain
- *        devices, by only initializing variable(s) of type IICLink.
- * 
- *        Example: IICLink myCustomModule;
+ * @brief Creates a standard data structure that can be used per device asnd or per I2C bus.
  */
 typedef struct {
   int  i_token;
@@ -75,24 +128,18 @@ typedef struct {
 
 } IICLink;
 
-/** ----------------------------------------------------------------------------
- * @brief Global default I2C data struictures for each wire bus.
- * 
- * @warning Only to be used by receive event handlers! Make your own IICLink
- *          instances for any other uses except if using for very simple projects
- *          that only speak to 1 device per bus.
- * 
- *          This is because receive events could be from any device, and so a
- *          default instance of IICLink is intended to be used only for receive events
- *          and only if receive events benefit from the IICLink data structure.
- */
+// #####################################################################################################################
+// ## BEGIN DEFAULT IICLINK DATA INSTANCES
+// #####################################################################################################################
+
 extern IICLink I2CLinkBus0; // uncomment to use default data structure instance for I2C bus 0
 extern IICLink I2CLinkBus1; // uncomment to use default data structure instance for I2C bus 1
 extern IICLink I2CLinkBus2; // uncomment to use default data structure instance for I2C bus 2
 
-/**
- * @brief Uncomment to use built-in request and receive event handlers. 
- */
+// #####################################################################################################################
+// ## BEGIN DEFAULT I2C EVENT HANDLER DECLARATIONS
+// #####################################################################################################################
+
 // void requestEventBus0Chars();
 // void receiveEventBus0Chars(size_t n_bytes_received);
 
@@ -111,6 +158,45 @@ extern IICLink I2CLinkBus2; // uncomment to use default data structure instance 
 // void requestEventBus2Bin();
 // void receiveEventBus2Bin(size_t n_bytes_received);
 
+// bool onRequestESPIDFBus0(i2c_slave_dev_handle_t i2c_slave,
+//                          const i2c_slave_stretch_event_data_t *event_data,
+//                          void *user_data);
+
+// bool onRequestESPIDFBus1(i2c_slave_dev_handle_t i2c_slave,
+//                          const i2c_slave_stretch_event_data_t *event_data,
+//                          void *user_data);
+
+// bool onRequestESPIDFBus2(i2c_slave_dev_handle_t i2c_slave,
+//                          const i2c_slave_stretch_event_data_t *event_data,
+//                          void *user_data);
+
+// bool onReceiveESPIDFBus0(i2c_slave_dev_handle_t i2c_slave,
+//                const i2c_slave_rx_done_event_data_t  *evt_data,
+//                void *arg);
+
+// bool onReceiveESPIDFBus1(i2c_slave_dev_handle_t i2c_slave,
+//                const i2c_slave_rx_done_event_data_t  *evt_data,
+//                void *arg);
+
+// bool onReceiveESPIDFBus2(i2c_slave_dev_handle_t i2c_slave,
+//                const i2c_slave_rx_done_event_data_t  *evt_data,
+//                void *arg);
+
+// bool onRequestESPIDFBus0(i2c_slave_dev_handle_t i2c_slave,
+//                          const i2c_slave_stretch_event_data_t *event_data,
+//                          void *user_data);
+
+// bool onRequestESPIDFBus1(i2c_slave_dev_handle_t i2c_slave,
+//                          const i2c_slave_stretch_event_data_t *event_data,
+//                          void *user_data)
+
+// bool onRequestESPIDFBus2(i2c_slave_dev_handle_t i2c_slave,
+//                          const i2c_slave_stretch_event_data_t *event_data,
+//                          void *user_data)
+
+// #####################################################################################################################
+// ## BEGIN BUILT-IN I2C HELPER FUNCTION DECLARATIONS -> EOF
+// #####################################################################################################################
 
 /** ----------------------------------------------------------------------------
  * @brief Clears the output buffer chars of the given IICLink structure.
@@ -195,7 +281,7 @@ void requestFromSlaveChars(TwoWire &wire,
 void writeI2CToSlaveBin(TwoWire &wire,
                         IICLink &iic_link,
                         int address,
-                        long len_packet,
+                        size_t len_packet,
                         long delayMs,
                         String debugTag);
 
@@ -208,7 +294,7 @@ void writeI2CToSlaveBin(TwoWire &wire,
  */
 void writeI2CToMasterBin(TwoWire &wire,
                          IICLink &iic_link,
-                         long len_packet,
+                         size_t len_packet,
                          long delayMs);
 
 /** ----------------------------------------------------------------------------
@@ -224,7 +310,7 @@ void writeI2CToMasterBin(TwoWire &wire,
 void requestFromSlaveBin(TwoWire &wire,
                          IICLink &iic_link,
                          int address,
-                         long len_packet,
+                         size_t len_packet,
                          long request_id,
                          size_t len_expected,
                          long delayMs,

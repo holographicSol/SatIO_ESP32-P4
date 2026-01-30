@@ -567,7 +567,7 @@ void createTaskUniverse() {
 #define I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0 12 // change and add more as required.
 char temp_buffer_multidisplay[32];
 IICLink IICLinkMultiDisplayController; // IIC link data structure for Multi Display Controller
-int iic_delay = 1;
+int iic_delay = 2;
 
 void tasMultiDisplay(void * pvParameters) {
   esp_task_wdt_add(NULL);
