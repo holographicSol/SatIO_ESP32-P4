@@ -15,7 +15,7 @@
 #include "./wtgps300p.h"
 #include "./wt901.h"
 #include "./multiplexers.h"
-// #include "./esp32_helper.h"
+#include "./esp32_helper.h"
 #include "./sidereal_helper.h"
 #include "./hextodig.h"
 #include "./ins.h"
@@ -25,35 +25,38 @@
 #include "./matrix.h"
 #include "./serial_infocmd.h"
 #include "./system_data.h"
-#include "./satio_file.h"
-#include "./sdcard_helper.h"
+#include "./sdmmc_helper.h"
 #include "./task_handler.h"
 // #include "./multi_display_controller.h"
 #include "freertos/semphr.h"
 #include "i2c_helper.h"
-#include "./satio_lvgl.h"
 
 SemaphoreHandle_t i2c_bus0_mutex;
 
+TaskHandle_t TaskStorage;
+TaskHandle_t TaskLogging;
+TaskHandle_t TaskSerialInfoCMD;
 TaskHandle_t TaskGPS;
 TaskHandle_t TaskGyro;
 TaskHandle_t TaskMultiplexers;
-TaskHandle_t TaskSerialInfoCMD;
-TaskHandle_t TaskSwitches;
-TaskHandle_t TaskStorage;
-TaskHandle_t TaskLogging;
+TaskHandle_t TaskPortControllerInput;
 TaskHandle_t TaskUniverse;
+TaskHandle_t TaskSwitches;
+TaskHandle_t TasMultiDisplay;
 
-// PRIORITY
-#define TASK_GPS_PRIORITY                   5    // High: Time/location sync critical
-#define TASK_GYRO_PRIORITY                  4    // High: Sensor reading
+// CORE 0 PRIORITY
+#define TASK_MULTI_DISPLAY_PRIORITY         5    // High: UI updates can be deferred
+#define TASK_SWITCHES_PRIORITY              5    // High: Logic processing
+#define TASK_SERIALINFOCMD_PRIORITY         4    // High: User interaction & debugging
 #define TASK_MULTIPLEXERS_PRIORITY          4    // High: Analog multiplexing
-
-#define TASK_SWITCHES_PRIORITY              4    // High: Logic processing
-#define TASK_SERIALINFOCMD_PRIORITY         3    // High: User interaction & debugging
+#define TASK_PORTCONTROLLERINPUT_PRIORITY   4    // High: I/O reading
+#define TASK_GYRO_PRIORITY                  4    // High: Sensor reading
 #define TASK_UNIVERSE_PRIORITY              2    // LOW: Computational, non-critical delay
 #define TASK_STORAGE_PRIORITY               2    // LOW: I/O operations, can wait
 #define TASK_LOGGING_PRIORITY               2    // LOW: Asynchronous data recording
+
+// CORE 1 PRIORITY
+#define TASK_GPS_PRIORITY                   5    // High: Time/location sync critical
 
 // CORE 0 ASSIGNMENT
 #define TASK_SERIALINFOCMD_CORE             0    // Core 0: Keep on main (timing-sensitive)
@@ -64,10 +67,10 @@ TaskHandle_t TaskUniverse;
 #define TASK_UNIVERSE_CORE                  0    // Core 0: Heavy compute, can defer
 #define TASK_STORAGE_CORE                   0    // Core 0: I/O-heavy, doesn't need Core 0
 #define TASK_LOGGING_CORE                   0    // Core 0: I/O operations
-#define TASK_DISPLAY_CORE                   0    // Core 0: UI responsiveness
+#define TASK_MULTI_DISPLAY_CORE             0    // Core 0: UI responsiveness
 
 // CORE 1 ASSIGNMENT
-#define TASK_GPS_CORE                       0    // Critical for system timing regardless of gps
+#define TASK_GPS_CORE                       1    // Core 1: Critical for system sync
 
 // STACK SIZES (Adjusted for task complexity)
 #define TASK_STORAGE_STACK_SIZE             6144    // +50%: SDMMC operations
@@ -79,7 +82,7 @@ TaskHandle_t TaskUniverse;
 #define TASK_PORTCONTROLLERINPUT_STACK_SIZE 4608    // +12%: I2C buffer + processing
 #define TASK_SWITCHES_STACK_SIZE            5120    // +25%: Matrix calculations, mappings
 #define TASK_UNIVERSE_STACK_SIZE            20480   // +25%: Expensive float math (planets, etc.)
-#define TASK_DISPLAY_STACK_SIZE             20480    // +50%: Multiple display updates + formatting
+#define TASK_DISPLAY_STACK_SIZE             6144    // +50%: Multiple display updates + formatting
 
 /** ----------------------------------------------------------------------------
  * Syncronize Tasks.
@@ -137,29 +140,22 @@ bool isTaskDelayed(TaskHandle_t taskHandle) {
  */
 void taskStorage(void * pvParameters) {
   esp_task_wdt_add(NULL);
-  // esp_task_wdt_delete(NULL);
-  // while (global_task_sync==false) {esp_task_wdt_reset(); vTaskDelay(1);}
+  while (global_task_sync==false) {esp_task_wdt_reset(); vTaskDelay(1);}
   for (;;) {
     esp_task_wdt_reset();
     // ------------------------------------------------
     // SDCard Begin
     // ------------------------------------------------
-    sdcard_mount();
-    esp_task_wdt_reset();
+    sdcardBegin();
     // statSDCard(); // uncomment to debug
     // ------------------------------------------------
     // Check Flags
     // ------------------------------------------------
     sdcardFlagHandler();
-    esp_task_wdt_reset();
     // ------------------------------------------------
     // Power Down and persist sdcard data
     // ------------------------------------------------
-    // sdcardSleepMode0();
-    // vTaskDelay(500 / portTICK_PERIOD_MS); // give some time for sdcard to settle before unmount
-
-    sdcard_unmount();
-    esp_task_wdt_reset();
+    sdcardSleepMode0();
     // ------------------------------------------------
     // Delay next iteration of task.
     // ------------------------------------------------
@@ -196,18 +192,16 @@ void taskLogging(void * pvParameters) {
     // Serial.printf("[log] flag: %d\n", systemData.logging_enabled);
     if (systemData.logging_enabled) {
       Serial.printf("[log] setting write flag true\n");
-      sdcardFlagData.write_log=true;
+      sdmmcFlagData.write_log=true;
     }
-    esp_task_wdt_reset();
     // else {Serial.println("[log] not enabled");}
     // ------------------------------------------------
     // Counters
     // ------------------------------------------------.
     systemData.i_count_logging++;
-    systemData.interval_breach_logging = true;
+    systemData.interval_breach_logging = 1;
     if (systemData.i_count_logging >= UINT32_MAX - 2)
     systemData.i_count_logging = 0;
-    esp_task_wdt_reset();
     // ------------------------------------------------
     // Delay next iteration of task.
     // ------------------------------------------------
@@ -242,9 +236,8 @@ void taskSerialInfoCMD(void * pvParameters) {
     // ------------------------------------------------
     // Note that stat is ran in main loop, not here.
     // ------------------------------------------------
-    // CmdProcess(); // ported to espidf method
+    CmdProcess();
     outputSentences();
-    esp_task_wdt_reset();
     // ------------------------------------------------
     // Delay next iteration of task.
     // ------------------------------------------------
@@ -264,176 +257,24 @@ void createTaskSerialInfoCMD() {
     TASK_SERIALINFOCMD_CORE);    /* Core where the task should run */
 }
 
-/** ----------------------------------------------------------------------------------------
- * @brief Interval breach (System counters).
- */
-int64_t prev_tv_sec;
-
-void intervalBreach1Second(void) {
-  // if (systemData.interval_breach_1_second) {
-    // store system time
-    storeLocalTime();
-    // store rtc time
-    storeRTCTime();
-    // set loop counter
-    systemData.total_loops_a_second = systemData.loops_a_second;
-    systemData.loops_a_second = 0;
-    // set gps counters
-    systemData.total_gps = systemData.i_count_read_gps;
-    systemData.i_count_read_gps = 0;
-    // set ins counters
-    systemData.total_ins = systemData.i_count_read_ins;
-    systemData.i_count_read_ins = 0;
-    // set gyro counters
-    systemData.total_gyro_0 = systemData.i_count_read_gyro_0;
-    systemData.i_count_read_gyro_0 = 0;
-    // set mplex counters
-    systemData.total_mplex_0 = systemData.i_count_read_mplex_0;
-    systemData.i_count_read_mplex_0 = 0;
-    // set mplex counters
-    systemData.total_matrix = systemData.i_count_matrix;
-    systemData.i_count_matrix = 0;
-    // set mplex counters
-    systemData.total_portcontroller_output = systemData.i_count_port_controller_output;
-    systemData.i_count_port_controller_output = 0;
-    // set mplex counters
-    systemData.total_universe = systemData.i_count_track_planets;
-    systemData.i_count_track_planets = 0;
-    // set mplex counters
-    systemData.total_infocmd = systemData.i_count_read_serial_commands;
-    systemData.i_count_read_serial_commands = 0;
-    // set portcontroller input counters
-    systemData.total_portcontroller_input = systemData.i_count_portcontroller_input;
-    systemData.i_count_portcontroller_input = 0;
-    // set display counters
-    systemData.total_display = systemData.i_count_display;
-    systemData.i_count_display = 0;
-    // set second flags
-    systemData.interval_breach_track_planets = 1;
-    // set uptime
-    systemData.uptime_seconds++;
-    if (systemData.uptime_seconds >= LONG_MAX - 2)
-      {systemData.uptime_seconds = 0;
-        printf("[reset uptime_seconds] %ld\n", systemData.uptime_seconds);
-      }
-  // }
-}
-
-void system_timing() {
-    // printf("[LOOP] %ld\n", systemData.loops_a_second);
-    gettimeofday(&tv_now, NULL);
-    timeinfo = localtime(&tv_now.tv_sec); // Assumes localtime works
-    satioData.local_unixtime_uS = (int64_t)tv_now.tv_sec * 1000000L + (int64_t)tv_now.tv_usec;
-    // printf("[LOOP] localtime: %lld\n", satioData.local_unixtime_uS);
-
-    if (tv_now.tv_sec != prev_tv_sec) {
-        prev_tv_sec = tv_now.tv_sec;
-        systemData.interval_breach_1_second_output=true;
-        intervalBreach1Second();
-        printf(
-            "[ %llu ] "
-            "gps=%s "
-            "rtc=%s "
-            "lcl=%s "
-            "syn=%s "
-            "t_loop=%ld "
-            "t_gps=%ld "
-            "t_ins=%ld "
-            "t_gyr=%ld "
-            "t_mlx=%ld "
-            "t_uni=%ld "
-            "t_pci=%ld "
-            "t_mtx=%ld "
-            "t_pco=%ld "
-            "t_dsp=%ld  "
-
-            "sat=%s "
-            "deg_lat=%.7f "
-            "deg_lon=%.7f "
-            "usr_lat=%.7f "
-            "usr_lon=%.7f "
-            "sys_lat=%.7f "
-            "sys_lon=%.7f "
-            "alt=%.2f "
-            "ghd=%.2f "
-            "spd=%.2f "
-            
-            "ang_x=%.2f "
-            "ang_y=%.2f "
-            "ang_z=%.2f "
-            "gyr_x=%.2f "
-            "gyr_y=%.2f "
-            "gyr_z=%.2f "
-            "acc_x=%.2f "
-            "acc_y=%.2f "
-            "acc_z=%.2f "
-            "mag_x=%d "
-            "mag_y=%d "
-            "mag_z=%d\n",
-            
-            satioData.local_unixtime_uS,
-            gnrmcData.utc_time,
-            satioData.padded_rtc_time_HHMMSS,
-            satioData.padded_local_time_HHMMSS,
-            satioData.padded_rtc_sync_time_HHMMSS,
-            systemData.total_loops_a_second,
-            systemData.total_gps,
-            systemData.total_ins,
-            systemData.total_gyro_0,
-            systemData.total_mplex_0,
-            systemData.total_universe,
-            systemData.total_portcontroller_input,
-            systemData.total_matrix,
-            systemData.total_portcontroller_output,
-            systemData.total_display,
-
-            gnggaData.satellite_count,
-            satioData.degrees_latitude,
-            satioData.degrees_longitude,
-            satioData.user_degrees_latitude,
-            satioData.user_degrees_longitude,
-            satioData.system_degrees_latitude,
-            satioData.system_degrees_longitude,
-            satioData.altitude,
-            satioData.ground_heading,
-            satioData.speed,
-
-            gyroData.gyro_0_ang_x,
-            gyroData.gyro_0_ang_y,
-            gyroData.gyro_0_ang_z,
-            gyroData.gyro_0_gyr_x,
-            gyroData.gyro_0_gyr_y,
-            gyroData.gyro_0_gyr_z,
-            gyroData.gyro_0_acc_x,
-            gyroData.gyro_0_acc_y,
-            gyroData.gyro_0_acc_z,
-            gyroData.gyro_0_mag_x,
-            gyroData.gyro_0_mag_y,
-            gyroData.gyro_0_mag_z
-        );
-    }
-}
-
 /** ----------------------------------------------------------------------------
  * GPS Task.
  * 
+ * @brief Performas many operations including:
+ *  (1) Collects, validates and stores GPS data.
+ *  (2) Syncs INS data on successful validation.
+ * Consider renaming task to something like 'time and location'
  */
 void taskGPS(void * pvParameters) {
   esp_task_wdt_add(NULL);
+  while (global_task_sync==false) {esp_task_wdt_reset(); vTaskDelay(1);}
   for (;;) {
     esp_task_wdt_reset();
-
-    system_timing();
     // ------------------------------------------------
     // Get, check and set gps data.
     // ------------------------------------------------
-    gnggaData.valid_checksum=false;
-    gnrmcData.valid_checksum=false;
-    gpattData.valid_checksum=false;
     readGPS();
-    esp_task_wdt_reset();
     validateGPSData();
-    esp_task_wdt_reset();
     // ------------------------------------------------
     // Set SatIO data.
     // ------------------------------------------------
@@ -442,34 +283,29 @@ void taskGPS(void * pvParameters) {
         (gpattData.valid_checksum=true))
           ||
           satioData.set_rtc_datetime_flag==true) {
-
         // -> syncRTC -- > setRTCDateTime --> setSystemTime, storeRTCSYNCTime
         satioData.set_rtc_datetime_flag=true;
+        // xSemaphoreTake(i2c_bus0_mutex, 1000 / portTICK_PERIOD_MS);
         setSatIOData();
-        esp_task_wdt_reset();
-
+        // xSemaphoreGive(i2c_bus0_mutex);
         // --------------------------------------------
-        // Set INS data. (Can be used without GPS)
+        // Set INS data.
         // --------------------------------------------
-        set_ins(satioData.system_degrees_latitude,
-                satioData.system_degrees_latitude,
-                satioData.system_altitude,
-                satioData.system_ground_heading,
-                satioData.system_speed,
+        set_ins(satioData.degrees_latitude,
+                satioData.degrees_longitude,
+                satioData.altitude_converted,
+                satioData.ground_heading,
+                satioData.speed_converted,
                 atof(gnggaData.gps_precision_factor),
                 gyroData.gyro_0_ang_z);
-        esp_task_wdt_reset();
-
         // --------------------------------------------
         // Counters.
         // --------------------------------------------
         systemData.i_count_read_gps++;
-        systemData.interval_breach_gps = true;
+        systemData.interval_breach_gps = 1;
         if (systemData.i_count_read_gps>=UINT32_MAX-2)
           {systemData.i_count_read_gps=0;}
-        esp_task_wdt_reset();
     }
-    esp_task_wdt_reset();
     // ------------------------------------------------
     // Delay next iteration of task.
     // ------------------------------------------------
@@ -500,30 +336,26 @@ void taskGyro(void * pvParameters) {
   for (;;) {
     esp_task_wdt_reset();
     if (readGyro()==true) {
-      esp_task_wdt_reset();
       systemData.i_count_read_gyro_0++;
-      systemData.interval_breach_gyro_0 = true;
+      systemData.interval_breach_gyro_0 = 1;
       if (systemData.i_count_read_gyro_0>=UINT32_MAX-2)
         {systemData.i_count_read_gyro_0=0;}
-      esp_task_wdt_reset();
       // ----------------------------------------------
-      // Estimate INS data. (Can be used without GPS)
+      // Estimate INS data.
       // INS data is fed bsck into INS.
       // ----------------------------------------------
       if (systemData.interval_breach_gyro_0==true) {
       if (ins_estimate_position(gyroData.gyro_0_ang_y,
                           gyroData.gyro_0_ang_z,
-                          satioData.system_ground_heading,
-                          satioData.system_speed,
+                          satioData.ground_heading,
+                          satioData.speed_converted,
                           satioData.local_unixtime_uS)==true) {
                           systemData.i_count_read_ins++;
-                          systemData.interval_breach_ins=true;
+                          systemData.interval_breach_ins=1;
                           if (systemData.i_count_read_ins>=UINT32_MAX-2)
                             {systemData.i_count_read_ins=0;}}
-      esp_task_wdt_reset();
       }
     }
-    esp_task_wdt_reset();
     // ------------------------------------------------
     // Delay next iteration of task.
     // ------------------------------------------------
@@ -558,18 +390,15 @@ void taskMultiplexers(void * pvParameters) {
     // ------------------------------------------------
     for (uint8_t i_chan = 0; i_chan < 16; i_chan++) {
       readADMultiplexerAnalogChannel(ad_mux_0, i_chan);
-      vTaskDelay(1);
-      // esp_task_wdt_reset();
-      // printf("[ad] %d: %f\n", i_chan, ad_mux_0.data[i_chan]);
+      // Serial.println("[ad] " + String(i_chan) + ": " + String(ad_mux_0.data[i_chan]));
     }
     // ------------------------------------------------
     // Counters
     // ------------------------------------------------
     systemData.i_count_read_mplex_0++;
-    systemData.interval_breach_mplex_0 = true;
+    systemData.interval_breach_mplex_0 = 1;
     if (systemData.i_count_read_mplex_0 >= UINT32_MAX - 2)
     systemData.i_count_read_mplex_0 = 0;
-    esp_task_wdt_reset();
     // ------------------------------------------------
     // Delay next iteration of task.
     // ------------------------------------------------
@@ -590,6 +419,44 @@ void createTaskMultiplexers() {
 }
 
 /** ----------------------------------------------------------------------------
+ * Port Controller Input Task.
+ * 
+ * @brief Reads pins on portcontroller.
+ */
+void taskPortControllerInput(void * pvParameters) {
+  esp_task_wdt_add(NULL);
+  while (global_task_sync==false) {esp_task_wdt_reset(); vTaskDelay(1);}
+  for (;;) {
+    esp_task_wdt_reset();
+    // ------------------------------------------------
+    // Read Input Port Controller.
+    // ------------------------------------------------
+    if (readInputPortControllerReadPins(iic_2, I2C_ADDR_INPUT_PORTCONTROLLER)==true) {
+      systemData.i_count_portcontroller_input++;
+      if (systemData.i_count_portcontroller_input>=UINT64_MAX-2)
+        {systemData.i_count_portcontroller_input=0;}
+    }
+    // ------------------------------------------------
+    // Delay next iteration of task.
+    // ------------------------------------------------
+    if (TICK_DELAY_TASK_PORTCONTROLLER_INPUT==false)
+      {xTaskNotifyWait(0x00, 0x00, NULL, DELAY_TASK_PORTCONTROLLER_INPUT / portTICK_PERIOD_MS);}
+    else {xTaskNotifyWait(0x00, 0x00, NULL, DELAY_TASK_PORTCONTROLLER_INPUT);}
+  }
+}
+
+void createTaskPortControllerInput() {
+    xTaskCreatePinnedToCore(
+    taskPortControllerInput,   /* Function to implement the task */
+    "TaskPortControllerInput", /* Name of the task */
+    TASK_PORTCONTROLLERINPUT_STACK_SIZE, /* Stack size in words */
+    NULL,                      /* Task input parameter */
+    TASK_PORTCONTROLLERINPUT_PRIORITY, /* Priority of the task */
+    &TaskPortControllerInput,          /* Task handle. */
+    TASK_PORTCONTROLLERINPUT_CORE);    /* Core where the task should run */
+}
+
+/** ----------------------------------------------------------------------------
  * Switch Task.
  * 
  * @brief Performs various operations including:
@@ -607,25 +474,19 @@ void taskSwitches(void * pvParameters) {
     // Calculate.
     // ------------------------------------------------
     if (matrixSwitch()) {
-      esp_task_wdt_reset();
       systemData.i_count_matrix++;
-      systemData.interval_breach_matrix=true;
       if (systemData.i_count_matrix>=UINT64_MAX-2)
         {systemData.i_count_matrix=0;}
     }
-    esp_task_wdt_reset();
     // ------------------------------------------------
     // Mapping.
     // ------------------------------------------------
     map_values();
-    esp_task_wdt_reset();
     // ------------------------------------------------
     // Output.
     // ------------------------------------------------
     setOutputValues();
-    esp_task_wdt_reset();
-    writeOutputPortControllerSetPins(iic_2, I2C_ADDR_OUTPUT_PORTCONTROLLER);
-    esp_task_wdt_reset();
+    writeOutputPortControllerSetPins(iic_1, I2C_ADDR_OUTPUT_PORTCONTROLLER);
     // SwitchStat();
     // ------------------------------------------------
     // Delay next iteration of task.
@@ -656,34 +517,30 @@ void taskUniverse(void * pvParameters) {
   while (global_task_sync==false) {esp_task_wdt_reset(); vTaskDelay(1);}
   for (;;) {
     esp_task_wdt_reset();
-    // ---------------------------------------------------------
-    // Track Home Sun, Moon & Planets. (Can be used without GPS)
-    // ---------------------------------------------------------
-      trackPlanets(satioData.system_degrees_latitude,
-                  satioData.system_degrees_longitude,
-                  satioData.rtc_year,
-                  satioData.rtc_month,
-                  satioData.rtc_mday,
-                  satioData.rtc_hour,
-                  satioData.rtc_minute,
-                  satioData.rtc_second,
-                  satioData.local_hour,
-                  satioData.local_minute,
-                  satioData.local_second,
-                  satioData.system_altitude
-                );
+    // ------------------------------------------------
+    // Track Home Sun, Moon & Planets.
+    // ------------------------------------------------
+    trackPlanets(satioData.degrees_latitude,
+                 satioData.degrees_longitude,
+                 satioData.rtc_year,
+                 satioData.rtc_month,
+                 satioData.rtc_mday,
+                 satioData.rtc_hour,
+                 satioData.rtc_minute,
+                 satioData.rtc_second,
+                 satioData.local_hour,
+                 satioData.local_minute,
+                 satioData.local_second,
+                 atol(gnggaData.altitude));
     systemData.i_count_track_planets++;
-    esp_task_wdt_reset();
+    systemData.interval_breach_track_planets = 1;
+    if (systemData.i_count_track_planets>=UINT32_MAX-2)
+      {systemData.i_count_track_planets=0;}
     // ------------------------------------------------
     // Track Meteors.
     // ------------------------------------------------
     setMeteorShowerWarning(satioData.local_month,
                            satioData.local_mday);
-    esp_task_wdt_reset();
-    systemData.interval_breach_track_planets = true;
-    if (systemData.i_count_track_planets>=UINT32_MAX-2)
-      {systemData.i_count_track_planets=0;}
-    esp_task_wdt_reset();
     // ------------------------------------------------
     // Delay next iteration of task.
     // ------------------------------------------------
@@ -703,6 +560,333 @@ void createTaskUniverse() {
     TASK_UNIVERSE_CORE);    /* Core where the task should run */
 }
 
+/** ----------------------------------------------------------------------------
+ * Multi Display Controller.
+ * @brief Sends instructions to multi display controller.
+ * @note multi display controller is currently using CONFIG_I2C_ENABLE_SLAVE_DRIVER_VERSION_2
+ */
+#define I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0 0x12 // change and add more as required.
+char temp_buffer_multidisplay[32];
+IICLink IICLinkMultiDisplayController; // IIC link data structure for Multi Display Controller
+int iic_delay = 1;
+uint8_t n_bytes=0;
+
+void tasMultiDisplay(void * pvParameters) {
+  esp_task_wdt_add(NULL);
+  while (global_task_sync==false) {esp_task_wdt_reset(); vTaskDelay(1);}
+  
+  while(1) {
+    esp_task_wdt_reset();
+
+    /** ----------------------------------------------------------------------------
+      DATETIME
+    */
+    
+    // satellit count
+    memset(temp_buffer_multidisplay, 0, sizeof(temp_buffer_multidisplay));
+    strcpy(temp_buffer_multidisplay, gnggaData.satellite_count);
+    clearI2CLinkOutputPacket(IICLinkMultiDisplayController);
+    n_bytes = (uint8_t)strlen(temp_buffer_multidisplay)+2;
+    write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 0, n_bytes); // length
+    write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 1, 0x0B); // command 11
+    write_nchars_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 2, temp_buffer_multidisplay, strlen(temp_buffer_multidisplay));
+    writeI2CToSlaveBin(iic_2, IICLinkMultiDisplayController, I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0, n_bytes, iic_delay, "updateSSD1306");
+
+    // GPS precision
+    memset(temp_buffer_multidisplay, 0, sizeof(temp_buffer_multidisplay));
+    strcpy(temp_buffer_multidisplay, gnggaData.gps_precision_factor);
+    clearI2CLinkOutputPacket(IICLinkMultiDisplayController);
+    n_bytes = (uint8_t)strlen(temp_buffer_multidisplay)+2;
+    write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 0, n_bytes); // length
+    write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 1, 0x0C); // command 12
+    write_nchars_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 2, temp_buffer_multidisplay, strlen(temp_buffer_multidisplay));
+    writeI2CToSlaveBin(iic_2, IICLinkMultiDisplayController, I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0, n_bytes, iic_delay, "updateSSD1306");
+
+    // time HHMMSS
+    memset(temp_buffer_multidisplay, 0, sizeof(temp_buffer_multidisplay));
+    strcpy(temp_buffer_multidisplay, satioData.formatted_local_time_HHMMSS);
+    if (strlen(temp_buffer_multidisplay)==8) { 
+      clearI2CLinkOutputPacket(IICLinkMultiDisplayController);
+      n_bytes = (uint8_t)strlen(temp_buffer_multidisplay)+2;
+      write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 0, n_bytes); // length
+      write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 1, 0x0D); // command 13
+      write_nchars_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 2, temp_buffer_multidisplay, strlen(temp_buffer_multidisplay));
+      writeI2CToSlaveBin(iic_2, IICLinkMultiDisplayController, I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0, n_bytes, iic_delay, "updateSSD1306");
+    }
+    
+    // date DDMMYY
+    memset(temp_buffer_multidisplay, 0, sizeof(temp_buffer_multidisplay));
+    strcpy(temp_buffer_multidisplay, satioData.formatted_local_short_date_DDMMYY);
+    if (strlen(temp_buffer_multidisplay)==8) { 
+      clearI2CLinkOutputPacket(IICLinkMultiDisplayController);
+      n_bytes = (uint8_t)strlen(temp_buffer_multidisplay)+2;
+      write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 0, n_bytes); // length
+      write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 1, 0x0E); // command 14
+      write_nchars_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 2, temp_buffer_multidisplay, strlen(temp_buffer_multidisplay));
+      writeI2CToSlaveBin(iic_2, IICLinkMultiDisplayController, I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0, n_bytes, iic_delay, "updateSSD1306");
+    }
+
+    // RTC sync time HHMMSS
+    memset(temp_buffer_multidisplay, 0, sizeof(temp_buffer_multidisplay));
+    strcpy(temp_buffer_multidisplay, satioData.formatted_rtc_sync_time);
+    if (strlen(temp_buffer_multidisplay)==8) { 
+      clearI2CLinkOutputPacket(IICLinkMultiDisplayController);
+      n_bytes = (uint8_t)strlen(temp_buffer_multidisplay)+2;
+      write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 0, n_bytes); // length
+      write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 1, 0x0F); // command 15
+      write_nchars_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 2, temp_buffer_multidisplay, strlen(temp_buffer_multidisplay));
+      writeI2CToSlaveBin(iic_2, IICLinkMultiDisplayController, I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0, n_bytes, iic_delay, "updateSSD1306");
+    }
+
+    // RTC sync date DDMMYY
+    memset(temp_buffer_multidisplay, 0, sizeof(temp_buffer_multidisplay));
+    strcpy(temp_buffer_multidisplay, satioData.formatted_rtc_sync_short_date_DDMMYY);
+    if (strlen(temp_buffer_multidisplay)==8) {
+      clearI2CLinkOutputPacket(IICLinkMultiDisplayController);
+      n_bytes = (uint8_t)strlen(temp_buffer_multidisplay)+2;
+      write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 0, n_bytes); // length
+      write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 1, 0x10); // command 16
+      write_nchars_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 2, temp_buffer_multidisplay, strlen(temp_buffer_multidisplay));
+      writeI2CToSlaveBin(iic_2, IICLinkMultiDisplayController, I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0, n_bytes, iic_delay, "updateSSD1306");
+    }
+
+    /** ----------------------------------------------------------------------------
+      ATTITUDE
+    */
+
+    // gyro angle x
+    memset(temp_buffer_multidisplay, 0, sizeof(temp_buffer_multidisplay));
+    strcpy(temp_buffer_multidisplay, String(gyroData.gyro_0_ang_x).c_str());
+    clearI2CLinkOutputPacket(IICLinkMultiDisplayController);
+    n_bytes = (uint8_t)strlen(temp_buffer_multidisplay)+2;
+    write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 0, n_bytes); // length
+    write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 1, 0x15); // command 21
+    write_nchars_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 2, temp_buffer_multidisplay, strlen(temp_buffer_multidisplay));
+    writeI2CToSlaveBin(iic_2, IICLinkMultiDisplayController, I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0, n_bytes, iic_delay, "updateSSD1306");
+
+    // gyro angle y
+    memset(temp_buffer_multidisplay, 0, sizeof(temp_buffer_multidisplay));
+    strcpy(temp_buffer_multidisplay, String(gyroData.gyro_0_ang_y).c_str());
+    clearI2CLinkOutputPacket(IICLinkMultiDisplayController);
+    n_bytes = (uint8_t)strlen(temp_buffer_multidisplay)+2;
+    write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 0, n_bytes); // length
+    write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 1, 0x16); // command 22
+    write_nchars_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 2, temp_buffer_multidisplay, strlen(temp_buffer_multidisplay));
+    writeI2CToSlaveBin(iic_2, IICLinkMultiDisplayController, I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0, n_bytes, iic_delay, "updateSSD1306");
+
+    // gyro angle z
+    memset(temp_buffer_multidisplay, 0, sizeof(temp_buffer_multidisplay));
+    strcpy(temp_buffer_multidisplay, String(gyroData.gyro_0_ang_z).c_str());
+    clearI2CLinkOutputPacket(IICLinkMultiDisplayController);
+    n_bytes = (uint8_t)strlen(temp_buffer_multidisplay)+2;
+    write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 0, n_bytes); // length
+    write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 1, 0x17); // command 23
+    write_nchars_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 2, temp_buffer_multidisplay, strlen(temp_buffer_multidisplay));
+    writeI2CToSlaveBin(iic_2, IICLinkMultiDisplayController, I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0, n_bytes, iic_delay, "updateSSD1306");
+
+    /** ----------------------------------------------------------------------------
+      ACCELLERATION
+    */
+
+    // accel x
+    memset(temp_buffer_multidisplay, 0, sizeof(temp_buffer_multidisplay));
+    strcpy(temp_buffer_multidisplay, String(gyroData.gyro_0_acc_x).c_str());
+    clearI2CLinkOutputPacket(IICLinkMultiDisplayController);
+    n_bytes = (uint8_t)strlen(temp_buffer_multidisplay)+2;
+    write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 0, n_bytes); // length
+    write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 1, 0x1F); // command 31
+    write_nchars_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 2, temp_buffer_multidisplay, strlen(temp_buffer_multidisplay));
+    writeI2CToSlaveBin(iic_2, IICLinkMultiDisplayController, I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0, n_bytes, iic_delay, "updateSSD1306");
+
+    // accel y
+    memset(temp_buffer_multidisplay, 0, sizeof(temp_buffer_multidisplay));
+    strcpy(temp_buffer_multidisplay, String(gyroData.gyro_0_acc_y).c_str());
+    clearI2CLinkOutputPacket(IICLinkMultiDisplayController);
+    n_bytes = (uint8_t)strlen(temp_buffer_multidisplay)+2;
+    write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 0, n_bytes); // length
+    write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 1, 0x20); // command 32
+    write_nchars_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 2, temp_buffer_multidisplay, strlen(temp_buffer_multidisplay));
+    writeI2CToSlaveBin(iic_2, IICLinkMultiDisplayController, I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0, n_bytes, iic_delay, "updateSSD1306");
+
+    // accel z
+    memset(temp_buffer_multidisplay, 0, sizeof(temp_buffer_multidisplay));
+    strcpy(temp_buffer_multidisplay, String(gyroData.gyro_0_acc_z).c_str());
+    clearI2CLinkOutputPacket(IICLinkMultiDisplayController);
+    n_bytes = (uint8_t)strlen(temp_buffer_multidisplay)+2;
+    write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 0, n_bytes); // length
+    write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 1, 0x21); // command 33
+    write_nchars_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 2, temp_buffer_multidisplay, strlen(temp_buffer_multidisplay));
+    writeI2CToSlaveBin(iic_2, IICLinkMultiDisplayController, I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0, n_bytes, iic_delay, "updateSSD1306");
+
+    /** ----------------------------------------------------------------------------
+      MAGNETIC FIELD
+    */
+
+    // mag x
+    memset(temp_buffer_multidisplay, 0, sizeof(temp_buffer_multidisplay));
+    strcpy(temp_buffer_multidisplay, String(gyroData.gyro_0_mag_x).c_str());
+    clearI2CLinkOutputPacket(IICLinkMultiDisplayController);
+    n_bytes = (uint8_t)strlen(temp_buffer_multidisplay)+2;
+    write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 0, n_bytes); // length
+    write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 1, 0x29); // command 41
+    write_nchars_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 2, temp_buffer_multidisplay, strlen(temp_buffer_multidisplay));
+    writeI2CToSlaveBin(iic_2, IICLinkMultiDisplayController, I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0, n_bytes, iic_delay, "updateSSD1306");
+
+    // mag y
+    memset(temp_buffer_multidisplay, 0, sizeof(temp_buffer_multidisplay));
+    strcpy(temp_buffer_multidisplay, String(gyroData.gyro_0_mag_y).c_str());
+    clearI2CLinkOutputPacket(IICLinkMultiDisplayController);
+    n_bytes = (uint8_t)strlen(temp_buffer_multidisplay)+2;
+    write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 0, n_bytes); // length
+    write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 1, 0x2A); // command 42
+    write_nchars_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 2, temp_buffer_multidisplay, strlen(temp_buffer_multidisplay));
+    writeI2CToSlaveBin(iic_2, IICLinkMultiDisplayController, I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0, n_bytes, iic_delay, "updateSSD1306");
+
+    // mag z
+    memset(temp_buffer_multidisplay, 0, sizeof(temp_buffer_multidisplay));
+    strcpy(temp_buffer_multidisplay, String(gyroData.gyro_0_mag_z).c_str());
+    clearI2CLinkOutputPacket(IICLinkMultiDisplayController);
+    n_bytes = (uint8_t)strlen(temp_buffer_multidisplay)+2;
+    write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 0, n_bytes); // length
+    write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 1, 0x2B); // command 43
+    write_nchars_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 2, temp_buffer_multidisplay, strlen(temp_buffer_multidisplay));
+    writeI2CToSlaveBin(iic_2, IICLinkMultiDisplayController, I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0, n_bytes, iic_delay, "updateSSD1306");
+
+    /** ----------------------------------------------------------------------------
+      SPEED
+    */
+    
+    // speed converted
+    memset(temp_buffer_multidisplay, 0, sizeof(temp_buffer_multidisplay));
+    strcpy(temp_buffer_multidisplay, String(satioData.speed_converted).c_str());
+    clearI2CLinkOutputPacket(IICLinkMultiDisplayController);
+    n_bytes = (uint8_t)strlen(temp_buffer_multidisplay)+2;
+    write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 0, n_bytes); // length
+    write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 1, 0x33); // command 51
+    write_nchars_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 2, temp_buffer_multidisplay, strlen(temp_buffer_multidisplay));
+    writeI2CToSlaveBin(iic_2, IICLinkMultiDisplayController, I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0, n_bytes, iic_delay, "updateSSD1306");
+
+    // speed measurement
+    memset(temp_buffer_multidisplay, 0, sizeof(temp_buffer_multidisplay));
+    strcpy(temp_buffer_multidisplay, String(satioData.char_speed_unit_mode[satioData.speed_unit_mode]).c_str());
+    clearI2CLinkOutputPacket(IICLinkMultiDisplayController);
+    n_bytes = (uint8_t)strlen(temp_buffer_multidisplay)+2;
+    write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 0, n_bytes); // length
+    write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 1, 0x34); // command 52
+    write_nchars_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 2, temp_buffer_multidisplay, strlen(temp_buffer_multidisplay));
+    writeI2CToSlaveBin(iic_2, IICLinkMultiDisplayController, I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0, n_bytes, iic_delay, "updateSSD1306");
+
+    /** ---------------------------------------------------------------------------
+     * ALTITUDE
+     */
+
+    // altitude converted
+    memset(temp_buffer_multidisplay, 0, sizeof(temp_buffer_multidisplay));
+    strcpy(temp_buffer_multidisplay, String(satioData.altitude_converted).c_str());
+    clearI2CLinkOutputPacket(IICLinkMultiDisplayController);
+    n_bytes = (uint8_t)strlen(temp_buffer_multidisplay)+2;
+    write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 0, n_bytes); // length
+    write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 1, 0x3D); // command 61
+    write_nchars_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 2, temp_buffer_multidisplay, strlen(temp_buffer_multidisplay));
+    writeI2CToSlaveBin(iic_2, IICLinkMultiDisplayController, I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0, n_bytes, iic_delay, "updateSSD1306");
+
+    // altitude measurement
+    memset(temp_buffer_multidisplay, 0, sizeof(temp_buffer_multidisplay));
+    strcpy(temp_buffer_multidisplay, String(satioData.char_altitude_unit_mode[satioData.altitude_unit_mode]).c_str());
+    clearI2CLinkOutputPacket(IICLinkMultiDisplayController);
+    n_bytes = (uint8_t)strlen(temp_buffer_multidisplay)+2;
+    write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 0, n_bytes); // length
+    write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 1, 0x3E); // command 62
+    write_nchars_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 2, temp_buffer_multidisplay, strlen(temp_buffer_multidisplay));
+    writeI2CToSlaveBin(iic_2, IICLinkMultiDisplayController, I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0, n_bytes, iic_delay, "updateSSD1306");
+
+    /** ---------------------------------------------------------------------------
+     * DEGREES LATITUDE & LONGITUDE
+     */
+
+    // degrees latitude
+    memset(temp_buffer_multidisplay, 0, sizeof(temp_buffer_multidisplay));
+    strcpy(temp_buffer_multidisplay, String(satioData.degrees_latitude, 7).c_str());
+    clearI2CLinkOutputPacket(IICLinkMultiDisplayController);
+    n_bytes = (uint8_t)strlen(temp_buffer_multidisplay)+2;
+    write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 0, n_bytes); // length
+    write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 1, 0x47); // command 71
+    write_nchars_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 2, temp_buffer_multidisplay, strlen(temp_buffer_multidisplay));
+    writeI2CToSlaveBin(iic_2, IICLinkMultiDisplayController, I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0, n_bytes, iic_delay, "updateSSD1306");
+    
+    // degrees longitude
+    memset(temp_buffer_multidisplay, 0, sizeof(temp_buffer_multidisplay));
+    strcpy(temp_buffer_multidisplay, String(satioData.degrees_longitude, 7).c_str());
+    clearI2CLinkOutputPacket(IICLinkMultiDisplayController);
+    n_bytes = (uint8_t)strlen(temp_buffer_multidisplay)+2;
+    write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 0, n_bytes); // length
+    write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 1, 0x48); // command 72
+    write_nchars_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 2, temp_buffer_multidisplay, strlen(temp_buffer_multidisplay));
+    writeI2CToSlaveBin(iic_2, IICLinkMultiDisplayController, I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0, n_bytes, iic_delay, "updateSSD1306");
+
+    /** ----------------------------------------------------------------------------
+      DRAW CANVAS(S)
+    */
+
+    // draw canvas
+    clearI2CLinkOutputPacket(IICLinkMultiDisplayController);
+    write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 0, (uint8_t)3); // n bytes
+    write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 1, 0x0A); // command 10
+    write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 2, 0);
+    writeI2CToSlaveBin(iic_2, IICLinkMultiDisplayController, I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0, 3, iic_delay, "drawSSD1306Canvas");
+
+    // draw canvas
+    clearI2CLinkOutputPacket(IICLinkMultiDisplayController);
+    write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 0, (uint8_t)3); // n bytes
+    write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 1, 0x0A); // command 10
+    write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 2, 1);
+    writeI2CToSlaveBin(iic_2, IICLinkMultiDisplayController, I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0, 3, iic_delay, "drawSSD1306Canvas");
+
+    // draw canvas
+    clearI2CLinkOutputPacket(IICLinkMultiDisplayController);
+    write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 0, (uint8_t)3); // n bytes
+    write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 1, 0x0A ); // command 10
+    write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 2, 2);
+    writeI2CToSlaveBin(iic_2, IICLinkMultiDisplayController, I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0, 3, iic_delay, "drawSSD1306Canvas");
+
+    // draw canvas
+    clearI2CLinkOutputPacket(IICLinkMultiDisplayController);
+    write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 0, (uint8_t)3); // n bytes
+    write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 1, 0x0A ); // command 10
+    write_uint8_ToPacket(IICLinkMultiDisplayController.OUTPUT_PACKET, 2, 3);
+    writeI2CToSlaveBin(iic_2, IICLinkMultiDisplayController, I2C_MULTIDISPLAY_CONTROLLER_ADDRESS_0, 3, iic_delay, "drawSSD1306Canvas");
+     
+
+    /** ----------------------------------------------------------------------------
+     * Display 4: Fast input (analog/digital multiplexer)
+    */
+   
+    // multiplexer channel 0
+
+    // ------------------------------------------------
+    // Counters
+    // ------------------------------------------------
+    systemData.i_count_display++;
+    if (systemData.i_count_display>=UINT32_MAX-2)
+      {systemData.i_count_display=0;}
+    // ------------------------------------------------
+    // Delay next iteration of task.
+    // ------------------------------------------------
+    if (TICK_DELAY_TASK_DISPLAY==false)
+      {xTaskNotifyWait(0x00, 0x00, NULL, DELAY_TASK_DISPLAY / portTICK_PERIOD_MS);}
+    else {xTaskNotifyWait(0x00, 0x00, NULL, DELAY_TASK_DISPLAY);}
+  }
+}
+void createTaskMultiDisplay() {
+    xTaskCreatePinnedToCore(
+    tasMultiDisplay,   /* Function to implement the task */
+    "TasMultiDisplay", /* Name of the task */
+    TASK_DISPLAY_STACK_SIZE, /* Stack size in words */
+    NULL,           /* Task input parameter */
+    TASK_MULTI_DISPLAY_PRIORITY, /* Priority of the task */
+    &TasMultiDisplay,          /* Task handle. */
+    TASK_MULTI_DISPLAY_CORE);    /* Core where the task should run */
+}
 
 /** ----------------------------------------------------------------------------
  * PowerCfg: Ultimate Performance.
@@ -733,6 +917,10 @@ void setTasksDelayUltimatePerformance() {
     DELAY_TASK_SWITCHES=POWER_CONFIG_ULTIMATE_PERFORMANCE_DELAY_TASK_SWITCHES;
     TICK_DELAY_TASK_SWITCHES=POWER_CONFIG_ULTIMATE_PERFORMANCE_TICK_DELAY_TASK_SWITCHES;
     xTaskNotifyGive(TaskSwitches);
+
+    DELAY_TASK_PORTCONTROLLER_INPUT=POWER_CONFIG_ULTIMATE_PERFORMANCE_DELAY_TASK_PORTCONTROLLER_INPUT;
+    TICK_DELAY_TASK_PORTCONTROLLER_INPUT=POWER_CONFIG_ULTIMATE_PERFORMANCE_TICK_DELAY_TASK_PORTCONTROLLER_INPUT;
+    xTaskNotifyGive(TaskPortControllerInput);
 
     DELAY_TASK_LOGGING=POWER_CONFIG_ULTIMATE_PERFORMANCE_DELAY_TASK_LOGGING;
     TICK_DELAY_TASK_LOGGING=POWER_CONFIG_ULTIMATE_PERFORMANCE_TICK_DELAY_TASK_LOGGING;
@@ -772,6 +960,10 @@ void setTasksDelayPowerSaving() {
     DELAY_TASK_SWITCHES=POWER_CONFIG_1_SECOND_DELAY_TASK_SWITCHES;
     TICK_DELAY_TASK_SWITCHES=POWER_CONFIG_1_SECOND_TICK_DELAY_TASK_SWITCHES;
     xTaskNotifyGive(TaskSwitches);
+
+    DELAY_TASK_PORTCONTROLLER_INPUT=POWER_CONFIG_1_SECOND_DELAY_TASK_PORTCONTROLLER_INPUT;
+    TICK_DELAY_TASK_PORTCONTROLLER_INPUT=POWER_CONFIG_1_SECOND_TICK_DELAY_TASK_PORTCONTROLLER_INPUT;
+    xTaskNotifyGive(TaskPortControllerInput);
 
     DELAY_TASK_LOGGING=POWER_CONFIG_1_SECOND_DELAY_TASK_LOGGING;
     TICK_DELAY_TASK_LOGGING=POWER_CONFIG_1_SECOND_TICK_DELAY_TASK_LOGGING;

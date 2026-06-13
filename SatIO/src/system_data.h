@@ -22,6 +22,7 @@ struct systemStruct {
   bool interval_breach_track_planets;
   bool interval_breach_logging;
   bool interval_breach_1_second_output;
+  bool interval_breach_1_second;
 
   bool debug;
   bool output_stat;
@@ -43,10 +44,9 @@ struct systemStruct {
   bool output_admplex0_enabled;
   bool output_gyro_0_enabled;
   bool output_sun_enabled;
+  bool output_moon_enabled;
   bool output_mercury_enabled;
   bool output_venus_enabled;
-  bool output_earth_enabled;
-  bool output_luna_enabled;
   bool output_mars_enabled;
   bool output_jupiter_enabled;
   bool output_saturn_enabled;
@@ -55,19 +55,44 @@ struct systemStruct {
   bool output_meteors_enabled;
 
   // Counters
+  int32_t mainLoopTimeTaken;
+  int32_t mainLoopTimeStart;
+  int32_t mainLoopTimeTakenMax;
   int32_t uptime_seconds;
+  int32_t interval_timer_1_second;
 
   int32_t i_count_read_gps;
+  int32_t prev_i_count_read_gps;
+
   int32_t i_count_read_ins;
+  int32_t prev_i_count_read_ins;
+
   int32_t i_count_read_gyro_0;
+  int32_t prev_i_count_read_gyro_0;
+
   int32_t i_count_read_mplex_0;
+  int32_t prev_i_count_read_mplex_0;
+
   int32_t i_count_matrix;
+  int32_t prev_i_count_matrix;
+
   int32_t i_count_portcontroller_input;
+  int32_t prev_i_count_portcontroller_input;
+
   int32_t i_count_port_controller_output;
+  int32_t prev_i_count_port_controller_output;
+
   int32_t i_count_track_planets;
+  int32_t prev_i_count_track_planets;
+
   int32_t i_count_read_serial_commands;
+  int32_t prev_i_count_read_serial_commands;
+
   int32_t i_count_logging;
+  int32_t prev_i_count_logging;
+
   int32_t i_count_display;
+  int32_t prev_i_count_display;
 
   int32_t loops_a_second;
   int32_t total_loops_a_second;

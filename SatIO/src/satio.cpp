@@ -3,7 +3,7 @@
 
 */
 
-#include "./satio.h"
+#include "satio.h"
 #include <Arduino.h>
 #include <Wire.h>
 #include <RTClib.h>  // https://github.com/adafruit/RTClib
@@ -17,9 +17,6 @@
 RTC_DS3231 rtc;
 
 struct SATIOStruct satioData = {
-    // ------------------------------------------------------------------------------------
-    // INTERNAL
-    // ------------------------------------------------------------------------------------
     .satio_sentence = {0},
     .latitude_meter = 0.0000100,
     .longitude_meter = 0.0000100,
@@ -39,6 +36,8 @@ struct SATIOStruct satioData = {
     .secondsLong = 0.0,
     .millisecondsLat = 0.0,
     .millisecondsLong = 0.0,
+    .degrees_latitude = 0.0,
+    .degrees_longitude = 0.0,
     .degreesLat = 0.0,
     .degreesLong = 0.0,
     .tmp_year_int = 0,
@@ -55,51 +54,9 @@ struct SATIOStruct satioData = {
     .tmp_minute = {0},
     .tmp_second = {0},
     .tmp_millisecond = {0},
-    .week_day_names = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"},
-    .month_names = {"January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"},
-    .abbrev_month_names = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"},
-
-    // ------------------------------------------------------------------------------------
-    // LOCATION
-    // ------------------------------------------------------------------------------------
-    .degrees_latitude=0.0,                            // Converted latitude in degrees
-    .degrees_longitude=0.0,                           // Converted longitude in degrees
-    .user_degrees_latitude=0.0,
-    .user_degrees_longitude=0.0,
-    .system_degrees_latitude=0.0,
-    .system_degrees_longitude=0.0,
-    .location_value_mode = SATIO_MODE_GPS,
-    // ------------------------------------------------------------------------------------
-    // ALTITUDE SETTINGS
-    // ------------------------------------------------------------------------------------
-    .altitude = 0.0,
-    .user_altitude = 0.0,
-    .system_altitude=0.0,
-    .altitude_value_mode = SATIO_MODE_GPS,
-    // ------------------------------------------------------------------------------------
-    // SPEED SETTINGS
-    // ------------------------------------------------------------------------------------
-    .speed = 0.0,
-    .user_speed = 0.0,
-    .system_speed = 0.0,
-    .speed_value_mode = SATIO_MODE_GPS,
-    // ------------------------------------------------------------------------------------
-    // HEADING SETTINGS
-    // ------------------------------------------------------------------------------------
-    .ground_heading = 0.0,
-    .user_ground_heading = 0.0,
-    .system_ground_heading = 0.0,
-    .ground_heading_value_mode = SATIO_MODE_GPS,
-    .ground_heading_name = {0},
-    // ------------------------------------------------------------------------------------
-    // MILEAGE
-    // ------------------------------------------------------------------------------------
-    .mileage = "pending",
-
-    // ------------------------------------------------------------------------------------
-    // LOCAL TIME ITEMS
-    // ------------------------------------------------------------------------------------
-    .local_unixtime_uS = 0,
+    .week_day_names = {
+        "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday", // todo
+    },
     .local_hour = 0,
     .local_minute = 0,
     .local_second = 0,
@@ -109,32 +66,43 @@ struct SATIOStruct satioData = {
     .local_yday = 1,
     .local_wday = 1,
     .local_wday_name = {0},
-    .local_month_name = {0},
-    .utc_second_offset = 0,
-    .utc_auto_offset_flag = false,
-    .set_time_automatically = true,
-    // ------------------------------------------------------------------------------------
-    // LOCAL TIME FORMATTED (FOR USER)
-    // ------------------------------------------------------------------------------------
+
     .formatted_local_time_HHMMSS = "00:00:00",
     .formatted_local_date_DDMMYYYY = "00/00/0000",
     .formatted_local_short_date_DDMMYY = "00/00/00",
-    // ------------------------------------------------------------------------------------
-    // LOCAL TIME PADDED (FOR CALC)
-    // ------------------------------------------------------------------------------------
+
     .padded_local_time_HHMMSS = "000000",
     .padded_local_hour = "00",
     .padded_local_minute = "00",
     .padded_local_second = "00",
+
     .padded_local_date_DDMMYYYY = "00000000",
     .padded_local_short_date_DDMMYY = "000000",
     .padded_local_day = "00",
     .padded_local_month = "00",
     .padded_local_year = "00",
-    // ------------------------------------------------------------------------------------
-    // RTC ITEMS
-    // ------------------------------------------------------------------------------------
-    .rtc_unixtime = 0,
+
+    .local_unixtime_uS = 0,
+    
+    .rtcsync_hour = 0,
+    .rtcsync_minute = 0,
+    .rtcsync_second = 0,
+    .rtcsync_year = 0,
+    .rtcsync_month = 0,
+    .rtcsync_day = 0,
+
+    .formatted_rtc_sync_time = "00:00:00",
+    .formatted_rtc_sync_date_DDMMYYYY = "00/00/00",
+    .formatted_rtc_sync_short_date_DDMMYY = "00/00/00",
+
+    .padded_rtc_sync_time_HHMMSS = "000000",
+    .padded_rtc_sync_date_DDMMYYYY = "00000000",
+
+    .rtcsync_unixtime = 0,
+    .rtcsync_latitude = "0.0",
+    .rtcsync_longitude = "0.0",
+    .rtcsync_altitude = "0.0",
+
     .rtc_hour = 0,
     .rtc_minute = 0,
     .rtc_second = 0,
@@ -143,54 +111,40 @@ struct SATIOStruct satioData = {
     .rtc_mday = 1,
     .rtc_wday = 1,
     .rtc_wday_name = {0},
-    // ------------------------------------------------------------------------------------
-    // RTC FORMATTED (FOR USER)
-    // ------------------------------------------------------------------------------------
     .formatted_rtc_time = "00:00:00",
     .formatted_rtc_date = "00/00/00",
     .padded_rtc_time_HHMMSS = "000000",
     .padded_rtc_date_DDMMYYYY = "00000000",
-    // ------------------------------------------------------------------------------------
-    // RTC SYNC ITEMS
-    // ------------------------------------------------------------------------------------
-    .rtcsync_unixtime = 0,
-    .rtcsync_hour = 0,
-    .rtcsync_minute = 0,
-    .rtcsync_second = 0,
-    .rtcsync_year = 0,
-    .rtcsync_month = 0,
-    .rtcsync_day = 0,
-    .rtcsync_latitude = "0.0",
-    .rtcsync_longitude = "0.0",
-    .rtcsync_altitude = "0.0",
-    // ------------------------------------------------------------------------------------
-    // RTC SYNC FORMATTED (FOR USER)
-    // ------------------------------------------------------------------------------------
-    .formatted_rtc_sync_time = "00:00:00",
-    .formatted_rtc_sync_date_DDMMYYYY = "00/00/00",
-    .formatted_rtc_sync_short_date_DDMMYY = "00/00/00",
-    // ------------------------------------------------------------------------------------
-    // RTC SYNC PADDED (FOR CALC)
-    // ------------------------------------------------------------------------------------
-    .padded_rtc_sync_time_HHMMSS = "000000",
-    .padded_rtc_sync_date_DDMMYYYY = "00000000",
-    // ------------------------------------------------------------------------------------
-    // Geo-Positional Time
-    // ------------------------------------------------------------------------------------
-    .geo_positional_hour = 0.0,
-    .geo_positional_minute = 0.0,
-    .geo_positional_second = 0.0,
-    .geo_positional_millisecond = 0.0,
-    .geo_positional_year = 0.0,
-    .geo_positional_month = 0.0,
-    .geo_positional_day = 0.0,
+    .rtc_unixtime = 0,
 
-    // ------------------------------------------------------------------------------------
-    // FLAGS
-    // ------------------------------------------------------------------------------------
+    .utc_second_offset = 0,
+    .utc_auto_offset_flag = false,
+    .set_time_automatically = true,
     .set_rtc_datetime_flag = false,
-    .sync_rtc_immediately_flag = true, // attempt sync immediately on starttup
-    .gps_sync = false,
+    .sync_rtc_immediately_flag = true, // default true to attempt sync immediately on starttup
+
+    .coordinate_conversion_mode = COORDINATE_CONVERSION_MODE_GPS,
+    .char_coordinate_conversion_mode = {"STATIC", "GPS"},
+
+    .altitude = 0,
+    .altitude_converted = 0,
+    .altitude_unit_mode = ALTITUDE_UNIT_MODE_METERS,
+    .char_altitude_unit_mode = {"m", "M", "KM"},
+    .altitude_conversion_mode = ALTITUDE_CONVERSION_MODE_GPS,
+    .char_altitude_conversion_mode = {"STATIC", "GPS"},
+
+    .speed = 0.0,
+    .speed_converted = 0,
+    .speed_unit_mode = SPEED_UNIT_MODE_KTS,
+    .char_speed_unit_mode = {"m/S", "M/PH", "K/PH", "KTS"},
+    .speed_conversion_mode = SPEED_CONVERSION_MODE_GPS,
+    .char_speed_conversion_mode = {"STATIC", "GPS"},
+
+    .ground_heading_name = {0},
+    .ground_heading = 0.0,
+    .ground_heading_mode = GROUND_HEADING_MODE_GPS,
+    .char_ground_heading_mode = {"STATIC", "GPS"},
+    .mileage = "pending",
 };
 
 LocPoint loc_point1_gps = {0.0, 0.0, 0.0, 0};
@@ -214,44 +168,52 @@ struct SpeedStruct speedData = {
     .speed = 0.0
 };
 
-/**
- * Set SatIO Altitude According To Update Mode. (The following should either be set or not set. If not set then conditions the be checked elsewhere)
- */
 void setSatIOAltitude() {
-  /* set converted values */
-  // ...
-  satioData.altitude = atoi(gnggaData.altitude);
+  double altitude=satioData.altitude;
+  char *endptr;
   // ---------------------------------------------------------------------
   // Select which value to use from the system.
   // ---------------------------------------------------------------------
-  if      (satioData.altitude_value_mode==SATIO_MODE_GPS)  {satioData.system_altitude = satioData.altitude;}
-  else if (satioData.altitude_value_mode==SATIO_MODE_USER) {satioData.system_altitude = satioData.user_altitude;}
+  if      (ALTITUDE_CONVERSION_MODE_STATIC) {} // is set elsewhere or remains static
+  else if (satioData.altitude_conversion_mode==ALTITUDE_CONVERSION_MODE_GPS) {altitude=strtod(gnggaData.altitude, &endptr);}
+  satioData.altitude=altitude;
+  // ---------------------------------------------------------------------
+  // Convert selected value.
+  // ---------------------------------------------------------------------
+  if      (satioData.altitude_unit_mode==ALTITUDE_UNIT_MODE_METERS) {}
+  else if (satioData.altitude_unit_mode==ALTITUDE_UNIT_MODE_MILES) {altitude=altitude*METERS_TO_MILES_RATIO;}
+  else if (satioData.altitude_unit_mode==ALTITUDE_UNIT_MODE_KILOMETERS) {altitude=altitude*METERS_TO_KILOMETERS_RATIO;}
+  satioData.altitude_converted=altitude;
 }
 
-/**
- * Set SatIO Speed According To Update Mode. (The following should either be set or not set. If not set then conditions the be checked elsewhere)
- */
 void setSatIOSspeed() {
-  /* set converted values */
-  // ...
-  satioData.speed = atof(gnrmcData.ground_speed);
+  double speed=satioData.speed;
+  char *endptr;
   // ---------------------------------------------------------------------
   // Select which value to use from the system.
   // ---------------------------------------------------------------------
-  if      (satioData.speed_value_mode==SATIO_MODE_GPS)  {satioData.system_speed = satioData.speed;}
-  else if (satioData.speed_value_mode==SATIO_MODE_USER) {satioData.system_speed = satioData.user_speed;}
+  if      (satioData.speed_conversion_mode==SPEED_CONVERSION_MODE_STATIC) {} // is set elsewhere or remains static
+  else if (satioData.speed_conversion_mode==SPEED_CONVERSION_MODE_GPS) {speed=strtod(gnrmcData.ground_speed, &endptr);}
+  satioData.speed=speed;
+  // ---------------------------------------------------------------------
+  // Convert selected value.
+  // ---------------------------------------------------------------------
+  if      (satioData.speed_unit_mode==SPEED_UNIT_MODE_KTS) {}
+  else if (satioData.speed_unit_mode==SPEED_UNIT_MODE_MPH) {speed=speed*KNOTS_TO_MPH;}
+  else if (satioData.speed_unit_mode==SPEED_UNIT_MODE_KPH) {speed=speed*KNOTS_TO_MPH;}
+  else if (satioData.speed_unit_mode==SPEED_UNIT_MODE_METERS_A_SECOND) {speed=speed*KNOTS_TO_METERS_PER_SECOND;}
+  satioData.speed_converted=speed;
 }
 
-/**
- * Set SatIO Ground Heading According To Update Mode. (The following should either be set or not set. If not set then conditions the be checked elsewhere)
- */
 void setSatIOGroundHeading() {
-  satioData.ground_heading = atof(gnrmcData.ground_heading);
+  double ground_heading=satioData.ground_heading;
+  char *endptr;
   // ---------------------------------------------------------------------
   // Select which value to use from the system.
   // ---------------------------------------------------------------------
-  if      (satioData.ground_heading_value_mode==SATIO_MODE_GPS)  {satioData.system_ground_heading = satioData.ground_heading;}
-  else if (satioData.ground_heading_value_mode==SATIO_MODE_USER) {satioData.system_ground_heading = satioData.user_ground_heading;}
+  if      (satioData.ground_heading_mode==GROUND_HEADING_MODE_STATIC) {} // is set elsewhere or remains static
+  else if (satioData.ground_heading_mode==GROUND_HEADING_MODE_GPS) {ground_heading=strtod(gnrmcData.ground_heading, &endptr);}
+  satioData.ground_heading=ground_heading;
 }
 
 // ----------------------------------------------------------------------------------------
@@ -285,111 +247,102 @@ void setGroundHeadingName(float num) {
 //                                                                                                         CONVERT COORDINTE DATA
 // ------------------------------------------------------------------------------------------------------------------------------
 void setSatioCoordinates(){
+  if (satioData.coordinate_conversion_mode==COORDINATE_CONVERSION_MODE_STATIC) {} // is set elsewhere or remains static
   // ----------------------------------------------------------------------------------------------------------------------------
   //                                                                                                  GNGGA COORDINATE CONVERSION
   // ----------------------------------------------------------------------------------------------------------------------------
   // ----------------------------------------------------------------------------------------------------------------------------
   // Convert GNGGA latitude & longitude strings to decimal degrees and format into hours, minutes, seconds, milliseconds.
   // ----------------------------------------------------------------------------------------------------------------------------
-  // -----------------------------------------------------------------------------------------
-  // Extract absolute latitude value from GNGGA data as decimal degrees.
-  // -----------------------------------------------------------------------------------------
-  satioData.abs_latitude_gngga_0=atof(String(gnggaData.latitude).c_str());
-  // -----------------------------------------------------------------------------------------
-  // Store absolute latitude in temporary variable for further processing.
-  // -----------------------------------------------------------------------------------------
-  satioData.temp_latitude_gngga=satioData.abs_latitude_gngga_0;
-  // -----------------------------------------------------------------------------------------
-  // Separate the integer degrees value from the fractional part.
-  // -----------------------------------------------------------------------------------------
-  satioData.degreesLat=trunc(satioData.temp_latitude_gngga / 100);
-  // -----------------------------------------------------------------------------------------
-  // Calculate minutes and seconds values based on remaining fractional part.
-  // -----------------------------------------------------------------------------------------
-  satioData.minutesLat=satioData.temp_latitude_gngga - (satioData.degreesLat * 100);
-  // -----------------------------------------------------------------------------------------
-  // Convert excess fractional part to seconds.
-  // -----------------------------------------------------------------------------------------
-  satioData.secondsLat=(satioData.minutesLat - trunc(satioData.minutesLat)) * 60;
-  // -----------------------------------------------------------------------------------------
-  // Convert excess seconds to milliseconds.
-  // -----------------------------------------------------------------------------------------
-  satioData.millisecondsLat=(satioData.secondsLat - trunc(satioData.secondsLat)) * 1000;
-  // -----------------------------------------------------------------------------------------
-  // Round off minutes and seconds values to nearest integer.
-  // -----------------------------------------------------------------------------------------
-  satioData.minutesLat=trunc(satioData.minutesLat);
-  satioData.secondsLat=trunc(satioData.secondsLat);
-  // -----------------------------------------------------------------------------------------
-  // Combine degrees, minutes, seconds, and milliseconds into a single decimal latitude value.
-  // -----------------------------------------------------------------------------------------
-  satioData.degrees_latitude =
-  satioData.degreesLat + satioData.minutesLat / 60 + satioData.secondsLat / 3600 + satioData.millisecondsLat / 3600000;
-  // -----------------------------------------------------------------------------------------
-  // Negate latitude value if it's in the Southern hemisphere (make negative value).
-  // -----------------------------------------------------------------------------------------
-  if (strcmp(gnggaData.latitude_hemisphere, "S")==0) {
-    satioData.degrees_latitude=0 - satioData.degrees_latitude;
-  }
-  // -----------------------------------------------------------------------------------------
-  // Save formatted latitude value as a string for later use.
-  // -----------------------------------------------------------------------------------------
-  scanf("%lf17", &satioData.degrees_latitude);
-  // -----------------------------------------------------------------------------------------
-  // Extract absolute longitude value from GNGGA data as decimal degrees.
-  // -----------------------------------------------------------------------------------------
-  satioData.abs_longitude_gngga_0=atof(String(gnggaData.longitude).c_str());
-  // -----------------------------------------------------------------------------------------
-  // Store absolute latitude in temporary variable for further processing.
-  // -----------------------------------------------------------------------------------------
-  satioData.temp_longitude_gngga=satioData.abs_longitude_gngga_0;
-  // -----------------------------------------------------------------------------------------
-  // Separate the integer degrees value from the fractional part.
-  // -----------------------------------------------------------------------------------------
-  satioData.degreesLong=trunc(satioData.temp_longitude_gngga / 100);
-  // -----------------------------------------------------------------------------------------
-  // Calculate minutes and seconds values based on remaining fractional part.
-  // -----------------------------------------------------------------------------------------
-  satioData.minutesLong=satioData.temp_longitude_gngga - (satioData.degreesLong * 100);
-  // -----------------------------------------------------------------------------------------
-  // Convert excess fractional part to seconds.
-  // -----------------------------------------------------------------------------------------
-  satioData.secondsLong=(satioData.minutesLong - trunc(satioData.minutesLong)) * 60;
-  // -----------------------------------------------------------------------------------------
-  // Convert excess seconds to milliseconds.
-  // -----------------------------------------------------------------------------------------
-  satioData.millisecondsLong=(satioData.secondsLong - trunc(satioData.secondsLong)) * 1000;
-  // -----------------------------------------------------------------------------------------
-  // Round off minutes and seconds values to nearest integer.
-  // -----------------------------------------------------------------------------------------
-  satioData.minutesLong=trunc(satioData.minutesLong);
-  satioData.secondsLong=trunc(satioData.secondsLong);
-  // -----------------------------------------------------------------------------------------
-  // Combine degrees, minutes, seconds, and milliseconds into a single decimal latitude value.
-  // -----------------------------------------------------------------------------------------
-  satioData.degrees_longitude =
-  satioData.degreesLong + satioData.minutesLong / 60 + satioData.secondsLong / 3600 + satioData.millisecondsLong / 3600000;
-  // -----------------------------------------------------------------------------------------
-  // Negate latitude value if it's in the Southern hemisphere (make negative value).
-  // -----------------------------------------------------------------------------------------
-  if (strcmp(gnggaData.longitude_hemisphere, "W")==0) {
-    satioData.degrees_longitude=0 - satioData.degrees_longitude;
-  }
-  // -----------------------------------------------------------------------------------------
-  // Save formatted latitude value as a string for later use.
-  // -----------------------------------------------------------------------------------------
-  scanf("%lf17", &satioData.degrees_longitude);
-  // ----------------------------------------------------------------------------------------------------------------------------
-  //                                                                                                     USER DEFINED COORDINATES
-  // ----------------------------------------------------------------------------------------------------------------------------
-  if (satioData.location_value_mode==SATIO_MODE_GPS)  {
-    satioData.system_degrees_latitude = satioData.degrees_latitude;
-    satioData.system_degrees_longitude = satioData.degrees_longitude;
-  }
-  else if (satioData.location_value_mode==SATIO_MODE_USER) {
-    satioData.system_degrees_latitude = satioData.user_degrees_latitude;
-    satioData.system_degrees_longitude = satioData.user_degrees_longitude;
-
+  else if (satioData.coordinate_conversion_mode==COORDINATE_CONVERSION_MODE_GPS) {
+    // -----------------------------------------------------------------------------------------
+    // Extract absolute latitude value from GNGGA data as decimal degrees.
+    // -----------------------------------------------------------------------------------------
+    satioData.abs_latitude_gngga_0=atof(String(gnggaData.latitude).c_str());
+    // -----------------------------------------------------------------------------------------
+    // Store absolute latitude in temporary variable for further processing.
+    // -----------------------------------------------------------------------------------------
+    satioData.temp_latitude_gngga=satioData.abs_latitude_gngga_0;
+    // -----------------------------------------------------------------------------------------
+    // Separate the integer degrees value from the fractional part.
+    // -----------------------------------------------------------------------------------------
+    satioData.degreesLat=trunc(satioData.temp_latitude_gngga / 100);
+    // -----------------------------------------------------------------------------------------
+    // Calculate minutes and seconds values based on remaining fractional part.
+    // -----------------------------------------------------------------------------------------
+    satioData.minutesLat=satioData.temp_latitude_gngga - (satioData.degreesLat * 100);
+    // -----------------------------------------------------------------------------------------
+    // Convert excess fractional part to seconds.
+    // -----------------------------------------------------------------------------------------
+    satioData.secondsLat=(satioData.minutesLat - trunc(satioData.minutesLat)) * 60;
+    // -----------------------------------------------------------------------------------------
+    // Convert excess seconds to milliseconds.
+    // -----------------------------------------------------------------------------------------
+    satioData.millisecondsLat=(satioData.secondsLat - trunc(satioData.secondsLat)) * 1000;
+    // -----------------------------------------------------------------------------------------
+    // Round off minutes and seconds values to nearest integer.
+    // -----------------------------------------------------------------------------------------
+    satioData.minutesLat=trunc(satioData.minutesLat);
+    satioData.secondsLat=trunc(satioData.secondsLat);
+    // -----------------------------------------------------------------------------------------
+    // Combine degrees, minutes, seconds, and milliseconds into a single decimal latitude value.
+    // -----------------------------------------------------------------------------------------
+    satioData.degrees_latitude =
+    satioData.degreesLat + satioData.minutesLat / 60 + satioData.secondsLat / 3600 + satioData.millisecondsLat / 3600000;
+    // -----------------------------------------------------------------------------------------
+    // Negate latitude value if it's in the Southern hemisphere (make negative value).
+    // -----------------------------------------------------------------------------------------
+    if (strcmp(gnggaData.latitude_hemisphere, "S")==0) {
+      satioData.degrees_latitude=0 - satioData.degrees_latitude;
+    }
+    // -----------------------------------------------------------------------------------------
+    // Save formatted latitude value as a string for later use.
+    // -----------------------------------------------------------------------------------------
+    scanf("%f17", &satioData.degrees_latitude);
+    // -----------------------------------------------------------------------------------------
+    // Extract absolute longitude value from GNGGA data as decimal degrees.
+    // -----------------------------------------------------------------------------------------
+    satioData.abs_longitude_gngga_0=atof(String(gnggaData.longitude).c_str());
+    // -----------------------------------------------------------------------------------------
+    // Store absolute latitude in temporary variable for further processing.
+    // -----------------------------------------------------------------------------------------
+    satioData.temp_longitude_gngga=satioData.abs_longitude_gngga_0;
+    // -----------------------------------------------------------------------------------------
+    // Separate the integer degrees value from the fractional part.
+    // -----------------------------------------------------------------------------------------
+    satioData.degreesLong=trunc(satioData.temp_longitude_gngga / 100);
+    // -----------------------------------------------------------------------------------------
+    // Calculate minutes and seconds values based on remaining fractional part.
+    // -----------------------------------------------------------------------------------------
+    satioData.minutesLong=satioData.temp_longitude_gngga - (satioData.degreesLong * 100);
+    // -----------------------------------------------------------------------------------------
+    // Convert excess fractional part to seconds.
+    // -----------------------------------------------------------------------------------------
+    satioData.secondsLong=(satioData.minutesLong - trunc(satioData.minutesLong)) * 60;
+    // -----------------------------------------------------------------------------------------
+    // Convert excess seconds to milliseconds.
+    // -----------------------------------------------------------------------------------------
+    satioData.millisecondsLong=(satioData.secondsLong - trunc(satioData.secondsLong)) * 1000;
+    // -----------------------------------------------------------------------------------------
+    // Round off minutes and seconds values to nearest integer.
+    // -----------------------------------------------------------------------------------------
+    satioData.minutesLong=trunc(satioData.minutesLong);
+    satioData.secondsLong=trunc(satioData.secondsLong);
+    // -----------------------------------------------------------------------------------------
+    // Combine degrees, minutes, seconds, and milliseconds into a single decimal latitude value.
+    // -----------------------------------------------------------------------------------------
+    satioData.degrees_longitude =
+    satioData.degreesLong + satioData.minutesLong / 60 + satioData.secondsLong / 3600 + satioData.millisecondsLong / 3600000;
+    // -----------------------------------------------------------------------------------------
+    // Negate latitude value if it's in the Southern hemisphere (make negative value).
+    // -----------------------------------------------------------------------------------------
+    if (strcmp(gnggaData.longitude_hemisphere, "W")==0) {
+      satioData.degrees_longitude=0 - satioData.degrees_longitude;
+    }
+    // -----------------------------------------------------------------------------------------
+    // Save formatted latitude value as a string for later use.
+    // -----------------------------------------------------------------------------------------
+    scanf("%f17", &satioData.degrees_longitude);
   }
 }
 
@@ -512,7 +465,7 @@ void padDigitsZero(int digits, char* output, size_t output_size) {
 void storeRTCTime(void) {
     // Store RTC time (UTC) to avoid multiple calls to rtc.now()
     // Serial.printf("[writeI2C] storeRTCTime\n");
-    // xSemaphoreTake(i2c_bus0_mutex, 1000 / portTICK_PERIOD_MS);
+    xSemaphoreTake(i2c_bus0_mutex, 1000 / portTICK_PERIOD_MS);
     satioData.rtc_hour = rtc.now().hour();
     satioData.rtc_minute = rtc.now().minute();
     satioData.rtc_second = rtc.now().second();
@@ -521,7 +474,7 @@ void storeRTCTime(void) {
     satioData.rtc_wday = rtc.now().dayOfTheWeek();
     satioData.rtc_mday = rtc.now().day();
     satioData.rtc_unixtime = rtc.now().unixtime();
-    // xSemaphoreGive(i2c_bus0_mutex);
+    xSemaphoreGive(i2c_bus0_mutex);
 
     // Debug output without String
     // char debug_str[MAX_GLOBAL_ELEMENT_SIZE];
@@ -533,33 +486,38 @@ void storeRTCTime(void) {
     strcpy(satioData.rtc_wday_name, satioData.week_day_names[satioData.rtc_wday]);
 
     // Format time (HH:MM:SS)
-    char hour_str[3], min_str[3], sec_str[3];
-    padDigitsZero(satioData.rtc_hour, hour_str, sizeof(hour_str));
-    padDigitsZero(satioData.rtc_minute, min_str, sizeof(min_str));
-    padDigitsZero(satioData.rtc_second, sec_str, sizeof(sec_str));
+    char hour_str[MAX_GLOBAL_ELEMENT_SIZE], min_str[MAX_GLOBAL_ELEMENT_SIZE], sec_str[MAX_GLOBAL_ELEMENT_SIZE];
+    padDigitsZero(satioData.rtc_hour, hour_str, MAX_GLOBAL_ELEMENT_SIZE);
+    padDigitsZero(satioData.rtc_minute, min_str, MAX_GLOBAL_ELEMENT_SIZE);
+    padDigitsZero(satioData.rtc_second, sec_str, MAX_GLOBAL_ELEMENT_SIZE);
+
     memset(satioData.formatted_rtc_time, 0, sizeof(satioData.formatted_rtc_time));
-    snprintf(satioData.formatted_rtc_time, sizeof(satioData.formatted_rtc_time), "%s:%s:%s", hour_str, min_str, sec_str);
+    snprintf(satioData.formatted_rtc_time, MAX_GLOBAL_ELEMENT_SIZE, "%s:%s:%s", hour_str, min_str, sec_str);
 
     // Debug formatted time
     // snprintf(debug_str, MAX_GLOBAL_ELEMENT_SIZE, "formatted_rtc_time: %s", satioData.formatted_rtc_time);
     // Serial.println(debug_str);
 
     // Format date (DD/MM/YYYY)
-    char day_str[3], month_str[3], year_str[5];
-    padDigitsZero(satioData.rtc_mday, day_str, sizeof(day_str));
-    padDigitsZero(satioData.rtc_month, month_str, sizeof(month_str));
-    padDigitsZero(satioData.rtc_year, year_str, sizeof(year_str));
+    char day_str[MAX_GLOBAL_ELEMENT_SIZE], month_str[MAX_GLOBAL_ELEMENT_SIZE], year_str[MAX_GLOBAL_ELEMENT_SIZE];
+    padDigitsZero(satioData.rtc_mday, day_str, MAX_GLOBAL_ELEMENT_SIZE);
+    padDigitsZero(satioData.rtc_month, month_str, MAX_GLOBAL_ELEMENT_SIZE);
+    padDigitsZero(satioData.rtc_year, year_str, MAX_GLOBAL_ELEMENT_SIZE);
 
     memset(satioData.formatted_rtc_date, 0, sizeof(satioData.formatted_rtc_date));
-    snprintf(satioData.formatted_rtc_date, sizeof(satioData.formatted_rtc_date), "%s/%s/%s", day_str, month_str, year_str);
+    snprintf(satioData.formatted_rtc_date, MAX_GLOBAL_ELEMENT_SIZE, "%s/%s/%s", day_str, month_str, year_str);
 
     // Format padded time (HHMMSS)
     memset(satioData.padded_rtc_time_HHMMSS, 0, sizeof(satioData.padded_rtc_time_HHMMSS));
-    snprintf(satioData.padded_rtc_time_HHMMSS, sizeof(satioData.padded_rtc_time_HHMMSS), "%s%s%s", hour_str, min_str, sec_str);
+    snprintf(satioData.padded_rtc_time_HHMMSS, MAX_GLOBAL_ELEMENT_SIZE, "%s%s%s", hour_str, min_str, sec_str);
+
+    // Debug padded time
+    // snprintf(debug_str, MAX_GLOBAL_ELEMENT_SIZE, "padded_rtc_time_HHMMSS: %s", satioData.padded_rtc_time_HHMMSS);
+    // Serial.println(debug_str);
 
     // Format padded date (DDMMYYYY)
     memset(satioData.padded_rtc_date_DDMMYYYY, 0, sizeof(satioData.padded_rtc_date_DDMMYYYY));
-    snprintf(satioData.padded_rtc_date_DDMMYYYY, sizeof(satioData.padded_rtc_date_DDMMYYYY), "%s%s%s", day_str, month_str, year_str);
+    snprintf(satioData.padded_rtc_date_DDMMYYYY, MAX_GLOBAL_ELEMENT_SIZE, "%s%s%s", day_str, month_str, year_str);
 }
 
 // ----------------------------------------------------------------------------------------
@@ -571,46 +529,46 @@ void storeLocalTime(void) {
     satioData.local_minute = timeinfo->tm_min;
     satioData.local_second = timeinfo->tm_sec;
     satioData.local_year = timeinfo->tm_year + LAST_EPOCH; // Adjust from timeinfo's year (since 1900)
-    satioData.local_month = timeinfo->tm_mon + 1; // Adjust from 0
+    satioData.local_month = timeinfo->tm_mon + 1;    // Adjust from 0-based to 1-based
     satioData.local_wday = timeinfo->tm_wday;
     satioData.local_mday = timeinfo->tm_mday;
-    satioData.local_yday = timeinfo->tm_yday + 1; // Adjust from 0
+    satioData.local_yday = timeinfo->tm_yday;
 
     // Copy weekday name
     memset(satioData.local_wday_name, 0, sizeof(satioData.local_wday_name));
     strcpy(satioData.local_wday_name, satioData.week_day_names[satioData.local_wday]);
 
-    // Copy month name
-    memset(satioData.local_month_name, 0, sizeof(satioData.local_month_name));
-    strcpy(satioData.local_month_name, satioData.month_names[satioData.local_month-1]);
-
     // Format time (HH:MM:SS)
-    char hour_str[3], min_str[3], sec_str[3];
-    padDigitsZero(satioData.local_hour, hour_str, sizeof(hour_str));
-    padDigitsZero(satioData.local_minute, min_str, sizeof(min_str));
-    padDigitsZero(satioData.local_second, sec_str, sizeof(sec_str));
+    char hour_str[MAX_GLOBAL_ELEMENT_SIZE], min_str[MAX_GLOBAL_ELEMENT_SIZE], sec_str[MAX_GLOBAL_ELEMENT_SIZE];
+    padDigitsZero(satioData.local_hour, hour_str, MAX_GLOBAL_ELEMENT_SIZE);
+    padDigitsZero(satioData.local_minute, min_str, MAX_GLOBAL_ELEMENT_SIZE);
+    padDigitsZero(satioData.local_second, sec_str, MAX_GLOBAL_ELEMENT_SIZE);
     memset(satioData.formatted_local_time_HHMMSS, 0, sizeof(satioData.formatted_local_time_HHMMSS));
-    snprintf(satioData.formatted_local_time_HHMMSS, sizeof(satioData.formatted_local_time_HHMMSS), "%s:%s:%s", hour_str, min_str, sec_str);
+    snprintf(satioData.formatted_local_time_HHMMSS, MAX_GLOBAL_ELEMENT_SIZE, "%s:%s:%s", hour_str, min_str, sec_str);
 
-    char day_str[3], month_str[3], year_str[5];
-    padDigitsZero(satioData.local_mday, day_str, sizeof(day_str));
-    padDigitsZero(satioData.local_month, month_str, sizeof(month_str));
-    padDigitsZero(satioData.local_year, year_str, sizeof(year_str));
+    // Format date (DD/MM/YYYY)
+    char day_str[MAX_GLOBAL_ELEMENT_SIZE], month_str[MAX_GLOBAL_ELEMENT_SIZE], year_str[MAX_GLOBAL_ELEMENT_SIZE];
+    padDigitsZero(satioData.local_mday, day_str, MAX_GLOBAL_ELEMENT_SIZE);
+    padDigitsZero(satioData.local_month, month_str, MAX_GLOBAL_ELEMENT_SIZE);
+    padDigitsZero(satioData.local_year, year_str, MAX_GLOBAL_ELEMENT_SIZE);
     memset(satioData.formatted_local_date_DDMMYYYY, 0, sizeof(satioData.formatted_local_date_DDMMYYYY));
-    snprintf(satioData.formatted_local_date_DDMMYYYY, sizeof(satioData.formatted_local_date_DDMMYYYY), "%s/%s/%s", day_str, month_str, year_str);
+    snprintf(satioData.formatted_local_date_DDMMYYYY, MAX_GLOBAL_ELEMENT_SIZE, "%s/%s/%s", day_str, month_str, year_str);
 
-    char short_year_str[3] = { year_str[2], year_str[3], '\0' };
+    // Format short date (DD/MM/YYYY)
     memset(satioData.formatted_local_short_date_DDMMYY, 0, sizeof(satioData.formatted_local_short_date_DDMMYY));
-    snprintf(satioData.formatted_local_short_date_DDMMYY, sizeof(satioData.formatted_local_short_date_DDMMYY), "%s/%s/%s", day_str, month_str, short_year_str);
+    snprintf(satioData.formatted_local_short_date_DDMMYY, MAX_GLOBAL_ELEMENT_SIZE, "%s/%s/%s", day_str, month_str, String(String(year_str[2])+String(3)).c_str());
 
+    // Format padded time (HHMMSS)
     memset(satioData.padded_local_time_HHMMSS, 0, sizeof(satioData.padded_local_time_HHMMSS));
-    snprintf(satioData.padded_local_time_HHMMSS, sizeof(satioData.padded_local_time_HHMMSS), "%s%s%s", hour_str, min_str, sec_str);
+    snprintf(satioData.padded_local_time_HHMMSS, MAX_GLOBAL_ELEMENT_SIZE, "%s%s%s", hour_str, min_str, sec_str);
 
+    // Format padded date (DDMMYYYY)
     memset(satioData.padded_local_date_DDMMYYYY, 0, sizeof(satioData.padded_local_date_DDMMYYYY));
-    snprintf(satioData.padded_local_date_DDMMYYYY, sizeof(satioData.padded_local_date_DDMMYYYY), "%s%s%s", day_str, month_str, year_str);
+    snprintf(satioData.padded_local_date_DDMMYYYY, MAX_GLOBAL_ELEMENT_SIZE, "%s%s%s", day_str, month_str, year_str);
 
+    // Format padded short date (DDMMYY)
     memset(satioData.padded_local_short_date_DDMMYY, 0, sizeof(satioData.padded_local_short_date_DDMMYY));
-    snprintf(satioData.padded_local_short_date_DDMMYY, sizeof(satioData.padded_local_short_date_DDMMYY), "%s%s%s", day_str, month_str, short_year_str);
+    snprintf(satioData.padded_local_short_date_DDMMYY, MAX_GLOBAL_ELEMENT_SIZE, "%s%s%s", day_str, month_str, String(String(year_str[2]) + String(year_str[3])).c_str());
 
     // Format padded hour (HH)
     memset(satioData.padded_local_hour, 0, sizeof(satioData.padded_local_hour));
@@ -635,54 +593,7 @@ void storeLocalTime(void) {
     // Format padded year (YY)
     memset(satioData.padded_local_year, 0, sizeof(satioData.padded_local_year));
     snprintf(satioData.padded_local_year, MAX_GLOBAL_ELEMENT_SIZE, "%s", String(String(year_str[2]) + String(year_str[3])).c_str());
-
-    updateGeoPositionalTime();
   }
-
-// ----------------------------------------------------------------------------------------
-// updateGeoPositionalTime.
-// Computes true solar (geo-positional) time by snapshotting the RTC (UTC) and
-// offsetting by longitude. Each degree of longitude = 240 seconds offset.
-// Positive East (ahead of UTC), negative West (behind UTC).
-// ----------------------------------------------------------------------------------------
-void updateGeoPositionalTime(void) {
-    // Build UTC time_t from stored RTC values (RTC always holds UTC).
-    struct tm utc_tm = {0};
-    utc_tm.tm_year  = satioData.rtc_year  - LAST_EPOCH;
-    utc_tm.tm_mon   = satioData.rtc_month - 1;
-    utc_tm.tm_mday  = satioData.rtc_mday;
-    utc_tm.tm_hour  = satioData.rtc_hour;
-    utc_tm.tm_min   = satioData.rtc_minute;
-    utc_tm.tm_sec   = satioData.rtc_second;
-    utc_tm.tm_isdst = 0;
-    time_t utc_sec  = mktime(&utc_tm);
-
-    // Longitude offset in seconds: 1 deg = 240 s (15 deg/h * 3600 s/h / 15).
-    time_t lon_offset_sec = (time_t)(satioData.system_degrees_longitude * 240.0);
-
-    // Geo-positional unix time.
-    time_t geo_sec = utc_sec + lon_offset_sec;
-
-    // Decompose into calendar fields.
-    struct tm geo_tm;
-    gmtime_r(&geo_sec, &geo_tm);
-
-    satioData.geo_positional_hour        = (double)geo_tm.tm_hour;
-    satioData.geo_positional_minute      = (double)geo_tm.tm_min;
-    satioData.geo_positional_second      = (double)geo_tm.tm_sec;
-    satioData.geo_positional_millisecond = (double)(tv_now.tv_usec / 1000);
-    satioData.geo_positional_year        = (double)(geo_tm.tm_year + LAST_EPOCH);
-    satioData.geo_positional_month       = (double)(geo_tm.tm_mon + 1);
-    satioData.geo_positional_day         = (double)geo_tm.tm_mday;
-
-    Serial.println("Geo-positional Time: " + String(satioData.geo_positional_hour) + ":" +
-                   String(satioData.geo_positional_minute) + ":" +
-                   String(satioData.geo_positional_second) + "." +
-                   String(satioData.geo_positional_millisecond) + " " +
-                   String(satioData.geo_positional_day) + "/" +
-                   String(satioData.geo_positional_month) + "/" +
-                   String(satioData.geo_positional_year));
-}
 
 // ----------------------------------------------------------------------------------------
 // storeRTCSYNCTime.
@@ -696,35 +607,39 @@ void storeRTCSYNCTime(void) {
     satioData.rtcsync_month = satioData.local_month;
     satioData.rtcsync_day = satioData.local_mday;
     // Serial.printf("[writeI2C] storeRTCSYNCTime\n");
-    // xSemaphoreTake(i2c_bus0_mutex, 1000 / portTICK_PERIOD_MS);
+    xSemaphoreTake(i2c_bus0_mutex, 1000 / portTICK_PERIOD_MS);
     satioData.rtcsync_unixtime = rtc.now().unixtime();
-    // xSemaphoreGive(i2c_bus0_mutex);
+    xSemaphoreGive(i2c_bus0_mutex);
 
     // Format sync time (HH:MM:SS)
-    char hour_str[3], min_str[3], sec_str[3];
-    padDigitsZero(satioData.rtcsync_hour, hour_str, sizeof(hour_str));
-    padDigitsZero(satioData.rtcsync_minute, min_str, sizeof(min_str));
-    padDigitsZero(satioData.rtcsync_second, sec_str, sizeof(sec_str));
+    char hour_str[MAX_GLOBAL_ELEMENT_SIZE], min_str[MAX_GLOBAL_ELEMENT_SIZE], sec_str[MAX_GLOBAL_ELEMENT_SIZE];
+    padDigitsZero(satioData.rtcsync_hour, hour_str, MAX_GLOBAL_ELEMENT_SIZE);
+    padDigitsZero(satioData.rtcsync_minute, min_str, MAX_GLOBAL_ELEMENT_SIZE);
+    padDigitsZero(satioData.rtcsync_second, sec_str, MAX_GLOBAL_ELEMENT_SIZE);
     memset(satioData.formatted_rtc_sync_time, 0, sizeof(satioData.formatted_rtc_sync_time));
-    snprintf(satioData.formatted_rtc_sync_time, sizeof(satioData.formatted_rtc_sync_time), "%s:%s:%s", hour_str, min_str, sec_str);
+    snprintf(satioData.formatted_rtc_sync_time, MAX_GLOBAL_ELEMENT_SIZE, "%s:%s:%s", hour_str, min_str, sec_str);
 
-    char day_str[3], month_str[3], year_str[5];
-    padDigitsZero(satioData.rtcsync_day, day_str, sizeof(day_str));
-    padDigitsZero(satioData.rtcsync_month, month_str, sizeof(month_str));
-    padDigitsZero(satioData.rtcsync_year, year_str, sizeof(year_str));
+    // Format sync date (DD/MM/YYYY)
+    char day_str[MAX_GLOBAL_ELEMENT_SIZE], month_str[MAX_GLOBAL_ELEMENT_SIZE], year_str[MAX_GLOBAL_ELEMENT_SIZE];
+    padDigitsZero(satioData.rtcsync_day, day_str, MAX_GLOBAL_ELEMENT_SIZE);
+    padDigitsZero(satioData.rtcsync_month, month_str, MAX_GLOBAL_ELEMENT_SIZE);
+    padDigitsZero(satioData.rtcsync_year, year_str, MAX_GLOBAL_ELEMENT_SIZE);
 
+    // Formatted sync date (DD/MM/YYYY)
     memset(satioData.formatted_rtc_sync_date_DDMMYYYY, 0, sizeof(satioData.formatted_rtc_sync_date_DDMMYYYY));
-    snprintf(satioData.formatted_rtc_sync_date_DDMMYYYY, sizeof(satioData.formatted_rtc_sync_date_DDMMYYYY), "%s/%s/%s", day_str, month_str, year_str);
+    snprintf(satioData.formatted_rtc_sync_date_DDMMYYYY, MAX_GLOBAL_ELEMENT_SIZE, "%s/%s/%s", day_str, month_str, year_str);
 
-    char short_year_str[3] = { year_str[2], year_str[3], '\0' };
+    // Formatted sync short date (DD/MM/YY)
     memset(satioData.formatted_rtc_sync_short_date_DDMMYY, 0, sizeof(satioData.formatted_rtc_sync_short_date_DDMMYY));
-    snprintf(satioData.formatted_rtc_sync_short_date_DDMMYY, sizeof(satioData.formatted_rtc_sync_short_date_DDMMYY), "%s/%s/%s", day_str, month_str, short_year_str);
+    snprintf(satioData.formatted_rtc_sync_short_date_DDMMYY, MAX_GLOBAL_ELEMENT_SIZE, "%s/%s/%s", day_str, month_str, String(String(year_str[2]) + String(year_str[3])).c_str());
 
+    // Padded sync time (HHMMSS)
     memset(satioData.padded_rtc_sync_time_HHMMSS, 0, sizeof(satioData.padded_rtc_sync_time_HHMMSS));
-    snprintf(satioData.padded_rtc_sync_time_HHMMSS, sizeof(satioData.padded_rtc_sync_time_HHMMSS), "%s%s%s", hour_str, min_str, sec_str);
+    snprintf(satioData.padded_rtc_sync_time_HHMMSS, MAX_GLOBAL_ELEMENT_SIZE, "%s%s%s", hour_str, min_str, sec_str);
 
+    // Padded sync date (DDMMYYYY)
     memset(satioData.padded_rtc_sync_date_DDMMYYYY, 0, sizeof(satioData.padded_rtc_sync_date_DDMMYYYY));
-    snprintf(satioData.padded_rtc_sync_date_DDMMYYYY, sizeof(satioData.padded_rtc_sync_date_DDMMYYYY), "%s%s%s", day_str, month_str, year_str);
+    snprintf(satioData.padded_rtc_sync_date_DDMMYYYY, MAX_GLOBAL_ELEMENT_SIZE, "%s%s%s", day_str, month_str, year_str);
 
     // RTC sync latitude
     char temp_str[MAX_GLOBAL_ELEMENT_SIZE];
@@ -752,14 +667,14 @@ void setSystemTime(long usec) {
   struct tm tmpti = {0};
   memset(&tmpti, 0, sizeof(tmpti));
   // Serial.printf("[writeI2C] setSystemTime\n");
-  // xSemaphoreTake(i2c_bus0_mutex, 1000 / portTICK_PERIOD_MS);
+  xSemaphoreTake(i2c_bus0_mutex, 1000 / portTICK_PERIOD_MS);
   tmpti.tm_year = int(rtc.now().year()) - LAST_EPOCH; // Years since 1900 (since last epoch)
   tmpti.tm_mon = rtc.now().month() - 1; // Months 0-11
   tmpti.tm_mday = rtc.now().day();
   tmpti.tm_hour = rtc.now().hour();
   tmpti.tm_min = rtc.now().minute();
   tmpti.tm_sec = rtc.now().second();
-  // xSemaphoreGive(i2c_bus0_mutex);
+  xSemaphoreGive(i2c_bus0_mutex);
   tmpti.tm_isdst = -1; // No DST
   time_t now = mktime(&tmpti);
   tv_now = {
@@ -830,29 +745,14 @@ void setRTCDateTime() {
             (uint8_t)satioData.tmp_hour_int,
             (uint8_t)satioData.tmp_minute_int,
             (uint8_t)satioData.tmp_second_int));
+  setSystemTime(0);
   // Serial.println("[ " + String(satioData.local_unixtime_uS) + " ] sync time in setRTCDateTime");
   storeRTCSYNCTime();
   satioData.sync_rtc_immediately_flag=false;
   
 }
 
-// GPS sync timeout timer
-int64_t gps_sync_timestamp = 0;
-const int64_t GPS_SYNC_TIMEOUT_uS = 1000000; // Reset gps_sync after 1 second
-
 void syncRTC() {
-  // Set GPS sync flag false
-  if (satioData.gps_sync) {
-    if
-      (
-      satioData.local_unixtime_uS >= gps_sync_timestamp + GPS_SYNC_TIMEOUT_uS
-      ||
-      satioData.local_unixtime_uS < gps_sync_timestamp
-      )
-    {
-      satioData.gps_sync = false;
-    }
-  }
   /**
    * Manually set RTC datetime.
    * 
@@ -861,14 +761,8 @@ void syncRTC() {
    * (2) Set satioData.set_rtc_datetime_flag true.
    */
   if (satioData.set_time_automatically==false && satioData.set_rtc_datetime_flag==true)
-  {
-    satioData.set_rtc_datetime_flag=false;
-    setRTCDateTime();
-    setSystemTime(0);
-    getSystemTime();
-    storeLocalTime();
-    printf("[rtc] sync 2: %s\n", String(rtc.now().timestamp()).c_str());
-  }
+    {satioData.set_rtc_datetime_flag=false;
+    setRTCDateTime(); Serial.println("[rtc] sync 2: " + String(rtc.now().timestamp()));}
 
   /**
    * Automatically set RTC datetime with GPS data.
@@ -877,11 +771,14 @@ void syncRTC() {
     // ----------------------------------------------------------------------------------------------
     /*                                 SYNC RTC TIME & DATE FROM GPS                               */
     // ----------------------------------------------------------------------------------------------
+    // Serial.println("[satellite_count]      " + String(gnggaData.satellite_count));
+    // Serial.println("[gps_precision_factor] " + String(gnggaData.gps_precision_factor));
     if ((atoi(gnggaData.satellite_count)>3) && (atoi(gnggaData.gps_precision_factor)<=3)) {
       // ----------------------------------------------------------------------------
       // Extract just what we need to perform a timing check.
       // ----------------------------------------------------------------------------
       extractDateTimeFromGPSData();
+
       if (satioData.sync_rtc_immediately_flag==true) {
         // ----------------------------------------------------------------------------
         // Sync within the first 100 milliseconds of any second.
@@ -890,30 +787,22 @@ void syncRTC() {
           // --------------------------------------------------------------------------
           // Sync RTC to UTC.
           // --------------------------------------------------------------------------
+          // Serial.println("[rtc] sync 0: " + String(rtc.now().timestamp()));
           setRTCDateTime();
-          setSystemTime(0);
-          getSystemTime();
-          storeLocalTime();
-          satioData.gps_sync=true;
-          gps_sync_timestamp = satioData.local_unixtime_uS;
-          printf("[rtc] sync 0: %s\n", String(rtc.now().timestamp()).c_str());
+          Serial.println("[rtc] sync 0: " + String(rtc.now().timestamp()));
         }
       }
       else {
         // ----------------------------------------------------------------------------
         // Sync within the first 100 milliseconds of any minute.
         // ----------------------------------------------------------------------------
-        if (satioData.tmp_second_int==0 && satioData.tmp_millisecond_int==0) {
+        if ((satioData.tmp_second_int==0) && (satioData.tmp_millisecond_int==0)) {
           // --------------------------------------------------------------------------
           // Sync RTC to UTC.
           // --------------------------------------------------------------------------
+          // Serial.println("[rtc] sync 0: " + String(rtc.now().timestamp()));
           setRTCDateTime();
-          setSystemTime(0);
-          getSystemTime();
-          storeLocalTime();
-          satioData.gps_sync=true;
-          gps_sync_timestamp = satioData.local_unixtime_uS;
-          printf("[rtc] sync 1: %s\n", String(rtc.now().timestamp()).c_str());
+          Serial.println("[rtc] sync 1: " + String(rtc.now().timestamp()));
         }
       }
     }

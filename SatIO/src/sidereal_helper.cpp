@@ -16,20 +16,8 @@ SiderealPlanets myAstro;    // for calculating azimuth and altitude
 SiderealObjects myAstroObj; // for getting right ascension and declination of objects from star table
 
 struct SiderealPlantetsStruct siderealPlanetData = {
-    .track_sun = true,
-    .track_mercury = true,
-    .track_venus = true,
-    .track_earth = true,
-    .track_luna = true,
-    .track_mars = true,
-    .track_jupiter = true,
-    .track_saturn = true,
-    .track_uranus = true,
-    .track_neptune = true,
-
     .earth_ecliptic_lat = 0.0,
     .earth_ecliptic_long = 0.0,
-    
     .sun_ra = NAN,
     .sun_dec = NAN,
     .sun_az = NAN,
@@ -41,14 +29,15 @@ struct SiderealPlantetsStruct siderealPlanetData = {
     .sun_radius_vector = NAN,
     .sun_distance = NAN,
     .sun_ecliptic_lat = NAN,
-    .luna_ra = NAN,
-    .luna_dec = NAN,
-    .luna_az = NAN,
-    .luna_alt = NAN,
-    .luna_r = NAN,
-    .luna_s = NAN,
-    .luna_p = NAN,
-    .luna_p_name = {
+    .sun_ecliptic_long = NAN,
+    .moon_ra = NAN,
+    .moon_dec = NAN,
+    .moon_az = NAN,
+    .moon_alt = NAN,
+    .moon_r = NAN,
+    .moon_s = NAN,
+    .moon_p = NAN,
+    .moon_p_name = {
         "New Moon",
         "Waxing Crescent",
         "First Quarter",
@@ -58,7 +47,7 @@ struct SiderealPlantetsStruct siderealPlanetData = {
         "Third Quarter",
         "Waning Crescent"
     },
-    .luna_lum = NAN,
+    .moon_lum = NAN,
     .mercury_ra = NAN,
     .mercury_dec = NAN,
     .mercury_az = NAN,
@@ -522,18 +511,18 @@ void trackSun(void) {
     siderealPlanetData.sun_s = myAstro.getSunsetTime();
 }
 
-void trackLuna(void) {
+void trackMoon(void) {
     myAstro.doMoon();
-    siderealPlanetData.luna_ra = myAstro.getRAdec();
-    siderealPlanetData.luna_dec = myAstro.getDeclinationDec();
+    siderealPlanetData.moon_ra = myAstro.getRAdec();
+    siderealPlanetData.moon_dec = myAstro.getDeclinationDec();
     myAstro.doRAdec2AltAz();
-    siderealPlanetData.luna_az = myAstro.getAzimuth();
-    siderealPlanetData.luna_alt = myAstro.getAltitude() + myAstro.spData.DegreesAltitudeOffsetByElevationM;
+    siderealPlanetData.moon_az = myAstro.getAzimuth();
+    siderealPlanetData.moon_alt = myAstro.getAltitude() + myAstro.spData.DegreesAltitudeOffsetByElevationM;
     myAstro.doMoonRiseSetTimes();
-    siderealPlanetData.luna_r = myAstro.getMoonriseTime();
-    siderealPlanetData.luna_s = myAstro.getMoonsetTime();
-    siderealPlanetData.luna_p = myAstro.getMoonPhase();
-    siderealPlanetData.luna_lum = myAstro.getLunarLuminance();
+    siderealPlanetData.moon_r = myAstro.getMoonriseTime();
+    siderealPlanetData.moon_s = myAstro.getMoonsetTime();
+    siderealPlanetData.moon_p = myAstro.getMoonPhase();
+    siderealPlanetData.moon_lum = myAstro.getLunarLuminance();
 }
 
 void trackMercury(void) {
@@ -674,15 +663,15 @@ void clearSun(void) {
     siderealPlanetData.sun_s = NAN;
 }
 
-void clearLuna(void) {
-    siderealPlanetData.luna_ra = NAN;
-    siderealPlanetData.luna_dec = NAN;
-    siderealPlanetData.luna_az = NAN;
-    siderealPlanetData.luna_alt = NAN;
-    siderealPlanetData.luna_r = NAN;
-    siderealPlanetData.luna_s = NAN;
-    siderealPlanetData.luna_p = NAN;
-    siderealPlanetData.luna_lum = NAN;
+void clearMoon(void) {
+    siderealPlanetData.moon_ra = NAN;
+    siderealPlanetData.moon_dec = NAN;
+    siderealPlanetData.moon_az = NAN;
+    siderealPlanetData.moon_alt = NAN;
+    siderealPlanetData.moon_r = NAN;
+    siderealPlanetData.moon_s = NAN;
+    siderealPlanetData.moon_p = NAN;
+    siderealPlanetData.moon_lum = NAN;
 }
 
 void clearMercury(void) {
@@ -792,7 +781,7 @@ void clearNeptune(void) {
 
 void clearTrackPlanets(void) {
     clearSun();
-    clearLuna();
+    clearMoon();
     clearMercury();
     clearVenus();
     clearMars();
@@ -824,7 +813,7 @@ void trackPlanets(double latitude, double longitude,
     // ----------------------------------------------------------------------------------
     // myAstro.rejectDST();
     // myAstro.setDST();
-    // myAstro.useAutoDST(); // make optional and or use user defined UTC offset time.
+    myAstro.useAutoDST(); // make optional and or use user defined UTC offset time.
     // ----------------------------------------------------------------------------------
     // Local time (RTC+-).
     // ----------------------------------------------------------------------------------
@@ -844,7 +833,7 @@ void trackPlanets(double latitude, double longitude,
     // Now do other plans.
     // -------------------------------------------------------
     trackSun();
-    trackLuna();
+    trackMoon();
     trackMercury();
     trackVenus();
     trackMars();

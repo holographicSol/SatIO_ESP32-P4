@@ -21,6 +21,7 @@ struct systemStruct systemData = {
   .interval_breach_track_planets = false,
   .interval_breach_logging = false,
   .interval_breach_1_second_output = false,
+  .interval_breach_1_second = false,
 
   .debug = false,
   .output_stat = false,
@@ -42,10 +43,9 @@ struct systemStruct systemData = {
   .output_admplex0_enabled = false,
   .output_gyro_0_enabled = false,
   .output_sun_enabled = false,
+  .output_moon_enabled = false,
   .output_mercury_enabled = false,
   .output_venus_enabled = false,
-  .output_earth_enabled = false,
-  .output_luna_enabled = false,
   .output_mars_enabled = false,
   .output_jupiter_enabled = false,
   .output_saturn_enabled = false,
@@ -53,19 +53,44 @@ struct systemStruct systemData = {
   .output_neptune_enabled = false,
   .output_meteors_enabled = false,
 
+  .mainLoopTimeTaken = 0,
+  .mainLoopTimeStart = 0,
+  .mainLoopTimeTakenMax = 0,
   .uptime_seconds = 0,
+  .interval_timer_1_second = 0,
 
   .i_count_read_gps = 0,
+  .prev_i_count_read_gps = 0,
+
   .i_count_read_ins = 0,
+  .prev_i_count_read_ins = 0,
+
   .i_count_read_gyro_0 = 0,
+  .prev_i_count_read_gyro_0 = 0,
+
   .i_count_read_mplex_0 = 0,
+  .prev_i_count_read_mplex_0 = 0,
+
   .i_count_matrix = 0,
+  .prev_i_count_matrix = 0,
+
   .i_count_portcontroller_input = 0,
+  .prev_i_count_portcontroller_input = 0,
+
   .i_count_port_controller_output = 0,
+  .prev_i_count_port_controller_output = 0,
+
   .i_count_track_planets = 0,
+  .prev_i_count_track_planets = 0,
+
   .i_count_read_serial_commands = 0,
+  .prev_i_count_read_serial_commands = 0,
+
   .i_count_logging = 0,
+  .prev_i_count_logging = 0,
+
   .i_count_display = 0,
+  .prev_i_count_display = 0,
 
   .loops_a_second = 0,
   .total_loops_a_second = 0,
@@ -97,7 +122,7 @@ void restore_system_defaults(void) {
   systemData.output_admplex0_enabled = false;
   systemData.output_gyro_0_enabled = false;
   systemData.output_sun_enabled = false;
-  systemData.output_luna_enabled = false;
+  systemData.output_moon_enabled = false;
   systemData.output_mercury_enabled = false;
   systemData.output_venus_enabled = false;
   systemData.output_mars_enabled = false;
@@ -111,6 +136,12 @@ void restore_system_defaults(void) {
   satioData.utc_auto_offset_flag = false;
   satioData.set_time_automatically = true;
   satioData.sync_rtc_immediately_flag = true;
+  satioData.coordinate_conversion_mode = COORDINATE_CONVERSION_MODE_GPS;
+  satioData.altitude_unit_mode = ALTITUDE_UNIT_MODE_METERS;
+  satioData.altitude_conversion_mode = ALTITUDE_CONVERSION_MODE_GPS;
+  satioData.speed_unit_mode = SPEED_UNIT_MODE_KTS;
+  satioData.speed_conversion_mode = SPEED_CONVERSION_MODE_GPS;
+  satioData.ground_heading_mode = GROUND_HEADING_MODE_GPS;
 
   insData.INS_REQ_GPS_PRECISION = 0.5;
   insData.INS_REQ_MIN_SPEED = 0.1;

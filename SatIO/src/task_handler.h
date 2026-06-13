@@ -20,6 +20,7 @@
 
 extern SemaphoreHandle_t i2c_bus0_mutex;
 
+extern TaskHandle_t TasMultiDisplay;
 extern TaskHandle_t TaskSerialInfoCMD;
 extern TaskHandle_t TaskStorage;
 extern TaskHandle_t TaskMultiplexers;
@@ -30,7 +31,7 @@ extern TaskHandle_t TaskUniverse;
 extern TaskHandle_t TaskSwitches;
 extern TaskHandle_t TaskLogging;
 
-void createTaskDisplay();
+void createTaskMultiDisplay();
 void createTaskSerialInfoCMD();
 void createTaskStorage();
 void createTaskMultiplexers();
@@ -40,8 +41,6 @@ void createTaskGPS();
 void createTaskUniverse();
 void createTaskSwitches();
 void createTaskLogging();
-
-void createTaskTaskDisplay();
 
 /** ----------------------------------------------------------------------------
  * Syncronize Tasks.

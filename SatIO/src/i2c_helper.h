@@ -48,12 +48,12 @@
 // ## BEGIN I2C BUS PINS
 // #####################################################################################################################
 
-#define IIC_BUS0_SDA 2 // uncomment to set pin if required.                  
+#define IIC_BUS0_SDA 2 // uncomment to set pin if required.
 #define IIC_BUS0_SCL 3 // uncomment to set pin if required.
 #define IIC_BUS1_SDA 4 // uncomment to set pin if required.
 #define IIC_BUS1_SCL 5 // uncomment to set pin if required.
-#define IIC_BUS2_SDA 4 // uncomment to set pin if required.
-#define IIC_BUS2_SCL 5 // uncomment to set pin if required.
+#define IIC_BUS2_SDA 7 // uncomment to set pin if required.
+#define IIC_BUS2_SCL 8 // uncomment to set pin if required.
 
 // #####################################################################################################################
 // ## BEGIN I2C BUS TIMEOUTS
@@ -83,8 +83,8 @@
 // #####################################################################################################################
 
 extern TwoWire iic_0; // Uncomment to use global I2C bus 0 wire instance
-extern TwoWire iic_1; // Uncomment to use global I2C bus 1 wire instance
-extern TwoWire iic_2; // Uncomment to use global I2C bus 2 wire instance
+extern TwoWire iic_1; // Uncomment to use global I2C bus 0 wire instance
+extern TwoWire iic_2; // Uncomment to use global I2C bus 0 wire instance
 
 // #####################################################################################################################
 // ## BEGIN ESPIDF I2C SLAVE CONFIGURATION BLOCKS
