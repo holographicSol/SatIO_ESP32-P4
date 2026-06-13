@@ -1223,6 +1223,7 @@ void readGPS(void) {
       // --------------------------------------------------------------------------
       // Read sentences coming from the WTGPS300P. (WTGPS300P outputs every 100ms).
       // --------------------------------------------------------------------------
+    //   Serial.println("[searching for gps data]");
       if (Serial1.available()) {
         // Serial.println("[gps data found]");
         // ----------------------------------------------------------------------

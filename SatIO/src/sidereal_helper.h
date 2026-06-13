@@ -6,17 +6,32 @@
 #define SIDEREAL_HELPER_H
 
 #include "config.h"
+#include "SiderealPlanets.h"
+
+// External instance of SiderealPlanets
+extern SiderealPlanets myAstro;
 
 // ----------------------------------------------------------------------------------------
 // Planet Data Structure.
 // ----------------------------------------------------------------------------------------
 struct SiderealPlantetsStruct {
+    bool track_sun;
+    bool track_mercury;
+    bool track_venus;
+    bool track_earth;
+    bool track_luna;
+    bool track_mars;
+    bool track_jupiter;
+    bool track_saturn;
+    bool track_uranus;
+    bool track_neptune;
+
     double earth_ecliptic_lat;
     double earth_ecliptic_long;
     double sun_ra;
     double sun_dec;
     double sun_az;
-    double sun_alt;
+    double sun_alt; 
     double sun_r;
     double sun_s;
     double sun_helio_ecliptic_lat;
@@ -25,15 +40,15 @@ struct SiderealPlantetsStruct {
     double sun_distance;
     double sun_ecliptic_lat;
     double sun_ecliptic_long;
-    double moon_ra;
-    double moon_dec;
-    double moon_az;
-    double moon_alt;
-    double moon_r;
-    double moon_s;
-    double moon_p;
-    char moon_p_name[8][MAX_GLOBAL_ELEMENT_SIZE];
-    double moon_lum;
+    double luna_ra;
+    double luna_dec;
+    double luna_az;
+    double luna_alt;
+    double luna_r;
+    double luna_s;
+    double luna_p;
+    char luna_p_name[8][MAX_GLOBAL_ELEMENT_SIZE];
+    double luna_lum;
     double mercury_ra;
     double mercury_dec;
     double mercury_az;
@@ -158,7 +173,7 @@ void trackObject(double latitude, double longitude,
     double altitude, int object_table_i, int object_i);
 void IdentifyObject(int ra_hour, int ra_min, float ra_sec, int dec_d, int dec_m, float dec_s);
 void trackSun(void);
-void trackMoon(void);
+void trackLuna(void);
 void trackMercury(void);
 void trackVenus(void);
 void trackMars(void);
@@ -167,7 +182,7 @@ void trackSaturn(void);
 void trackUranus(void);
 void trackNeptune(void);
 void clearSun(void);
-void clearMoon(void);
+void clearLuna(void);
 void clearMercury(void);
 void clearVenus(void);
 void clearMars(void);

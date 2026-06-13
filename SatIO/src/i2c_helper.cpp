@@ -1100,7 +1100,7 @@ void read_char_FromWire(TwoWire &wire, char &value) {
  * @warning Ensure the char array is large enough to hold n_chars values.
  */
 void read_nchars_FromWire(TwoWire &wire, char *value, size_t n_chars) {
-  memset(value, 0, sizeof(value));
+  memset(value, 0, n_chars);
   for (size_t i = 0; i < n_chars; i++) {
     value[i] = (char)wire.read();
   }

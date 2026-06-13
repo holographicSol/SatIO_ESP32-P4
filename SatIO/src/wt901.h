@@ -15,6 +15,8 @@
  * Data for gyroscope sensor data from WT901, including acceleration,
  * gyroscope readings, angles, magnetic fields, and configuration.
  */
+#define MAX_GYRO_BAUDRATES 10
+
 struct GyroData {
   uint8_t gyro_0_s_cDataUpdate; // Update flags
   float gyro_0_fAcc[3];         // Acceleration (x, y, z)
@@ -32,8 +34,8 @@ struct GyroData {
   int16_t gyro_0_mag_x;         // Magnetic field x
   int16_t gyro_0_mag_y;         // Magnetic field y
   int16_t gyro_0_mag_z;         // Magnetic field z
-  uint32_t gyro_0_c_uiBaud[9];  // Baud rates for scanning
-  uint32_t gyro_0_current_uiBaud; // Current baud rate
+  int32_t gyro_0_c_uiBaud[MAX_GYRO_BAUDRATES];  // Baud rates for scanning
+  int32_t gyro_0_current_uiBaud; // Current baud rate
   char gyro_sentence[MAX_GLOBAL_SERIAL_BUFFER_SIZE];
 };
 extern struct GyroData gyroData;
@@ -68,6 +70,12 @@ void Gyro0AutoScan(void);
  * @return True if data was read successfully
  */
 bool readGyro(void);
+
+/**
+ * Tests the WT901 sensor by reading and printing data from it.
+ * @note This function never returns (infinite loop).
+ */
+void testWT901(void);
 
 /**
  * Initializes the WT901 gyroscope sensor.

@@ -78,7 +78,7 @@ struct GNRMCStruct {
     char sentence[MAX_GLOBAL_SERIAL_BUFFER_SIZE];
     char outsentence[MAX_GLOBAL_SERIAL_BUFFER_SIZE];
     char tag[MAX_GLOBAL_ELEMENT_SIZE];                   // <0> Log header
-    char utc_time[MAX_GLOBAL_ELEMENT_SIZE];              // <1> UTC time, hhmmss.sss
+    char utc_time[MAX_GLOBAL_ELEMENT_SIZE];              // <1> UTC time, hhmmss.ms
     char positioning_status[MAX_GLOBAL_ELEMENT_SIZE];    // <2> A=valid, V=invalid
     char latitude[MAX_GLOBAL_ELEMENT_SIZE];              // <3> Latitude, ddmm.mmmmmmm
     char latitude_hemisphere[MAX_GLOBAL_ELEMENT_SIZE];   // <4> N or S

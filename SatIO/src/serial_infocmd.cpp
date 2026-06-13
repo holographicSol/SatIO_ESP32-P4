@@ -14,8 +14,8 @@
 #include "ins.h"
 #include "meteors.h"
 #include "hextodig.h"
-#include "esp32_helper.h"
-#include "sdmmc_helper.h"
+// #include "esp32_helper.h"
+#include "sdcard_helper.h"
 #include "arg_parser.h"
 #include "system_data.h"
 #include <FS.h>
@@ -38,7 +38,7 @@
 
 
 bool debug_bool=true;
-void debug(String debug_str) {if (debug_bool==true) {Serial.println(debug_str);}}
+void debug(String debug_str) {if (debug_bool==true) {printf("%s\n", debug_str.c_str());}}
 
 ArgParser parser;
 PlainArgParser plainparser;
@@ -96,11 +96,6 @@ bool val_function_index(const char * data) {
   return false;
 }
 
-bool val_speed_units(const char * data) {
-  if (str_is_int8(data)) {if (atol(data)<MAX_SPEED_UNIT_MODES) {return true;}}
-  return false;
-}
-
 bool val_function_name_index(const char * data) {
   if (val_global_element_size(data)==false) {return false;}
   if (str_is_long(data)!=true) {return false;}
@@ -124,14 +119,14 @@ bool val_switch_port(const char * data) {
 }
 
 bool val_mappable_value_index(const char * data) {
-  Serial.println(data);
+  printf("%s\n", data);
   if (str_is_int8(data)!=true) {return false;}
   if (atoi(data)<MAX_MAPPABLE_VALUES) {return true;} 
   return false;
 }
 
 bool val_map_slot_index(const char * data) {
-  Serial.println(data);
+  printf("%s\n", data);
   if (str_is_int8(data)!=true) {return false;}
   if (atoi(data)<MAX_MAP_SLOTS) {return true;} 
   return false;
@@ -158,7 +153,7 @@ bool val_ins_heading_range_diff(const char * data) {
 }
 
 static void PrintHelp(void) {
-  Serial.println(
+  puts(
   R"(
   [ System ]
 
@@ -178,94 +173,127 @@ static void PrintHelp(void) {
       matrix -s n                 Specify switch index n.
       matrix -f n                 Specify function index n.
       matrix -p n                 Set port for switch -s.
-      matrix -fn n                Set function -f for switch -s. See available matrix functions.
+      matrix -fn n                Set function -f for switch -s. Primary Comparitors:
                                   [0] NONE
                                   [1] ON
-                                  [2] SWITCHLINK
-                                  [3] LOCALTIME
-                                  [4] WEEKDAY
-                                  [5] DATEDAYX
-                                  [6] DATEMONTHX
-                                  [7] DATEYEARX
-                                  [8] DEGLAT
-                                  [9] DEGLON
-                                  [10] INSLAT
-                                  [11] INSLON
-                                  [12] INSHEADING
-                                  [13] INSALTITUDE
-                                  [14] POSSTATUSGNGGA
-                                  [15] SATCOUNT
-                                  [16] GPSPRECISION
-                                  [17] ALTGNGGA
-                                  [18] GSPEEDGNRMC
-                                  [19] HEADINGGNRMC
-                                  [20] LFLAGGPATT
-                                  [21] SFLAGGPATT
-                                  [22] RSFLAGGPATT
-                                  [23] INSGPATT
-                                  [24] SPEEDNUMGPATT
-                                  [25] MILEAGEGPATT
-                                  [26] GSTDATAGPATT
-                                  [27] YAWGPATT
-                                  [28] ROLLGPATT
-                                  [29] PITCHGPATT
-                                  [30] GNGGAVALIDCS
-                                  [31] GNRMCVALIDCS
-                                  [32] GPATTVALIDCS
-                                  [33] GNGGAVALIDCD
-                                  [34] GNRMCVALIDCD
-                                  [35] GPATTVALIDCD
-                                  [36] GYRO0ACCX
-                                  [37] GYRO0ACCY
-                                  [38] GYRO0ACCZ
-                                  [39] GYRO0ANGX
-                                  [40] GYRO0ANGY
-                                  [41] GYRO0ANGZ
-                                  [42] GYRO0MAGX
-                                  [43] GYRO0MAGY
-                                  [44] GYRO0MAGZ
-                                  [45] GYRO0GYROX
-                                  [46] GYRO0GYROY
-                                  [47] GYRO0GYROZ
-                                  [48] METEORS
-                                  [49] SUNAZ
-                                  [50] SUNALT
-                                  [51] MOONAZ
-                                  [52] MOONALT
-                                  [53] MOONPHASE
-                                  [54] MERCURYAZ
-                                  [55] MERCURYALT
-                                  [56] VENUSAZ
-                                  [57] VENUSALT
-                                  [58] MARSAZ
-                                  [59] MARSALT
-                                  [60] JUPITERAZ
-                                  [61] JUPITERALT
-                                  [62] SATURNAZ
-                                  [63] SATURNALT
-                                  [64] URANUSAZ
-                                  [65] URANUSALT
-                                  [66] NEPTUNEAZ
-                                  [67] NEPTUNEALT
-                                  [68] HEMIGNGGANORTH
-                                  [69] HEMIGNGGASOUTH
-                                  [70] HEMIGNGGAEAST
-                                  [71] HEMIGNGGAWEST
-                                  [72] POSSTATUSGNRMCA
-                                  [73] POSSTATUSGNRMCV
-                                  [74] MODEGNRMCA
-                                  [75] MODEGNRMCD
-                                  [76] MODEGNRMCE
-                                  [77] MODEGNRMCN
-                                  [78] HEMIGNRMCNORTH
-                                  [79] HEMIGNRMCSOUTH
-                                  [80] HEMIGNRMCEAST
-                                  [81] HEMIGNRMCWEST
-                                  [82] ADMPLEX0
-                                  [83] MAPPEDVALUE
-                                  [84] SDCARDINSERTED
-                                  [85] SDCARDMOUNTED
-                                  [86] PCINPUTVALUE
+                                  [2] Switch Link
+                                  [3] Time HHMMSS
+                                  [4] Week Day
+                                  [5] Month Day
+                                  [6] Month
+                                  [7] Year
+                                  [8] SatIO Deg Lat
+                                  [9] SatIO Deg Lon
+                                  [10] SatIO INS Lat
+                                  [11] SatIO INS Lon
+                                  [12] SatIO INS Heading
+                                  [13] SatIO INS Alt
+                                  [14] GNGGA Status
+                                  [15] GNGGA Sat Count
+                                  [16] GNGGA Prescion
+                                  [17] GNGGA Altitude
+                                  [18] GNRMC Ground Speed
+                                  [19] GNRMC Heading
+                                  [20] GPATT Line
+                                  [21] GPATT Static
+                                  [22] GPATT Run State
+                                  [23] GPATT INS
+                                  [24] GPATT Mileage
+                                  [25] GPATT GST
+                                  [26] GPATT Yaw
+                                  [27] GPATT Roll
+                                  [28] GPATT Pitch
+                                  [29] GNGGA Valid CS
+                                  [30] GNRMC Valid CS
+                                  [31] GPATT Valid CS
+                                  [32] GNGGA Valid CD
+                                  [33] GNRMC Valid CD
+                                  [34] GPATT Valid CD
+                                  [35] GNRMC Pos Stat A
+                                  [36] GNRMC Pos Stat V
+                                  [37] GNRMC Mode Ind A
+                                  [38] GNRMC Mode Ind D
+                                  [39] GNRMC Mode Ind E
+                                  [40] GNRMC Mode Ind N
+                                  [41] GNRMC Hemi North
+                                  [42] GNRMC Hemi South
+                                  [43] GNRMC Hemi East
+                                  [44] GNRMC Hemi West
+                                  [45] G0 G-Force X
+                                  [46] G0 G-Force Y
+                                  [47] G0 G-Force Z
+                                  [48] G0 Incline X
+                                  [49] G0 Incline Y
+                                  [50] G0 Incline Z
+                                  [51] G0 Mag Field X
+                                  [52] G0 Mag Field Y
+                                  [53] G0 Mag Field Z
+                                  [54] G0 Velocity X
+                                  [55] G0 Velocity Y
+                                  [56] G0 Velocity Z
+                                  [57] Meteor
+                                  [58] Sun Azimuth
+                                  [59] Sun Altitude
+                                  [60] Sun Helio Ecl Lat
+                                  [61] Sun Helio Ecl Lon
+                                  [62] Luna Azimuth
+                                  [63] Luna Altitude
+                                  [64] Luna Phase
+                                  [65] Mercury Azimuth
+                                  [66] Mercury Altitude
+                                  [67] Mercury H.Ecliptic Lat
+                                  [68] Mercury H.Ecliptic Lon
+                                  [69] Mercury Ecliptic Lat
+                                  [70] Mercury Ecliptic Lon
+                                  [71] Venus Azimuth
+                                  [72] Venus Altitude
+                                  [73] Venus H.Ecliptic Lat
+                                  [74] Venus H.Ecliptic Lon
+                                  [75] Venus Ecliptic Lat
+                                  [76] Venus Ecliptic Lon
+                                  [77] Earth Ecliptic Lon
+                                  [78] Mars Azimuth
+                                  [79] Mars Altitude
+                                  [80] Mars H.Ecliptic Lat
+                                  [81] Mars H.Ecliptic Lon
+                                  [82] Mars Ecliptic Lat
+                                  [83] Mars Ecliptic Lon
+                                  [84] Jupiter Azimuth
+                                  [85] jupiter Altitude
+                                  [86] Jupiter H.Ecliptic Lat
+                                  [87] Jupiter H.Ecliptic Lon
+                                  [88] Jupiter Ecliptic Lat
+                                  [89] Jupiter Ecliptic Lon
+                                  [90] Saturn Azimuth
+                                  [91] Saturn Altitude
+                                  [92] Saturn H.Ecliptic Lat
+                                  [93] Saturn H.Ecliptic Lon
+                                  [94] Saturn Ecliptic Lat
+                                  [95] Saturn Ecliptic Lon
+                                  [96] Uranus Azimuth
+                                  [97] Uranus Altitude
+                                  [98] Uranus H.Ecliptic Lat
+                                  [99] Uranus H.Ecliptic Lon
+                                  [100] Uranus Ecliptic Lat
+                                  [101] Uranus Ecliptic Lon
+                                  [102] Neptune Azimuth
+                                  [103] Neptune Altitude
+                                  [104] Neptune H.Ecliptic Lat
+                                  [105] Neptune H.Ecliptic Lon
+                                  [106] Neptune Ecliptic Lat
+                                  [107] Neptune Ecliptic Lon
+                                  [108] AD Multiplexer 0
+                                  [109] Map Slot
+                                  [110] SD Card Inserted
+                                  [111] SD Card Mounted
+                                  [112] Port Con 0
+      matrix --xyz-mode-x         Specify function comparitor mode. Used with -s and -f.
+      matrix --xyz-mode-y         Specify function comparitor mode. Used with -s and -f.
+      matrix --xyz-mode-z         Specify function comparitor mode. Used with -s and -f.
+                                  [0] User Value. A value that is set by the user.
+                                  [1] System Value. A value that is set by the system. Allows primary comparitors to be compared to other primary comparitors.
+                                  In mode 0, user defined value is compared to a primary comparitor.
+                                  In mode 1, primary comparitors are compared to each other. 
       matrix -fx n                Set function -f value x for switch -s.
       matrix -fy n                Set function -f value y for switch -s.
       matrix -fz n                Set function -f value z for switch -s.
@@ -356,32 +384,31 @@ static void PrintHelp(void) {
 
   [ Satio ]
 
-      satio --coord-mode-gps           Use GPS latitude, longitude values.
-      satio --coord-mode-static        Do not update latiude, longitude unless --set-coord or otherwise.
-      satio --set-coord -lat n -lon n  Set degrees latitude and longitude (ensure --coord-mode-static before --set-coord).
+      [ Time ]
       satio --utc-offset n             Set +-seconds offset time.
       satio --auto-datetime-on         Enable set datetime automatically  (--auto-datetime-on overrides any datetime -set).
       satio --auto-datetime-off        Disable set datetime automatically (ensure --auto-datetime-off before using -set time).
-      satio --set-datetime --year n --month n --mday n --hour n --minute n --second n  (must be UTC except if utc offset 0).
+      satio --set-datetime --year n --month n --mday n --hour n --minute n --second n  (expects UTC +- 0).
 
-      satio --speed-mode-gps     Use GPS speed values.
-      satio --speed-mode-static  Do not update speed unless --set-speed or otherwise.
-      satio --set-speed n        Set speed in meters per second (ensure --speed-mode-static before --set-speed).satio --set-speed 0.1
-      satio --speed-unit-KTS     Use default knots.
-      satio --speed-unit-KPH     Convert knots per second to K/PH.
-      satio --speed-unit-MPH     Convert knots per second to M/PH.
-      satio --speed-unit-mPS     Convert knots per second to meters per second.
+      [ Location ]
+      satio --coord-value-mode-gps             Use GPS coordinates.
+      satio --coord-value-mode-user            User user defined coordinates.
+      satio --set-coord -lat n -lon n          Set degrees latitude and longitude.
 
-      satio --altitude-mode-gps         Use GPS altitude values.
-      satio --altitude-mode-static      Do not update speed unless --set-altitude or otherwise.
-      satio --set-altitude n            Set altitude in meters (ensure --altitude-mode-static before --set-altitude).
-      satio --altitude-unit-meters      Use default meters altitude.
-      satio --altitude-unit-kilometers  Convert meters to kilometers.
-      satio --altitude-unit-miles       Convert meters to miles.
+      [ Speed ]
+      satio --speed-value-mode-gps             Use GPS speed.
+      satio --speed-value-mode-user            User user defined speed.
+      satio --set-speed n                      Set speed in meters per second.
+
+      [ Altitude ]
+      satio --altitude-value-mode-gps          Use GPS altitude values.
+      satio --altitude-value-mode-user         User user defined altitude.
+      satio --set-altitude n                   Set altitude in meters.
       
-      satio --ground-heading-mode-gps     Use GPS ground heading values.
-      satio --ground-heading-mode-static  Do not update heading unless --set-ground-heading or otherwise.
-      satio --set-ground-heading          Set ground heading in degrees (0-360. Ensure --ground-heading-mode-static before --ground-heading).
+      [ Ground Heading ]
+      satio --ground-heading-value-mode-gps    Use GPS ground heading values.
+      satio --ground-heading-value-mode-user   User user defined ground heading.
+      satio --set-ground-heading               Set ground heading in degrees.
 
   [ Gyro ]
 
@@ -450,7 +477,7 @@ static void PrintHelp(void) {
       stat --sentence --admplex0  Takes arguments -e, -d.
       stat --sentence --gyro0     Takes arguments -e, -d.
       stat --sentence --sun       Takes arguments -e, -d.
-      stat --sentence --moon      Takes arguments -e, -d.
+      stat --sentence --luna      Takes arguments -e, -d.
       stat --sentence --mercury   Takes arguments -e, -d.
       stat --sentence --venus     Takes arguments -e, -d.
       stat --sentence --mars      Takes arguments -e, -d.
@@ -470,58 +497,54 @@ static void PrintHelp(void) {
 }
 
 void PrintSystemData(void) {
-    Serial.println("-----------------------------------------------------");
-    Serial.println("[System] ");
-    Serial.println("[serial_command] " + String(systemData.serial_command));
-    Serial.println("[output_satio_all] " + String(systemData.output_satio_all));
-    Serial.println("[output_satio_enabled] " + String(systemData.output_satio_enabled));
-    Serial.println("[output_ins_enabled] " + String(systemData.output_ins_enabled));
-    Serial.println("[output_gngga_enabled] " + String(systemData.output_gngga_enabled));
-    Serial.println("[output_gnrmc_enabled] " + String(systemData.output_gnrmc_enabled));
-    Serial.println("[output_gpatt_enabled] " + String(systemData.output_gpatt_enabled));
-    Serial.println("[output_matrix_enabled] " + String(systemData.output_matrix_enabled));
-    Serial.println("[output_input_portcontroller] " + String(systemData.output_input_portcontroller));
-    Serial.println("[output_admplex0_enabled] " + String(systemData.output_admplex0_enabled));
-    Serial.println("[output_gyro_0_enabled] " + String(systemData.output_gyro_0_enabled));
-    Serial.println("[output_sun_enabled] " + String(systemData.output_sun_enabled));
-    Serial.println("[output_moon_enabled] " + String(systemData.output_moon_enabled));
-    Serial.println("[output_mercury_enabled] " + String(systemData.output_mercury_enabled));
-    Serial.println("[output_venus_enabled] " + String(systemData.output_venus_enabled));
-    Serial.println("[output_mars_enabled] " + String(systemData.output_mars_enabled));
-    Serial.println("[output_jupiter_enabled] " + String(systemData.output_jupiter_enabled));
-    Serial.println("[output_saturn_enabled] " + String(systemData.output_saturn_enabled));
-    Serial.println("[output_uranus_enabled] " + String(systemData.output_uranus_enabled));
-    Serial.println("[output_neptune_enabled] " + String(systemData.output_neptune_enabled));
-    Serial.println("[output_meteors_enabled] " + String(systemData.output_meteors_enabled));
-    Serial.println("-----------------------------------------------------");
+    printf("-----------------------------------------------------\n");
+    printf("[System] \n");
+    printf("[serial_command] %d\n", systemData.serial_command);
+    printf("[output_satio_all] %d\n", systemData.output_satio_all);
+    printf("[output_satio_enabled] %d\n", systemData.output_satio_enabled);
+    printf("[output_ins_enabled] %d\n", systemData.output_ins_enabled);
+    printf("[output_gngga_enabled] %d\n", systemData.output_gngga_enabled);
+    printf("[output_gnrmc_enabled] %d\n", systemData.output_gnrmc_enabled);
+    printf("[output_gpatt_enabled] %d\n", systemData.output_gpatt_enabled);
+    printf("[output_matrix_enabled] %d\n", systemData.output_matrix_enabled);
+    printf("[output_input_portcontroller] %d\n", systemData.output_input_portcontroller);
+    printf("[output_admplex0_enabled] %d\n", systemData.output_admplex0_enabled);
+    printf("[output_gyro_0_enabled] %d\n", systemData.output_gyro_0_enabled);
+    printf("[output_sun_enabled] %d\n", systemData.output_sun_enabled);
+    printf("[output_luna_enabled] %d\n", systemData.output_luna_enabled);
+    printf("[output_mercury_enabled] %d\n", systemData.output_mercury_enabled);
+    printf("[output_venus_enabled] %d\n", systemData.output_venus_enabled);
+    printf("[output_mars_enabled] %d\n", systemData.output_mars_enabled);
+    printf("[output_jupiter_enabled] %d\n", systemData.output_jupiter_enabled);
+    printf("[output_saturn_enabled] %d\n", systemData.output_saturn_enabled);
+    printf("[output_uranus_enabled] %d\n", systemData.output_uranus_enabled);
+    printf("[output_neptune_enabled] %d\n", systemData.output_neptune_enabled);
+    printf("[output_meteors_enabled] %d\n", systemData.output_meteors_enabled);
+    printf("-----------------------------------------------------\n");
 }
 
 void PrintSatIOData(void) {
-    Serial.println("-----------------------------------------------------");
-    Serial.println("[SatIO] ");
-    Serial.println("[coordinate_conversion_mode] " +
-      String(satioData.char_coordinate_conversion_mode[satioData.coordinate_conversion_mode]));
-    Serial.println("[char_speed_unit_mode] " +
-      String(satioData.char_speed_unit_mode[satioData.speed_unit_mode]));
-    Serial.println("[utc_second_offset] " + String(satioData.utc_second_offset));
-    Serial.println("[utc_auto_offset_flag] " + String(satioData.utc_auto_offset_flag));
-    Serial.println("[set_time_automatically] " + String(satioData.set_time_automatically));
-    Serial.println("-----------------------------------------------------");
+    printf("-----------------------------------------------------\n");
+    printf("[SatIO] \n");
+    printf("[utc_second_offset] %lld\n", satioData.utc_second_offset);
+    printf("[utc_auto_offset_flag] %d\n", satioData.utc_auto_offset_flag);
+    printf("[set_time_automatically] %d\n", satioData.set_time_automatically);
+    printf("-----------------------------------------------------\n");
 }
 
 void PrintMappingNData(int map_slot) {
   if (map_slot>=0 && map_slot<MAX_MAP_SLOTS) {
-    Serial.println("-----------------------------------------------------");
-    Serial.println("[slot] " + String(map_slot));
-    Serial.println("[map_mode] " + String(mappingData.map_mode[0][map_slot]));
-    Serial.println("[map slot idx] " + String(mappingData.index_mapped_value[0][map_slot]));
-    Serial.println("[map config 0] " + String(mappingData.mapping_config[0][map_slot][0]));
-    Serial.println("[map config 1] " + String(mappingData.mapping_config[0][map_slot][1]));
-    Serial.println("[map config 2] " + String(mappingData.mapping_config[0][map_slot][2]));
-    Serial.println("[map config 3] " + String(mappingData.mapping_config[0][map_slot][3]));
-    Serial.println("[map config 4] " + String(mappingData.mapping_config[0][map_slot][4]));
-    Serial.println("[map config 5] " + String(mappingData.mapping_config[0][map_slot][5]));
-    Serial.println("-----------------------------------------------------");
+    printf("-----------------------------------------------------\n");
+    printf("[slot] %d\n", map_slot);
+    printf("[map_mode] %d\n", mappingData.map_mode[0][map_slot]);
+    printf("[map slot idx] %d\n", matrixData.index_mapped_value[0][map_slot]);
+    printf("[map config 0] %ld\n", mappingData.mapping_config[0][map_slot][0]);
+    printf("[map config 1] %ld\n", mappingData.mapping_config[0][map_slot][1]);
+    printf("[map config 2] %ld\n", mappingData.mapping_config[0][map_slot][2]);
+    printf("[map config 3] %ld\n", mappingData.mapping_config[0][map_slot][3]);
+    printf("[map config 4] %ld\n", mappingData.mapping_config[0][map_slot][4]);
+    printf("[map config 5] %ld\n", mappingData.mapping_config[0][map_slot][5]);
+    printf("-----------------------------------------------------\n");
   }
 }
 
@@ -531,31 +554,32 @@ void PrintMappingData(void) {
 
 void PrintMatrixNData(int matrix_index) {
   if (matrix_index>=0 && matrix_index<MAX_MATRIX_SWITCHES) {
-    Serial.println("-----------------------------------------------------");
-    Serial.println("[matrix switch] " + String(matrix_index));
-    Serial.println("[computer assist] " + String(matrixData.computer_assist[0][matrix_index]));
-    Serial.println("[output mode] " + String(matrixData.output_mode[0][matrix_index]));
-    Serial.println("[flux] " + String(matrixData.flux_value[0][matrix_index]));
-    Serial.println("[pwm] 0: " + String(matrixData.output_pwm[0][matrix_index][0]) + " 1: " +
-      String(matrixData.output_pwm[0][matrix_index][1]));
-    Serial.println("[port] " + String(matrixData.matrix_port_map[0][matrix_index]));
-    Serial.println("[active] " + String(matrixData.switch_intention[0][matrix_index]));
-    Serial.println("-----------------------------------------------------");
+    printf("-----------------------------------------------------\n");
+    printf("[matrix switch] %d\n", matrix_index);
+    printf("[computer assist] %d\n", matrixData.computer_assist[0][matrix_index]);
+    printf("[output mode] %d\n", matrixData.output_mode[0][matrix_index]);
+    printf("[flux] %lu\n", matrixData.flux_value[0][matrix_index]);
+    printf("[pwm] 0: %lu 1: %lu\n",
+      matrixData.output_pwm[0][matrix_index][0],
+      matrixData.output_pwm[0][matrix_index][1]);
+    printf("[port] %d\n", matrixData.matrix_port_map[0][matrix_index]);
+    printf("[active] %d\n", matrixData.switch_intention[0][matrix_index]);
+    printf("-----------------------------------------------------\n");
     for (int Fi=0; Fi<MAX_MATRIX_SWITCH_FUNCTIONS; Fi++) {
       //                                         matrixData.matrix_function[0][switch_idx][func_idx]
-      Serial.println("[function " + String(Fi) + " name] " +
-        String(matrixData.matrix_function_names[ matrixData.matrix_function[0][matrix_index][Fi] ]));
-      Serial.println("[function " + String(Fi) + " matrix_function_operator_name] " +
-        String(matrixData.matrix_switch_operator_index[0][matrix_index][Fi]));
-      Serial.println("[function " + String(Fi) + " inverted] " +
-        String(matrixData.matrix_switch_inverted_logic[0][matrix_index][Fi]));
-      Serial.println("[function " + String(Fi) + " x] " +
-        String(matrixData.matrix_function_xyz[0][matrix_index][Fi][INDEX_MATRIX_FUNTION_X]));
-      Serial.println("[function " + String(Fi) + " y] " +
-        String(matrixData.matrix_function_xyz[0][matrix_index][Fi][INDEX_MATRIX_FUNTION_Y]));
-      Serial.println("[function " + String(Fi) + " z] " +
-        String(matrixData.matrix_function_xyz[0][matrix_index][Fi][INDEX_MATRIX_FUNTION_Z]));
-      Serial.println("-----------------------------------------------------");
+      printf("[function %d name] %s\n",
+        Fi, matrixData.matrix_function_names[ matrixData.matrix_function[0][matrix_index][Fi] ]);
+      printf("[function %d matrix_function_operator_name] %d\n",
+        Fi, matrixData.matrix_switch_operator_index[0][matrix_index][Fi]);
+      printf("[function %d inverted] %d\n",
+        Fi, matrixData.matrix_switch_inverted_logic[0][matrix_index][Fi]);
+      printf("[function %d x] %f\n",
+        Fi, matrixData.matrix_function_xyz[0][matrix_index][Fi][INDEX_MATRIX_FUNTION_X]);
+      printf("[function %d y] %f\n",
+        Fi, matrixData.matrix_function_xyz[0][matrix_index][Fi][INDEX_MATRIX_FUNTION_Y]);
+      printf("[function %d z] %f\n",
+        Fi, matrixData.matrix_function_xyz[0][matrix_index][Fi][INDEX_MATRIX_FUNTION_Z]);
+      printf("-----------------------------------------------------\n");
     }
   }
 }
@@ -564,20 +588,21 @@ void PrintMatrixData(void) {
     for (int Mi=0; Mi<MAX_MATRIX_SWITCHES; Mi++) {PrintMatrixNData(Mi);}
 }
 
-void PrintSDCardInformation() {
-  Serial.println("sdcard inserted:    " + String(sdcardData.sdcard_inserted));
-  Serial.println("sdcard mounted:     " + String(sdcardData.sdcard_mounted));
-  Serial.println("sdcard mount point: " + String(sdcardData.sdcard_mountpoint));
-  Serial.println("sdcard type:        " +
-    String(sdcardData.sdcard_type_names[sdcardData.sdcard_type]) +
-    " (type: " + String(sdcardData.sdcard_type) + ").");
-  Serial.println("sdcard card size:   " + String(sdcardData.sdcard_card_size));
-  Serial.println("sdcard total bytes: " + String(sdcardData.sdcard_total_bytes));
-  Serial.println("sdcard used bytes:  " + String(sdcardData.sdcard_used_bytes));
-  Serial.println("sdcard sector size: " + String(sdcardData.sdcard_sector_size));
-}
+// void PrintSDCardInformation() {
+//   Serial.println("sdcard inserted:    " + String(sdcardData.sdcard_inserted));
+//   Serial.println("sdcard mounted:     " + String(sdcardData.sdcard_mounted));
+//   Serial.println("sdcard mount point: " + String(sdcardData.sdcard_mountpoint));
+//   Serial.println("sdcard type:        " +
+//     String(sdcardData.sdcard_type_names[sdcardData.sdcard_type]) +
+//     " (type: " + String(sdcardData.sdcard_type) + ").");
+//   Serial.println("sdcard card size:   " + String(sdcardData.sdcard_card_size));
+//   Serial.println("sdcard total bytes: " + String(sdcardData.sdcard_total_bytes));
+//   Serial.println("sdcard used bytes:  " + String(sdcardData.sdcard_used_bytes));
+//   Serial.println("sdcard sector size: " + String(sdcardData.sdcard_sector_size));
+// }
 
 void setAllSentenceOutput(bool enable) {
+  systemData.output_satio_all = enable;
   systemData.output_satio_enabled=enable;
   systemData.output_gngga_enabled=enable;
   systemData.output_gnrmc_enabled=enable;
@@ -588,9 +613,10 @@ void setAllSentenceOutput(bool enable) {
   systemData.output_admplex0_enabled=enable;
   systemData.output_gyro_0_enabled=enable;
   systemData.output_sun_enabled=enable;
-  systemData.output_moon_enabled=enable;
   systemData.output_mercury_enabled=enable;
   systemData.output_venus_enabled=enable;
+  systemData.output_earth_enabled=enable;
+  systemData.output_luna_enabled=enable;
   systemData.output_mars_enabled=enable;
   systemData.output_jupiter_enabled=enable;
   systemData.output_saturn_enabled=enable;
@@ -607,7 +633,7 @@ void setMatrixPort(int switch_idx, signed int port_n) {
 }
 
 void setMatrixFunction(int switch_idx, int func_idx, int func_n) {
-  Serial.println("func_n " + String(func_n));
+  printf("func_n %d\n", func_n);
   if (switch_idx>=0 && switch_idx<MAX_MATRIX_SWITCHES && func_idx>=0 &&
       func_idx<MAX_MATRIX_SWITCH_FUNCTIONS &&
       func_n>=0 &&
@@ -615,7 +641,40 @@ void setMatrixFunction(int switch_idx, int func_idx, int func_n) {
     matrixData.matrix_function[0][switch_idx][func_idx]=func_n;
     matrixData.matrix_switch_write_required[0][switch_idx]=true;
   }
-  Serial.println("matrix_function " + String(matrixData.matrix_function[0][switch_idx][func_idx]));
+  printf("matrix_function %d\n", matrixData.matrix_function[0][switch_idx][func_idx]);
+}
+
+void setMatrixFunctionXComparitorMode(int switch_idx, int func_idx, int comparitor_mode) {
+  if (switch_idx>=0 && switch_idx<MAX_MATRIX_SWITCHES &&
+      func_idx>=0 && func_idx<MAX_MATRIX_SWITCH_FUNCTIONS)
+  {
+    if (comparitor_mode>=0 && comparitor_mode<MAX_MATRIX_FUNCTION_XYZ_MODES) {
+      matrixData.matrix_function_mode_xyz[0][switch_idx][func_idx][INDEX_MATRIX_FUNTION_X]=comparitor_mode;
+      matrixData.matrix_switch_write_required[0][switch_idx]=true;
+    }
+  }
+}
+
+void setMatrixFunctionYComparitorMode(int switch_idx, int func_idx, int comparitor_mode) {
+  if (switch_idx>=0 && switch_idx<MAX_MATRIX_SWITCHES &&
+      func_idx>=0 && func_idx<MAX_MATRIX_SWITCH_FUNCTIONS)
+  {
+    if (comparitor_mode>=0 && comparitor_mode<MAX_MATRIX_FUNCTION_XYZ_MODES) {
+      matrixData.matrix_function_mode_xyz[0][switch_idx][func_idx][INDEX_MATRIX_FUNTION_Y]=comparitor_mode;
+      matrixData.matrix_switch_write_required[0][switch_idx]=true;
+    }
+  }
+}
+
+void setMatrixFunctionZComparitorMode(int switch_idx, int func_idx, int comparitor_mode) {
+  if (switch_idx>=0 && switch_idx<MAX_MATRIX_SWITCHES &&
+      func_idx>=0 && func_idx<MAX_MATRIX_SWITCH_FUNCTIONS)
+  {
+    if (comparitor_mode>=0 && comparitor_mode<MAX_MATRIX_FUNCTION_XYZ_MODES) {
+      matrixData.matrix_function_mode_xyz[0][switch_idx][func_idx][INDEX_MATRIX_FUNTION_Z]=comparitor_mode;
+      matrixData.matrix_switch_write_required[0][switch_idx]=true;
+    }
+  }
 }
 
 void setMatrixX(int switch_idx, int func_idx, double func_x) {
@@ -687,28 +746,34 @@ void setOutputMode(int switch_idx, int output_mode) {
 }
 
 void setOverrideOutputValue(int switch_idx, uint32_t override_value) {
-  if (switch_idx>=0 && switch_idx<MAX_MATRIX_SWITCHES &&
-      override_value>=LONG_MIN && override_value<LONG_MAX) {
+  printf("[setOverrideOutputValue] attempting to override switch %d\n", switch_idx);
+  if (switch_idx < 0) {printf("[setOverrideOutputValue] switch_idx must be >= 0.\n"); return;}
+  if (switch_idx >= MAX_MATRIX_SWITCHES) {printf("[setOverrideOutputValue] switch_idx must be < %d.\n", MAX_MATRIX_SWITCHES); return;}
+  if (override_value < 0) {printf("[setOverrideOutputValue] override_value must be >= 0.\n"); return;}
+  if (override_value > LONG_MAX) {printf("[setOverrideOutputValue] override_value must be <= %ld.\n", LONG_MAX); return;}
+
+  matrixData.computer_assist[0][switch_idx]=false;
+  matrixData.override_output_value[0][switch_idx]=override_value;
+  long i_retry=0;
+  while (matrixData.computer_assist[0][switch_idx]!=false) {
     matrixData.computer_assist[0][switch_idx]=false;
-    matrixData.override_output_value[0][switch_idx]=override_value;
-    long i_retry;
-    while (matrixData.computer_assist[0][switch_idx]!=false) {
-      matrixData.computer_assist[0][switch_idx]=false;
-      i_retry++;
-      if (i_retry==MAX_MATRIX_OVERRIDE_TIME)
-        {Serial.println("WARNING! Could not override computer_assist!"); break;}
-      delayMicroseconds(1);
-    }
-    i_retry=0;
-    while (matrixData.override_output_value[0][switch_idx]!=override_value) {
-      matrixData.override_output_value[0][switch_idx]=override_value;
-      i_retry++;
-      if (i_retry==MAX_MATRIX_OVERRIDE_TIME)
-        {Serial.println("WARNING! Could not override override_output_value!"); break;}
-      delayMicroseconds(1);
-    }
-    matrixData.matrix_switch_write_required[0][switch_idx]=true;
+    i_retry+=1;
+    if (i_retry==MAX_MATRIX_OVERRIDE_TIME)
+      {printf("WARNING! Could not override computer_assist!\n"); break;}
+    delayMicroseconds(1);
   }
+  i_retry=0;
+  while (matrixData.override_output_value[0][switch_idx]!=override_value) {
+    matrixData.override_output_value[0][switch_idx]=override_value;
+    i_retry+=1;
+    if (i_retry==MAX_MATRIX_OVERRIDE_TIME)
+      {printf("WARNING! Could not override override_output_value!\n"); break;}
+    delayMicroseconds(1);
+  }
+  matrixData.matrix_switch_write_required[0][switch_idx]=true;
+  printf("[setOverrideOutputValue] computer_assist %d\n", matrixData.computer_assist[0][switch_idx]);
+  printf("[setOverrideOutputValue] override_output_value %ld\n", matrixData.override_output_value[0][switch_idx]);
+  printf("[setOverrideOutputValue] matrix_switch_write_required %d\n", matrixData.matrix_switch_write_required[0][switch_idx]);
 }
 
 char *cmd_proc_xyzptr;
@@ -716,7 +781,7 @@ char *cmd_proc_xyzptr;
 void setComputerAssist(int switch_idx, bool computer_assist) {
   debug("[setComputerAssist] switch_idx:" + String(switch_idx) + "  computer_assist: " + String(computer_assist));
   debug("[setComputerAssist] current computer_assist: " + String(matrixData.computer_assist[0][switch_idx]));
-  if (switch_idx>=0 && switch_idx<MAX_MATRIX_SWITCHES && computer_assist>=0 && computer_assist<=1) {
+  if (switch_idx>=0 && switch_idx<MAX_MATRIX_SWITCHES) {
     matrixData.computer_assist[0][switch_idx]=computer_assist;
     matrixData.matrix_switch_write_required[0][switch_idx]=true;
   }
@@ -747,11 +812,6 @@ void setINSMinSpeed(double ins_min_speed) {
 void setINSHeadingRangeDiff(double ins_range_diff) {
   if (ins_range_diff>=0 && ins_range_diff<DBL_MAX)
     {insData.INS_REQ_HEADING_RANGE_DIFF=ins_range_diff;}
-}
-
-void setSpeedUnits(int speed_unit_mode) {
-  if (speed_unit_mode>=0 && speed_unit_mode <MAX_SPEED_UNIT_MODES)
-    {satioData.speed_unit_mode=speed_unit_mode;}
 }
 
 void setUTCSecondOffset(int64_t seconds) {
@@ -791,32 +851,29 @@ void setMapSlot(int matrix_switch,
   // Serial.println("[setMapSlot] matrix_switch:" + String(matrix_switch) + "  map_slot:" + String(map_slot));
   if (matrix_switch>=0 && matrix_switch<MAX_MAP_SLOTS &&
       map_slot>=0 && map_slot<=1) {
-    mappingData.index_mapped_value[0][matrix_switch]=map_slot;
+    matrixData.index_mapped_value[0][matrix_switch]=map_slot;
     matrixData.matrix_switch_write_required[0][map_slot]=true;
   }
 }
 
 void saveMatrix(int matrix_file_slot) {
-  if (matrix_file_slot>=0 && matrix_file_slot<MAX_MATRIX_SLOTS) {
-    memset(satioFileData.current_matrix_filepath, 0, sizeof(satioFileData.current_matrix_filepath));
-    strcpy(satioFileData.current_matrix_filepath, satioFileData.matix_filepaths[matrix_file_slot]);
-    sdmmcFlagData.save_matrix=true;
+  if (matrix_file_slot>=0 && matrix_file_slot<MAX_MATRIX_FILE_SLOTS) {
+    satioFileData.i_current_matrix_file_path=matrix_file_slot;
+    sdcardFlagData.save_matrix=true;
   }
 }
 
 void loadMatrix(int matrix_file_slot) {
-  if (matrix_file_slot>=0 && matrix_file_slot<MAX_MATRIX_SLOTS) {
-    memset(satioFileData.current_matrix_filepath, 0, sizeof(satioFileData.current_matrix_filepath));
-    strcpy(satioFileData.current_matrix_filepath, satioFileData.matix_filepaths[matrix_file_slot]);
-    sdmmcFlagData.load_matrix=true;
+  if (matrix_file_slot>=0 && matrix_file_slot<MAX_MATRIX_FILE_SLOTS) {
+    satioFileData.i_current_matrix_file_path=matrix_file_slot;
+    sdcardFlagData.load_matrix=true;
   }
 }
 
 void deleteMatrix(int matrix_file_slot) {
-  if (matrix_file_slot>=0 && matrix_file_slot<MAX_MATRIX_SLOTS) {
-    memset(satioFileData.current_matrix_filepath, 0, sizeof(satioFileData.current_matrix_filepath));
-    strcpy(satioFileData.current_matrix_filepath, satioFileData.matix_filepaths[matrix_file_slot]);
-    sdmmcFlagData.delete_matrix=true;
+  if (matrix_file_slot>=0 && matrix_file_slot<MAX_MATRIX_FILE_SLOTS) {
+    satioFileData.i_current_matrix_file_path=matrix_file_slot;
+    sdcardFlagData.delete_matrix=true;
   }
 }
 
@@ -851,54 +908,27 @@ void datetimeSetDTAuto(bool set_dt_auto) {
 }
 
 void setCoordinatesDegrees(double latitude, double longitude) {
-  /*
-     satio --coord-mode-gps
-     satio --coord-mode-static
-     satio --set-coord -lat 0.123 -lon 4.567
-  */
   if (latitude>=-90 && latitude<=90 && longitude>=-180 && longitude<=180) {
-    satioData.degrees_latitude=latitude;
-    satioData.degrees_longitude=longitude;
+    satioData.user_degrees_latitude=latitude;
+    satioData.user_degrees_longitude=longitude;
   }
 }
 
 void setAltitude(double altitude) {
-  /*
-     satio --altitude-mode-gps
-     satio --altitude-mode-static
-     satio --set-altitude 1000
-     satio --altitude-unit-kilometers
-     satio --altitude-unit-miles
-     satio --altitude-unit-meters
-  */
-  if (altitude>=0 && altitude<DBL_MAX && altitude!=NAN) {
-    satioData.altitude=altitude;
+  if (altitude>=DBL_MIN && altitude<DBL_MAX && altitude!=NAN) {
+    satioData.user_altitude=altitude;
   }
 }
 
 void setSpeed(double speed) {
-  /*
-     satio --speed-mode-gps
-     satio --speed-mode-static
-     satio --set-speed 1000
-     satio --speed-unit-KTS
-     satio --speed-unit-KPH
-     satio --speed-unit-MPH
-     satio --speed-unit-mPS
-  */
   if (speed>=0 && speed<DBL_MAX && speed!=NAN) {
-    satioData.speed=speed;
+    satioData.user_speed=speed;
   }
 }
 
 void setGroundHeading(double heading) {
-  /*
-     satio --ground-heading-mode-static
-     satio --ground-heading-mode-gps
-     satio --set-ground-heading 180
-  */
-  if (heading>=0 && heading<DBL_MAX && heading!=NAN) {
-    satioData.ground_heading=heading;
+  if (heading>=-360 && heading<=360 && heading!=NAN) {
+    satioData.user_ground_heading=heading;
   }
 }
 
@@ -921,7 +951,7 @@ void star_nav() {
       (str_is_float(plainparser.tokens[5])==true)
     )
   {
-    Serial.println("attempting to identify object..");
+    printf("attempting to identify object..\n");
     // this is identify (so first identify object)
     IdentifyObject(
       atoi(plainparser.tokens[0]),
@@ -940,31 +970,31 @@ void star_nav() {
       satioData.rtc_hour, satioData.rtc_minute, satioData.rtc_second,
       satioData.local_hour, satioData.local_minute, satioData.local_second,
       atof(gnggaData.altitude), siderealObjectData.object_table_i, siderealObjectData.object_number);
-    Serial.println("---------------------------------------------");
-    Serial.println("Table Index:   " + String(siderealObjectData.object_table_i));
-    Serial.println("Table:         " + String(siderealObjectData.object_table_name));
-    Serial.println("Number:        " + String(siderealObjectData.object_number));
-    Serial.println("Name:          " + String(siderealObjectData.object_name));
-    Serial.println("Type:          " + String(siderealObjectData.object_type));
-    Serial.println("Constellation: " + String(siderealObjectData.object_con));
-    Serial.println("Distance:      " + String(siderealObjectData.object_dist));
-    Serial.println("Azimuth:       " + String(siderealObjectData.object_az));
-    Serial.println("Altitude:      " + String(siderealObjectData.object_alt));
-    Serial.println("Rise:          " + String(siderealObjectData.object_r));
-    Serial.println("Set:           " + String(siderealObjectData.object_s));
-    Serial.println("---------------------------------------------");
+    printf("---------------------------------------------\n");
+    printf("Table Index:   %d\n", siderealObjectData.object_table_i);
+    printf("Table:         %s\n", siderealObjectData.object_table_name);
+    printf("Number:        %d\n", siderealObjectData.object_number);
+    printf("Name:          %s\n", siderealObjectData.object_name);
+    printf("Type:          %s\n", siderealObjectData.object_type);
+    printf("Constellation: %s\n", siderealObjectData.object_con);
+    printf("Distance:      %f\n", siderealObjectData.object_dist);
+    printf("Azimuth:       %f\n", siderealObjectData.object_az);
+    printf("Altitude:      %f\n", siderealObjectData.object_alt);
+    printf("Rise:          %f\n", siderealObjectData.object_r);
+    printf("Set:           %f\n", siderealObjectData.object_s);
+    printf("---------------------------------------------\n");
   }
-  else {Serial.println("identify object: bad input data");}
+  else {printf("identify object: bad input data\n");}
 }
 
 void unmountSDCard() {
-  sdmmcFlagData.no_delay_flag=true;
-  sdmmcFlagData.unmount_sdcard_flag=true;
+  sdcardFlagData.no_delay_flag=true;
+  sdcardFlagData.unmount_sdcard_flag=true;
 }
 
 void mountSDCard() {
-  sdmmcFlagData.no_delay_flag=true;
-  sdmmcFlagData.mount_sdcard_flag=true;
+  sdcardFlagData.no_delay_flag=true;
+  sdcardFlagData.mount_sdcard_flag=true;
 }
 
 /*
@@ -987,28 +1017,52 @@ bool verbose;
 bool verbose_1;
 bool enable;
 
+// void printArgParse() {
+//   Serial.println("-------------------------------------------");
+//   Serial.print("[debug] First command: ");
+//   if (pos_count > 0) {Serial.println(pos[0]);}
+//   else {Serial.println("none");}
+//   Serial.print("[debug] Positionals (");
+//   Serial.print(pos_count);
+//   Serial.print("): ");
+//   for (size_t j = 0; j < pos_count; ++j)
+//     {Serial.print(pos[j]); if (j < pos_count - 1) Serial.print(" ");}
+//   Serial.println();
+//   Serial.println("----");
+//   Serial.print("[debug] Flag count: ");
+//   Serial.println(parser.flag_count);
+//   Serial.print("[debug] Flags: ");
+//   for (size_t k = 0; k < parser.flag_count; ++k)
+//     {Serial.print(parser.flags[k]); const char* val = parser.values[k];
+//       if (val[0] != '\0') {Serial.print("=\""); Serial.print(val); Serial.print("\"");}
+//       if (k < parser.flag_count - 1) Serial.print(" ");
+//   }
+//   Serial.println();
+//   Serial.println("-------------------------------------------");
+// }
+
 void printArgParse() {
-  Serial.println("-------------------------------------------");
-  Serial.print("[debug] First command: ");
-  if (pos_count > 0) {Serial.println(pos[0]);}
-  else {Serial.println("none");}
-  Serial.print("[debug] Positionals (");
-  Serial.print(pos_count);
-  Serial.print("): ");
+  printf("-------------------------------------------");
+  printf("[debug] First command: ");
+  if (pos_count > 0) {printf("%s\n", pos[0]);}
+  else {printf("none\n");}
+  printf("[debug] Positionals (");
+  printf("%zu", pos_count);
+  printf("): ");
   for (size_t j = 0; j < pos_count; ++j)
-    {Serial.print(pos[j]); if (j < pos_count - 1) Serial.print(" ");}
-  Serial.println();
-  Serial.println("----");
-  Serial.print("[debug] Flag count: ");
-  Serial.println(parser.flag_count);
-  Serial.print("[debug] Flags: ");
+    {printf("%s", pos[j]); if (j < pos_count - 1) printf(" ");}
+  printf("\n");
+  printf("----\n");
+  printf("[debug] Flag count: ");
+  printf("%zu\n", parser.flag_count);
+  printf("[debug] Flags: ");
   for (size_t k = 0; k < parser.flag_count; ++k)
-    {Serial.print(parser.flags[k]); const char* val = parser.values[k];
-      if (val[0] != '\0') {Serial.print("=\""); Serial.print(val); Serial.print("\"");}
-      if (k < parser.flag_count - 1) Serial.print(" ");
+    {printf("%s", parser.flags[k]); const char* val = parser.values[k];
+      if (val[0] != '\0') {printf("=\"%s\"", val);}
+      if (k < parser.flag_count - 1) printf(" ");
   }
-  Serial.println();
-  Serial.println("-------------------------------------------");
+  printf("\n");
+  printf("-------------------------------------------\n");
 }
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -1016,17 +1070,16 @@ void printArgParse() {
   Serial RXD : Command Process.
 */
 // ---------------------------------------------------------------------------------------------------------------
-void CmdProcess(void) {
-  memset(serial0Data.BUFFER, 0, sizeof(serial0Data.BUFFER));
-  while (Serial.available())
-    {Serial.readBytesUntil('\n', serial0Data.BUFFER, sizeof(serial0Data.BUFFER)-1);}
+
+void CmdProcess() {
   if (strlen(serial0Data.BUFFER)>=2) {
     // Debug Serial Buffer.
-    Serial.println("[CmdProcess] " + String(serial0Data.BUFFER));
+    printf("[CmdProcess] Received data: %s\n", serial0Data.BUFFER);
+    // return;
     // Initialize argparse.
     argparser_reset(&parser);
     if (!argparser_init_from_buffer(&parser, serial0Data.BUFFER))
-      {fprintf(stderr, "[cmd] Failed to initialize parser from buffer\n"); return;}
+      {printf("[cmd] Failed to initialize parser from buffer\n"); return;}
     pos_count=0; pos={}; pos = argparser_get_positionals(&parser, &pos_count);
     // Verbosity.
     verbose=false; verbose_1=false;
@@ -1034,15 +1087,17 @@ void CmdProcess(void) {
     verbose_1 = argparser_get_bool(&parser, "vv") || argparser_get_bool(&parser, "verbose1");
     if (verbose_1) {verbose=true;}
     if (verbose==false) {verbose_1=false;}
-    Serial.println("[cmd] verbose: " + String(verbose));
-    Serial.println("[cmd] verbose1: " + String(verbose_1));
+    printf("[cmd] verbose: %d\n", verbose);
+    printf("[cmd] verbose1: %d\n", verbose_1);
     // Enable/Disable
     enable=false;
     if (argparser_has_flag(&parser, "disable") || argparser_has_flag(&parser, "d")) {enable=false;}
     else if (argparser_has_flag(&parser, "enable") || argparser_has_flag(&parser, "e")) {enable=true;}
     // Debug Arg Parse.
     printArgParse();
-    // Commands.
+    // Check if command provided.
+    if (pos_count==0) {printf("[cmd] No command provided.\n"); return;}
+    // Commands. help -v
     if (strcmp(pos[0], "help")==0 || strcmp(pos[0], "h")==0)
       {printf("Usage: [buffer with] [--flag value] [-f value] [positional...]\n");
       if (verbose) {PrintHelp();}
@@ -1053,11 +1108,11 @@ void CmdProcess(void) {
         if (enable) {systemData.output_stat=enable; systemData.output_stat_v=verbose; systemData.output_stat_vv=verbose_1;}
         else {systemData.output_stat=false; systemData.output_stat_v=false; systemData.output_stat_vv=false;}
       }
-      if (argparser_has_flag(&parser, "partition-table")) {print_partition_table();}
+      // if (argparser_has_flag(&parser, "partition-table")) {print_partition_table();}
 
-      if (argparser_has_flag(&parser, "memory-ram")) {print_ram_info();}
+      // if (argparser_has_flag(&parser, "memory-ram")) {print_ram_info();}
 
-      if (argparser_has_flag(&parser, "sdcard")) {PrintSDCardInformation();}
+      // if (argparser_has_flag(&parser, "sdcard")) {PrintSDCardInformation();}
 
       if (strcmp(serial0Data.BUFFER, "stat --system")==0) {PrintSystemData();}
 
@@ -1073,60 +1128,61 @@ void CmdProcess(void) {
 
       else if (argparser_has_flag(&parser, "sentence")) {
         if (argparser_has_flag(&parser, "A")) {systemData.output_satio_all=enable; setAllSentenceOutput(enable);}
-        if (argparser_has_flag(&parser, "satio")) {systemData.output_satio_enabled=enable;}
-        if (argparser_has_flag(&parser, "gngga")) {systemData.output_gngga_enabled=enable;}
-        if (argparser_has_flag(&parser, "gnrmc")) {systemData.output_gnrmc_enabled=enable;}
-        if (argparser_has_flag(&parser, "gpatt")) {systemData.output_gpatt_enabled=enable;}
-        if (argparser_has_flag(&parser, "ins")) {systemData.output_ins_enabled=enable;}
-        if (argparser_has_flag(&parser, "matrix")) {systemData.output_matrix_enabled=enable;}
-        if (argparser_has_flag(&parser, "pcinput")) {systemData.output_input_portcontroller=enable;}
-        if (argparser_has_flag(&parser, "admplex0")) {systemData.output_admplex0_enabled=enable;}
-        if (argparser_has_flag(&parser, "gyro0")) {systemData.output_gyro_0_enabled=enable;}
-        if (argparser_has_flag(&parser, "sun")) {systemData.output_sun_enabled=enable;}
-        if (argparser_has_flag(&parser, "moon")) {systemData.output_moon_enabled=enable;}
-        if (argparser_has_flag(&parser, "mercury")) {systemData.output_mercury_enabled=enable;}
-        if (argparser_has_flag(&parser, "venus")) {systemData.output_venus_enabled=enable;}
-        if (argparser_has_flag(&parser, "mars")) {systemData.output_mars_enabled=enable;}
-        if (argparser_has_flag(&parser, "jupiter")) {systemData.output_jupiter_enabled=enable;}
-        if (argparser_has_flag(&parser, "saturn")) {systemData.output_saturn_enabled=enable;}
-        if (argparser_has_flag(&parser, "uranus")) {systemData.output_uranus_enabled=enable;}
-        if (argparser_has_flag(&parser, "neptune")) {systemData.output_neptune_enabled=enable;}
-        if (argparser_has_flag(&parser, "meteors")) {systemData.output_meteors_enabled=enable;}
-        if (argparser_has_flag(&parser, "xmatrix")) {systemData.output_config_matrix_enabled=enable;}
-        if (argparser_has_flag(&parser, "xmap")) {systemData.output_config_mapping_enabled=enable;}
+        if (argparser_has_flag(&parser, "satio")) {systemData.output_satio_enabled=enable; printf("setting satio output enabled: %d\n", systemData.output_satio_enabled);}
+        if (argparser_has_flag(&parser, "gngga")) {systemData.output_gngga_enabled=enable; printf("setting gngga output enabled: %d\n", systemData.output_gngga_enabled);}
+        if (argparser_has_flag(&parser, "gnrmc")) {systemData.output_gnrmc_enabled=enable; printf("setting gnrmc output enabled: %d\n", systemData.output_gnrmc_enabled);}
+        if (argparser_has_flag(&parser, "gpatt")) {systemData.output_gpatt_enabled=enable; printf("setting gpatt output enabled: %d\n", systemData.output_gpatt_enabled);}
+        if (argparser_has_flag(&parser, "ins")) {systemData.output_ins_enabled=enable; printf("setting ins output enabled: %d\n", systemData.output_ins_enabled);}
+        if (argparser_has_flag(&parser, "matrix")) {systemData.output_matrix_enabled=enable; printf("setting matrix output enabled: %d\n", systemData.output_matrix_enabled);}
+        if (argparser_has_flag(&parser, "pcinput")) {systemData.output_input_portcontroller=enable; printf("setting input_portcontroller output enabled: %d\n", systemData.output_input_portcontroller);}
+        if (argparser_has_flag(&parser, "admplex0")) {systemData.output_admplex0_enabled=enable; printf("setting admplex0 output enabled: %d\n", systemData.output_admplex0_enabled);}
+        if (argparser_has_flag(&parser, "gyro0")) {systemData.output_gyro_0_enabled=enable; printf("setting gyro_0 output enabled: %d\n", systemData.output_gyro_0_enabled);}
+        if (argparser_has_flag(&parser, "sun")) {systemData.output_sun_enabled=enable; printf("setting sun output enabled: %d\n", systemData.output_sun_enabled);}
+        if (argparser_has_flag(&parser, "earth")) {systemData.output_sun_enabled=enable; printf("setting earth output enabled: %d\n", systemData.output_earth_enabled);}
+        if (argparser_has_flag(&parser, "luna")) {systemData.output_luna_enabled=enable; printf("setting luna output enabled: %d\n", systemData.output_luna_enabled);}
+        if (argparser_has_flag(&parser, "mercury")) {systemData.output_mercury_enabled=enable; printf("setting mercury output enabled: %d\n", systemData.output_mercury_enabled);}
+        if (argparser_has_flag(&parser, "venus")) {systemData.output_venus_enabled=enable; printf("setting venus output enabled: %d\n", systemData.output_venus_enabled);}
+        if (argparser_has_flag(&parser, "mars")) {systemData.output_mars_enabled=enable; printf("setting mars output enabled: %d\n", systemData.output_mars_enabled);}
+        if (argparser_has_flag(&parser, "jupiter")) {systemData.output_jupiter_enabled=enable; printf("setting jupiter output enabled: %d\n", systemData.output_jupiter_enabled);}
+        if (argparser_has_flag(&parser, "saturn")) {systemData.output_saturn_enabled=enable; printf("setting saturn output enabled: %d\n", systemData.output_saturn_enabled);}
+        if (argparser_has_flag(&parser, "uranus")) {systemData.output_uranus_enabled=enable; printf("setting uranus output enabled: %d\n", systemData.output_uranus_enabled);}
+        if (argparser_has_flag(&parser, "neptune")) {systemData.output_neptune_enabled=enable; printf("setting neptune output enabled: %d\n", systemData.output_neptune_enabled);}
+        if (argparser_has_flag(&parser, "meteors")) {systemData.output_meteors_enabled=enable; printf("setting meteors output enabled: %d\n", systemData.output_meteors_enabled);}
+        if (argparser_has_flag(&parser, "xmatrix")) {systemData.output_config_matrix_enabled=enable; printf("setting config_matrix output enabled: %d\n", systemData.output_config_matrix_enabled);}
+        if (argparser_has_flag(&parser, "xmap")) {systemData.output_config_mapping_enabled=enable; printf("setting config_mapping output enabled: %d\n", systemData.output_config_mapping_enabled);}
       }
     }
     
-    else if (strcmp(pos[0], "ls")==0) {
-      const char* path_str = argparser_get_path(&parser, "/");
-      Serial.println("[cmd] Path: " + String(path_str));
-      int maxlevels=0;
-      if (argparser_has_flag(&parser, "R")) {maxlevels=-1;}
-      else {maxlevels = argparser_get_int8(&parser, "maxlevels", 1);}
-      memset(sdmmcArgData.buffer, 0, sizeof(sdmmcArgData.buffer));
-      strcpy(sdmmcArgData.buffer, path_str);
-      sdmmcArgData.maxlevels=maxlevels;
-      sdmmcFlagData.no_delay_flag=true;
-      sdmmcFlagData.list_dir_flag=true;
-    }
+    // else if (strcmp(pos[0], "ls")==0) {
+    //   const char* path_str = argparser_get_path(&parser, "/");
+    //   Serial.println("[cmd] Path: " + String(path_str));
+    //   int maxlevels=0;
+    //   if (argparser_has_flag(&parser, "R")) {maxlevels=-1;}
+    //   else {maxlevels = argparser_get_int8(&parser, "maxlevels", 1);}
+    //   memset(sdmmcArgData.buffer, 0, sizeof(sdmmcArgData.buffer));
+    //   strcpy(sdmmcArgData.buffer, path_str);
+    //   sdmmcArgData.maxlevels=maxlevels;
+    //   sdcardFlagData.no_delay_flag=true;
+    //   sdcardFlagData.list_dir_flag=true;
+    // }
 
-    else if (strcmp(pos[0], "starnav")==0) {star_nav();}
+    // else if (strcmp(pos[0], "starnav")==0) {star_nav();}
     
     if (systemData.serial_command) {
 
       if (strcmp(pos[0], "system")==0) {
-        if (argparser_has_flag(&parser, "save")) {sdmmcFlagData.save_system=true;}
-        else if (argparser_has_flag(&parser, "load")) {sdmmcFlagData.load_system=true;}
+        if (argparser_has_flag(&parser, "save")) {sdcardFlagData.save_system=true;}
+        else if (argparser_has_flag(&parser, "load")) {sdcardFlagData.load_system=true;}
         else if (argparser_has_flag(&parser, "restore-defaults")) {restore_system_defaults();}
         else if (argparser_has_flag(&parser, "log")) {
-          Serial.println("setting log enabled: " + String(enable));
+          printf("setting log enabled: %d\n", enable);
           systemData.logging_enabled=enable;}
       }
       else if (strcmp(pos[0], "map")==0) {
         if (argparser_has_flag(&parser, "new")) {set_all_mapping_default(); {return;}}
-        else if (argparser_has_flag(&parser, "save")) {sdmmcFlagData.save_mapping=true;}
-        else if (argparser_has_flag(&parser, "load")) {sdmmcFlagData.load_mapping=true;}
-        else if (argparser_has_flag(&parser, "delete")) {sdmmcFlagData.delete_mapping=true;}
+        else if (argparser_has_flag(&parser, "save")) {sdcardFlagData.save_mapping=true;}
+        else if (argparser_has_flag(&parser, "load")) {sdcardFlagData.load_mapping=true;}
+        else if (argparser_has_flag(&parser, "delete")) {sdcardFlagData.delete_mapping=true;}
         else {
           int s  = argparser_get_int8(&parser, "s", -1);
           if (s==-1) {return;}
@@ -1185,6 +1241,15 @@ void CmdProcess(void) {
           if (argparser_has_flag(&parser, "s") && argparser_has_flag(&parser, "map-slot")) {
             setMapSlot(argparser_get_int8(&parser, "s", -1), argparser_get_int8(&parser, "map-slot", -1));
           }
+          if (argparser_has_flag(&parser, "s") && argparser_has_flag(&parser, "f") && argparser_has_flag(&parser, "xyz-mode-x")) {
+            setMatrixFunctionXComparitorMode(argparser_get_int8(&parser, "s", -1), argparser_get_int8(&parser, "f", -1), argparser_get_int8(&parser, "xyz-mode-x", 0));
+          }
+          if (argparser_has_flag(&parser, "s") && argparser_has_flag(&parser, "f") && argparser_has_flag(&parser, "xyz-mode-y")) {
+            setMatrixFunctionYComparitorMode(argparser_get_int8(&parser, "s", -1), argparser_get_int8(&parser, "f", -1), argparser_get_int8(&parser, "xyz-mode-y", 0));
+          }
+          if (argparser_has_flag(&parser, "s") && argparser_has_flag(&parser, "f") && argparser_has_flag(&parser, "xyz-mode-z")) {
+            setMatrixFunctionZComparitorMode(argparser_get_int8(&parser, "s", -1), argparser_get_int8(&parser, "f", -1), argparser_get_int8(&parser, "xyz-mode-z", 0));
+          }
         }
       }
 
@@ -1198,39 +1263,7 @@ void CmdProcess(void) {
       }
 
       else if (strcmp(pos[0], "satio")==0) {
-
-        if (argparser_has_flag(&parser, "altitude-mode-static")) {satioData.altitude_conversion_mode=ALTITUDE_CONVERSION_MODE_STATIC;}
-        if (argparser_has_flag(&parser, "altitude-mode-gps")) {satioData.altitude_conversion_mode=ALTITUDE_CONVERSION_MODE_GPS;}
-        if (argparser_has_flag(&parser, "altitude-unit-meters")) {satioData.altitude_unit_mode=ALTITUDE_UNIT_MODE_METERS;}
-        if (argparser_has_flag(&parser, "altitude-unit-miles")) {satioData.altitude_unit_mode=ALTITUDE_UNIT_MODE_MILES;}
-        if (argparser_has_flag(&parser, "altitude-unit-kilometers")) {satioData.altitude_unit_mode=ALTITUDE_UNIT_MODE_KILOMETERS;}
-        if (argparser_has_flag(&parser, "set-altitude")) {
-          setAltitude(argparser_get_double(&parser, "set-altitude", NAN));
-        }
-
-        if (argparser_has_flag(&parser, "speed-mode-static")) {satioData.speed_conversion_mode=SPEED_CONVERSION_MODE_STATIC;}
-        if (argparser_has_flag(&parser, "speed-mode-gps")) {satioData.speed_conversion_mode=SPEED_CONVERSION_MODE_GPS;}
-        if (argparser_has_flag(&parser, "speed-unit-KTS")) {satioData.speed_unit_mode=SPEED_UNIT_MODE_KTS;}
-        if (argparser_has_flag(&parser, "speed-unit-MPH")) {satioData.speed_unit_mode=SPEED_UNIT_MODE_MPH;}
-        if (argparser_has_flag(&parser, "speed-unit-KPH")) {satioData.speed_unit_mode=SPEED_UNIT_MODE_KPH;}
-        if (argparser_has_flag(&parser, "speed-unit-mPS")) {satioData.speed_unit_mode=SPEED_UNIT_MODE_METERS_A_SECOND;}
-        if (argparser_has_flag(&parser, "set-speed")) {
-          setSpeed(argparser_get_double(&parser, "set-speed", NAN));
-        }
-
-        if (argparser_has_flag(&parser, "ground-heading-mode-static")) {satioData.ground_heading_mode=GROUND_HEADING_MODE_STATIC;}
-        if (argparser_has_flag(&parser, "ground-heading-mode-gps")) {satioData.ground_heading_mode=GROUND_HEADING_MODE_GPS;}
-        if (argparser_has_flag(&parser, "set-ground-heading")) {
-          setGroundHeading(argparser_get_double(&parser, "set-ground-heading", NAN));
-        }
-
-        if (argparser_has_flag(&parser, "coord-mode-static")) {satioData.coordinate_conversion_mode=COORDINATE_CONVERSION_MODE_STATIC;}
-        if (argparser_has_flag(&parser, "coord-mode-gps")) {satioData.coordinate_conversion_mode=COORDINATE_CONVERSION_MODE_GPS;}
-        if (argparser_has_flag(&parser, "set-coord")) {
-          setCoordinatesDegrees(argparser_get_double(&parser, "lat", NAN),
-          argparser_get_double(&parser,  "lon", NAN));
-        }
-
+        // time
         if (argparser_has_flag(&parser, "utc-offset")) {setUTCSecondOffset(argparser_get_int64(&parser, "utc-offset", 0));}
         if (argparser_has_flag(&parser, "auto-datetime-on")) {datetimeSetDTAuto(true);}
         if (argparser_has_flag(&parser, "auto-datetime-off")) {datetimeSetDTAuto(false);}
@@ -1241,6 +1274,33 @@ void CmdProcess(void) {
                                  argparser_get_uint8(&parser,  "hour", -1),
                                  argparser_get_uint8(&parser,  "minute", -1),
                                  argparser_get_uint8(&parser,  "second", -1));}
+        // location
+        if (argparser_has_flag(&parser, "set-coord") && argparser_has_flag(&parser, "lat") && argparser_has_flag(&parser, "lon")) {
+          setCoordinatesDegrees(argparser_get_double(&parser, "lat", NAN), argparser_get_double(&parser, "lon", NAN));
+        }
+        if (argparser_has_flag(&parser, "coord-value-mode-gps")) {satioData.location_value_mode=SATIO_MODE_GPS;}
+        if (argparser_has_flag(&parser, "coord-value-mode-user")) {satioData.location_value_mode=SATIO_MODE_USER;}
+
+        // speed
+        if (argparser_has_flag(&parser, "set-speed")) {
+          setSpeed(argparser_get_double(&parser, "set-speed", NAN));
+        }
+        if (argparser_has_flag(&parser, "speed-value-mode-gps")) {satioData.speed_value_mode=SATIO_MODE_GPS;}
+        if (argparser_has_flag(&parser, "speed-value-mode-user")) {satioData.speed_value_mode=SATIO_MODE_USER;}
+
+        // altitude
+        if (argparser_has_flag(&parser, "set-altitude")) {
+          setAltitude(argparser_get_double(&parser, "set-altitude", NAN));
+        }
+        if (argparser_has_flag(&parser, "altitude-value-mode-gps")) {satioData.altitude_value_mode=SATIO_MODE_GPS;}
+        if (argparser_has_flag(&parser, "altitude-value-mode-user")) {satioData.altitude_value_mode=SATIO_MODE_USER;}
+
+        // ground heading
+        if (argparser_has_flag(&parser, "set-ground-heading")) {
+          setGroundHeading(argparser_get_double(&parser, "set-ground-heading", NAN));
+        }
+        if (argparser_has_flag(&parser, "ground-heading-value-mode-gps")) {satioData.ground_heading_value_mode=SATIO_MODE_GPS;}
+        if (argparser_has_flag(&parser, "ground-heading-value-mode-user")) {satioData.ground_heading_value_mode=SATIO_MODE_USER;}
       }
 
       else if (strcmp(pos[0], "gyro")==0) {
@@ -1249,75 +1309,75 @@ void CmdProcess(void) {
         else if (argparser_has_flag(&parser, "calmag-stop")) {WT901CalMagEnd();}
       }
 
-      else if (strcmp(pos[0], "sdcard")==0) {
-        if (argparser_has_flag(&parser, "mount")) {mountSDCard();}
-        else if (argparser_has_flag(&parser, "unmount")) {unmountSDCard();}
-      }
+      // else if (strcmp(pos[0], "sdcard")==0) {
+      //   if (argparser_has_flag(&parser, "mount")) {mountSDCard();}
+      //   else if (argparser_has_flag(&parser, "unmount")) {unmountSDCard();}
+      // }
 
-      else if (strcmp(pos[0], "powercfg")==0) {
-        // The intention is to further develop powercfg in regards to sleep modes.
-        // powercfg --ultimate-performance
-        if (argparser_has_flag(&parser, "ultimate-performance")) {setTasksDelayUltimatePerformance();}
-        // powercfg --power-saving 
-        else if (argparser_has_flag(&parser, "power-saving")) {setTasksDelayPowerSaving();}
-      }
+      // else if (strcmp(pos[0], "powercfg")==0) {
+      //   // The intention is to further develop powercfg in regards to sleep modes.
+      //   // powercfg --ultimate-performance
+      //   if (argparser_has_flag(&parser, "ultimate-performance")) {setTasksDelayUltimatePerformance();}
+      //   // powercfg --power-saving 
+      //   else if (argparser_has_flag(&parser, "power-saving")) {setTasksDelayPowerSaving();}
+      // }
 
-      else if (strcmp(pos[0], "settick")==0) {
-        // if (argparser_has_flag(&parser, "infocmd"))
-        //   {setTick(TaskSerialInfoCMD, &TICK_DELAY_TASK_SERIAL_INFOCMD, enable);}
+      // else if (strcmp(pos[0], "settick")==0) {
+      //   // if (argparser_has_flag(&parser, "infocmd"))
+      //   //   {setTick(TaskSerialInfoCMD, &TICK_DELAY_TASK_SERIAL_INFOCMD, enable);}
 
-        if (argparser_has_flag(&parser, "admplex0"))
-          {setTick(TaskMultiplexers, &TICK_DELAY_TASK_MULTIPLEXERS, enable);}
+      //   if (argparser_has_flag(&parser, "admplex0"))
+      //     {setTick(TaskMultiplexers, &TICK_DELAY_TASK_MULTIPLEXERS, enable);}
 
-        if (argparser_has_flag(&parser, "gyro0"))
-          {setTick(TaskGyro, &TICK_DELAY_TASK_GYRO0, enable);}
+      //   if (argparser_has_flag(&parser, "gyro0"))
+      //     {setTick(TaskGyro, &TICK_DELAY_TASK_GYRO0, enable);}
 
-        if (argparser_has_flag(&parser, "universe"))
-          {setTick(TaskUniverse, &TICK_DELAY_TASK_UNIVERSE, enable);}
+      //   if (argparser_has_flag(&parser, "universe"))
+      //     {setTick(TaskUniverse, &TICK_DELAY_TASK_UNIVERSE, enable);}
 
-        if (argparser_has_flag(&parser, "gps"))
-          {setTick(TaskGPS, &TICK_DELAY_TASK_GPS, enable);}
+      //   if (argparser_has_flag(&parser, "gps"))
+      //     {setTick(TaskGPS, &TICK_DELAY_TASK_GPS, enable);}
 
-        if (argparser_has_flag(&parser, "matrix"))
-          {setTick(TaskSwitches, &TICK_DELAY_TASK_SWITCHES, enable);}
+      //   if (argparser_has_flag(&parser, "matrix"))
+      //     {setTick(TaskSwitches, &TICK_DELAY_TASK_SWITCHES, enable);}
 
-        if (argparser_has_flag(&parser, "pcinput"))
-          {setTick(TaskPortControllerInput, &TICK_DELAY_TASK_PORTCONTROLLER_INPUT, enable);}
+      //   if (argparser_has_flag(&parser, "pcinput"))
+      //     {setTick(TaskPortControllerInput, &TICK_DELAY_TASK_PORTCONTROLLER_INPUT, enable);}
         
-        if (argparser_has_flag(&parser, "log"))
-          {setTick(TaskLogging, &TICK_DELAY_TASK_LOGGING, enable);}
+      //   if (argparser_has_flag(&parser, "log"))
+      //     {setTick(TaskLogging, &TICK_DELAY_TASK_LOGGING, enable);}
 
-        // if (argparser_has_flag(&parser, "storage"))
-        //   {setTick(TaskStorage, &TICK_DELAY_TASK_STORAGE, enable);}
-      }
-      else if (strcmp(pos[0], "setdelay")==0) {
-        // if (argparser_has_flag(&parser, "infocmd"))
-        //   setDelay(TaskSerialInfoCMD, &DELAY_TASK_SERIAL_INFOCMD, argparser_get_int32(&parser, "infocmd", DELAY_TASK_SERIAL_INFOCMD));
+      //   // if (argparser_has_flag(&parser, "storage"))
+      //   //   {setTick(TaskStorage, &TICK_DELAY_TASK_STORAGE, enable);}
+      // }
+      // else if (strcmp(pos[0], "setdelay")==0) {
+      //   // if (argparser_has_flag(&parser, "infocmd"))
+      //   //   setDelay(TaskSerialInfoCMD, &DELAY_TASK_SERIAL_INFOCMD, argparser_get_int32(&parser, "infocmd", DELAY_TASK_SERIAL_INFOCMD));
 
-        if (argparser_has_flag(&parser, "admplex0"))
-          {setDelay(TaskMultiplexers, &DELAY_TASK_MULTIPLEXERS, argparser_get_int32(&parser, "admplex0", DELAY_TASK_MULTIPLEXERS));}
+      //   if (argparser_has_flag(&parser, "admplex0"))
+      //     {setDelay(TaskMultiplexers, &DELAY_TASK_MULTIPLEXERS, argparser_get_int32(&parser, "admplex0", DELAY_TASK_MULTIPLEXERS));}
 
-        if (argparser_has_flag(&parser, "gyro0"))
-          {setDelay(TaskGyro, &DELAY_TASK_GYRO0, argparser_get_int32(&parser, "gyro0", DELAY_TASK_GYRO0));}
+      //   if (argparser_has_flag(&parser, "gyro0"))
+      //     {setDelay(TaskGyro, &DELAY_TASK_GYRO0, argparser_get_int32(&parser, "gyro0", DELAY_TASK_GYRO0));}
 
-        if (argparser_has_flag(&parser, "universe"))
-          {setDelay(TaskUniverse, &DELAY_TASK_UNIVERSE, argparser_get_int32(&parser, "universe", DELAY_TASK_UNIVERSE));}
+      //   if (argparser_has_flag(&parser, "universe"))
+      //     {setDelay(TaskUniverse, &DELAY_TASK_UNIVERSE, argparser_get_int32(&parser, "universe", DELAY_TASK_UNIVERSE));}
 
-        if (argparser_has_flag(&parser, "gps"))
-          {setDelay(TaskGPS, &DELAY_TASK_GPS, argparser_get_int32(&parser, "gps", DELAY_TASK_GPS));}
+      //   if (argparser_has_flag(&parser, "gps"))
+      //     {setDelay(TaskGPS, &DELAY_TASK_GPS, argparser_get_int32(&parser, "gps", DELAY_TASK_GPS));}
 
-        if (argparser_has_flag(&parser, "matrix"))
-          {setDelay(TaskSwitches, &DELAY_TASK_SWITCHES, argparser_get_int32(&parser, "matrix", DELAY_TASK_SWITCHES));}
+      //   if (argparser_has_flag(&parser, "matrix"))
+      //     {setDelay(TaskSwitches, &DELAY_TASK_SWITCHES, argparser_get_int32(&parser, "matrix", DELAY_TASK_SWITCHES));}
 
-        if (argparser_has_flag(&parser, "pcinput"))
-          {setDelay(TaskPortControllerInput, &DELAY_TASK_PORTCONTROLLER_INPUT, argparser_get_int32(&parser, "pcinput", DELAY_TASK_PORTCONTROLLER_INPUT));}
+      //   if (argparser_has_flag(&parser, "pcinput"))
+      //     {setDelay(TaskPortControllerInput, &DELAY_TASK_PORTCONTROLLER_INPUT, argparser_get_int32(&parser, "pcinput", DELAY_TASK_PORTCONTROLLER_INPUT));}
 
-        if (argparser_has_flag(&parser, "log"))
-          {setDelay(TaskLogging, &DELAY_TASK_LOGGING, argparser_get_int32(&parser, "log", DELAY_TASK_LOGGING));}
+      //   if (argparser_has_flag(&parser, "log"))
+      //     {setDelay(TaskLogging, &DELAY_TASK_LOGGING, argparser_get_int32(&parser, "log", DELAY_TASK_LOGGING));}
           
         // if (argparser_has_flag(&parser, "storage"))
         //   setDelay(TaskStorage, &DELAY_TASK_STORAGE, argparser_get_int32(&parser, "storage", DELAY_TASK_STORAGE));
-      }
+      // }
     }
   }
 }
@@ -1334,13 +1394,14 @@ void outputSentences(void) {
     systemData.interval_breach_1_second_output=false;
     outputStat();
   }
-
+  // printf("outputSentences: interval_breach_gps: %d\n", systemData.interval_breach_gps);
   if (systemData.interval_breach_gps) {
     systemData.interval_breach_gps=false;
-    if (systemData.output_gngga_enabled) {Serial.println(gnggaData.outsentence);}
-    if (systemData.output_gnrmc_enabled) {Serial.println(gnrmcData.outsentence);}
-    if (systemData.output_gpatt_enabled) {Serial.println(gpattData.outsentence);}
+    if (systemData.output_gngga_enabled) {printf("%s\n", gnggaData.outsentence);}
+    if (systemData.output_gnrmc_enabled) {printf("%s\n", gnrmcData.outsentence);}
+    if (systemData.output_gpatt_enabled) {printf("%s\n", gpattData.outsentence);}
     if (systemData.output_satio_enabled) {
+      // printf("outputting SATIO sentence:\n");
       memset(serial0Data.BUFFER, 0, sizeof(serial0Data.BUFFER));
       strcat(serial0Data.BUFFER, "$SATIO,");
 
@@ -1361,33 +1422,7 @@ void outputSentences(void) {
 
       strcat(serial0Data.BUFFER, String(systemData.uptime_seconds).c_str());
       strcat(serial0Data.BUFFER, ",");
-
-      strcat(serial0Data.BUFFER, String(satioData.char_coordinate_conversion_mode[satioData.coordinate_conversion_mode]).c_str()); // static/GPS
-      strcat(serial0Data.BUFFER, ",");
-      strcat(serial0Data.BUFFER, String(satioData.degrees_latitude, 7).c_str());
-      strcat(serial0Data.BUFFER, ",");
-      strcat(serial0Data.BUFFER, String(satioData.degrees_longitude, 7).c_str());
-      strcat(serial0Data.BUFFER, ",");
-
-      strcat(serial0Data.BUFFER, String(satioData.char_altitude_conversion_mode[satioData.altitude_conversion_mode]).c_str()); // static/GPS
-      strcat(serial0Data.BUFFER, ",");
-      strcat(serial0Data.BUFFER, String(satioData.altitude_converted, 7).c_str()); // value
-      strcat(serial0Data.BUFFER, ",");
-      strcat(serial0Data.BUFFER, String(satioData.char_altitude_unit_mode[satioData.altitude_unit_mode]).c_str()); // units of measurement
-      strcat(serial0Data.BUFFER, ",");
-
-      strcat(serial0Data.BUFFER, String(satioData.char_speed_conversion_mode[satioData.speed_conversion_mode]).c_str()); // static/GPS
-      strcat(serial0Data.BUFFER, ",");
-      strcat(serial0Data.BUFFER, String(satioData.speed_converted, 7).c_str()); // value
-      strcat(serial0Data.BUFFER, ",");
-      strcat(serial0Data.BUFFER, String(satioData.char_speed_unit_mode[satioData.speed_unit_mode]).c_str()); // units of measurement
-      strcat(serial0Data.BUFFER, ",");
-
-      strcat(serial0Data.BUFFER, String(satioData.char_ground_heading_mode[satioData.ground_heading_mode]).c_str()); // static/GPS
-      strcat(serial0Data.BUFFER, ",");
-      strcat(serial0Data.BUFFER, String(satioData.ground_heading, 7).c_str()); // value
-      strcat(serial0Data.BUFFER, ",");
-
+      
       strcat(serial0Data.BUFFER, String(insData.ins_latitude, 7).c_str());
       strcat(serial0Data.BUFFER, ",");
       strcat(serial0Data.BUFFER, String(insData.ins_longitude, 7).c_str());
@@ -1419,7 +1454,7 @@ void outputSentences(void) {
       createChecksumSerial0(serial0Data.BUFFER);
       strcat(serial0Data.BUFFER, "*");
       strcat(serial0Data.BUFFER, serial0Data.checksum);
-      Serial.println(serial0Data.BUFFER);
+      printf("%s\n", serial0Data.BUFFER);
     }
   }
   if (systemData.interval_breach_gyro_0) {
@@ -1454,7 +1489,7 @@ void outputSentences(void) {
       createChecksumSerial0(serial0Data.BUFFER);
       strcat(serial0Data.BUFFER, "*");
       strcat(serial0Data.BUFFER, serial0Data.checksum);
-      Serial.println(serial0Data.BUFFER);
+      printf("%s\n", serial0Data.BUFFER);
     }
   }
   if (systemData.interval_breach_track_planets) {
@@ -1471,23 +1506,34 @@ void outputSentences(void) {
       createChecksumSerial0(serial0Data.BUFFER);
       strcat(serial0Data.BUFFER, "*");
       strcat(serial0Data.BUFFER, serial0Data.checksum);
-      Serial.println(serial0Data.BUFFER);
+      printf("%s\n", serial0Data.BUFFER);
     }
-    if (systemData.output_moon_enabled) {
+    if (systemData.output_earth_enabled) {
       memset(serial0Data.BUFFER, 0, sizeof(serial0Data.BUFFER));
-      strcat(serial0Data.BUFFER, "$MOON,");
-      strcat(serial0Data.BUFFER, String(siderealPlanetData.moon_ra + String(",")).c_str());
-      strcat(serial0Data.BUFFER, String(siderealPlanetData.moon_dec + String(",")).c_str());
-      strcat(serial0Data.BUFFER, String(siderealPlanetData.moon_az + String(",")).c_str());
-      strcat(serial0Data.BUFFER, String(siderealPlanetData.moon_alt + String(",")).c_str());
-      strcat(serial0Data.BUFFER, String(siderealPlanetData.moon_r + String(",")).c_str());
-      strcat(serial0Data.BUFFER, String(siderealPlanetData.moon_s + String(",")).c_str());
-      strcat(serial0Data.BUFFER, String(siderealPlanetData.moon_p + String(",")).c_str());
-      strcat(serial0Data.BUFFER, String(siderealPlanetData.moon_lum + String(",")).c_str());
+      strcat(serial0Data.BUFFER, "$EARTH,");
+      strcat(serial0Data.BUFFER, String(siderealPlanetData.earth_ecliptic_lat + String(",")).c_str());
+      strcat(serial0Data.BUFFER, String(siderealPlanetData.earth_ecliptic_long + String(",")).c_str());
+      strcat(serial0Data.BUFFER, String(satioData.altitude + String(",")).c_str()); // distance to earth sea level
       createChecksumSerial0(serial0Data.BUFFER);
       strcat(serial0Data.BUFFER, "*");
       strcat(serial0Data.BUFFER, serial0Data.checksum);
-      Serial.println(serial0Data.BUFFER);
+      printf("%s\n", serial0Data.BUFFER);
+    }
+    if (systemData.output_luna_enabled) {
+      memset(serial0Data.BUFFER, 0, sizeof(serial0Data.BUFFER));
+      strcat(serial0Data.BUFFER, "$LUNA,");
+      strcat(serial0Data.BUFFER, String(siderealPlanetData.luna_ra + String(",")).c_str());
+      strcat(serial0Data.BUFFER, String(siderealPlanetData.luna_dec + String(",")).c_str());
+      strcat(serial0Data.BUFFER, String(siderealPlanetData.luna_az + String(",")).c_str());
+      strcat(serial0Data.BUFFER, String(siderealPlanetData.luna_alt + String(",")).c_str());
+      strcat(serial0Data.BUFFER, String(siderealPlanetData.luna_r + String(",")).c_str());
+      strcat(serial0Data.BUFFER, String(siderealPlanetData.luna_s + String(",")).c_str());
+      strcat(serial0Data.BUFFER, String(siderealPlanetData.luna_p + String(",")).c_str());
+      strcat(serial0Data.BUFFER, String(siderealPlanetData.luna_lum + String(",")).c_str());
+      createChecksumSerial0(serial0Data.BUFFER);
+      strcat(serial0Data.BUFFER, "*");
+      strcat(serial0Data.BUFFER, serial0Data.checksum);
+      printf("%s\n", serial0Data.BUFFER);
     }
     if (systemData.output_mercury_enabled) {
       memset(serial0Data.BUFFER, 0, sizeof(serial0Data.BUFFER));
@@ -1507,7 +1553,7 @@ void outputSentences(void) {
       createChecksumSerial0(serial0Data.BUFFER);
       strcat(serial0Data.BUFFER, "*");
       strcat(serial0Data.BUFFER, serial0Data.checksum);
-      Serial.println(serial0Data.BUFFER);
+      printf("%s\n", serial0Data.BUFFER);
     }
     if (systemData.output_venus_enabled) {
       memset(serial0Data.BUFFER, 0, sizeof(serial0Data.BUFFER));
@@ -1527,7 +1573,7 @@ void outputSentences(void) {
       createChecksumSerial0(serial0Data.BUFFER);
       strcat(serial0Data.BUFFER, "*");
       strcat(serial0Data.BUFFER, serial0Data.checksum);
-      Serial.println(serial0Data.BUFFER);
+      printf("%s\n", serial0Data.BUFFER);
     }
     if (systemData.output_mars_enabled) {
       memset(serial0Data.BUFFER, 0, sizeof(serial0Data.BUFFER));
@@ -1547,7 +1593,7 @@ void outputSentences(void) {
       createChecksumSerial0(serial0Data.BUFFER);
       strcat(serial0Data.BUFFER, "*");
       strcat(serial0Data.BUFFER, serial0Data.checksum);
-      Serial.println(serial0Data.BUFFER);
+      printf("%s\n", serial0Data.BUFFER);
     }
     if (systemData.output_jupiter_enabled) {
       memset(serial0Data.BUFFER, 0, sizeof(serial0Data.BUFFER));
@@ -1567,7 +1613,7 @@ void outputSentences(void) {
       createChecksumSerial0(serial0Data.BUFFER);
       strcat(serial0Data.BUFFER, "*");
       strcat(serial0Data.BUFFER, serial0Data.checksum);
-      Serial.println(serial0Data.BUFFER);
+      printf("%s\n", serial0Data.BUFFER);
     }
     if (systemData.output_saturn_enabled) {
       memset(serial0Data.BUFFER, 0, sizeof(serial0Data.BUFFER));
@@ -1587,7 +1633,7 @@ void outputSentences(void) {
       createChecksumSerial0(serial0Data.BUFFER);
       strcat(serial0Data.BUFFER, "*");
       strcat(serial0Data.BUFFER, serial0Data.checksum);
-      Serial.println(serial0Data.BUFFER);
+      printf("%s\n", serial0Data.BUFFER);
     }
     if (systemData.output_uranus_enabled) {
       memset(serial0Data.BUFFER, 0, sizeof(serial0Data.BUFFER));
@@ -1607,7 +1653,7 @@ void outputSentences(void) {
       createChecksumSerial0(serial0Data.BUFFER);
       strcat(serial0Data.BUFFER, "*");
       strcat(serial0Data.BUFFER, serial0Data.checksum);
-      Serial.println(serial0Data.BUFFER);
+      printf("%s\n", serial0Data.BUFFER);
     }
     if (systemData.output_neptune_enabled) {
       memset(serial0Data.BUFFER, 0, sizeof(serial0Data.BUFFER));
@@ -1627,7 +1673,7 @@ void outputSentences(void) {
       createChecksumSerial0(serial0Data.BUFFER);
       strcat(serial0Data.BUFFER, "*");
       strcat(serial0Data.BUFFER, serial0Data.checksum);
-      Serial.println(serial0Data.BUFFER);
+      printf("%s\n", serial0Data.BUFFER);
     }
     if (systemData.output_meteors_enabled) {
       memset(serial0Data.BUFFER, 0, sizeof(serial0Data.BUFFER));
@@ -1639,7 +1685,7 @@ void outputSentences(void) {
       createChecksumSerial0(serial0Data.BUFFER);
       strcat(serial0Data.BUFFER, "*");
       strcat(serial0Data.BUFFER, serial0Data.checksum);
-      Serial.println(serial0Data.BUFFER);
+      printf("%s\n", serial0Data.BUFFER);
     }
   }
 
@@ -1658,7 +1704,7 @@ void outputSentences(void) {
     createChecksumSerial0(serial0Data.BUFFER);
     strcat(serial0Data.BUFFER, "*");
     strcat(serial0Data.BUFFER, serial0Data.checksum);
-    Serial.println(serial0Data.BUFFER);
+    printf("%s\n", serial0Data.BUFFER);
   }
 
   if (systemData.output_input_portcontroller) {
@@ -1670,7 +1716,7 @@ void outputSentences(void) {
     createChecksumSerial0(serial0Data.BUFFER);
     strcat(serial0Data.BUFFER, "*");
     strcat(serial0Data.BUFFER, serial0Data.checksum);
-    Serial.println(serial0Data.BUFFER);
+    printf("%s\n", serial0Data.BUFFER);
   }
 
   /*
@@ -1703,7 +1749,7 @@ void outputSentences(void) {
       strcat(serial0Data.BUFFER, String(String(matrixData.output_pwm[0][i_output_config_matrix][0])+",").c_str());
       strcat(serial0Data.BUFFER, String(String(matrixData.output_pwm[0][i_output_config_matrix][1])+",").c_str());
       strcat(serial0Data.BUFFER, String(String(matrixData.output_mode[0][i_output_config_matrix])+",").c_str());
-      strcat(serial0Data.BUFFER, String(String(mappingData.index_mapped_value[0][i_output_config_matrix])+",").c_str());
+      strcat(serial0Data.BUFFER, String(String(matrixData.index_mapped_value[0][i_output_config_matrix])+",").c_str());
       strcat(serial0Data.BUFFER, String(String(matrixData.computer_assist[0][i_output_config_matrix])+",").c_str());
       strcat(serial0Data.BUFFER, String(String(matrixData.matrix_port_map[0][i_output_config_matrix])+",").c_str());
       // strcat(serial0Data.BUFFER, String(String(matrixData.switch_intention[0][i_output_config_matrix])+",").c_str());
@@ -1712,7 +1758,7 @@ void outputSentences(void) {
       createChecksumSerial0(serial0Data.BUFFER);
       strcat(serial0Data.BUFFER, "*");
       strcat(serial0Data.BUFFER, serial0Data.checksum);
-      Serial.println(serial0Data.BUFFER);
+      printf("%s\n", serial0Data.BUFFER);
       i_output_config_matrix++;
       if (i_output_config_matrix>=MAX_MATRIX_SWITCHES) {i_output_config_matrix=0;}
     // }
@@ -1734,7 +1780,7 @@ void outputSentences(void) {
       createChecksumSerial0(serial0Data.BUFFER);
       strcat(serial0Data.BUFFER, "*");
       strcat(serial0Data.BUFFER, serial0Data.checksum);
-      Serial.println(serial0Data.BUFFER);
+      printf("%s\n", serial0Data.BUFFER);
     }
   }
 
@@ -1778,14 +1824,14 @@ void outputSentences(void) {
       createChecksumSerial0(serial0Data.BUFFER);
       strcat(serial0Data.BUFFER, "*");
       strcat(serial0Data.BUFFER, serial0Data.checksum);
-      Serial.println(serial0Data.BUFFER);
+      printf("%s\n", serial0Data.BUFFER);
     }
   }
 }
 
 void printArray(signed long arr[], int start, int end) {
     for (int i = start; i < end; i++) {
-        printf("%-7d", arr[i]); // Left-align with 5-character width
+        printf("%-7ld", arr[i]); // Left-align with 5-character width
     }
     printf("\n");
 }
@@ -1849,43 +1895,26 @@ void outputStat(void) {
     // ----------------------------------------------------------------------------------------------------------------------------
     //                                                                                                               PRINT COUNTERS
     // ----------------------------------------------------------------------------------------------------------------------------
-    Serial.println();
-    Serial.println("[ " + String(satioData.local_unixtime_uS) + " ]");
-    Serial.println("----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
+    printf("\n");
+    printf("[ %llu ]\n", satioData.local_unixtime_uS);
+    printf("----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n");
     // printf("taskGyro", "Unused stack: %u words\n", watermark_task_gyro);
     // printf("taskUniverse", "Unused stack: %u words\n", watermark_task_universe);
     // printf("taskSwitches", "Unused stack: %u words\n", watermark_task_switches);
     // printf("taskGPS", "Unused stack: %u words\n", watermark_task_gps);
     // printf("taskMultiplexers", "Unused stack: %u words\n", watermark_task_multiplexers);
-    Serial.println("----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
-    counter_digits_0[0]=systemData.total_loops_a_second;
-    counter_digits_0[1]=systemData.total_gps;
-    counter_digits_0[2]=systemData.total_ins;
-    counter_digits_0[3]=systemData.total_gyro_0;
-    counter_digits_0[4]=systemData.interval_breach_mplex_0;
-    counter_digits_0[5]=systemData.total_infocmd;
-    counter_digits_0[6]=systemData.total_universe;
-    counter_digits_0[7]=systemData.total_matrix;
-    counter_digits_0[8]=systemData.total_portcontroller_output;
-    counter_digits_0[9]=systemData.total_portcontroller_input;
-    counter_digits_0[10]=systemData.mainLoopTimeTaken;
-    counter_digits_0[11]=systemData.mainLoopTimeTakenMax;
-    counter_digits_0[12]=atoi(gnggaData.satellite_count);
-    counter_digits_0[13]=atof(gnggaData.gps_precision_factor);
-    for (int i = 0; i < 14; i++) {printf("%-16s", counter_chars_0[i]);}
-    printf("\n");
-    Serial.println("----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
+    printf("----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n");
     for (int i = 0; i < 14; i++) {printf("%-16f", counter_digits_0[i]);}
     printf("\n");
-    Serial.println();
+    printf("\n");
     // ----------------------------------------------------------------------------------------------------------------------------
     //                                                                                                           PRINT PRIMARY DATA
     // ----------------------------------------------------------------------------------------------------------------------------
-    Serial.println("----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
-    Serial.print("                   ");
+    printf("----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n");
+    printf("                   ");
     for (int i = 0; i < 9; i++) {printf("%-19s", counter_chars_1_row_0[i]);}
     printf("\n");
-    Serial.println("----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
+    printf("----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n");
 
     memset(counter_digits_1_row_N[0], 0, sizeof(counter_digits_1_row_N[0])); strcpy(counter_digits_1_row_N[0], String(gnrmcData.utc_time).c_str());
     memset(counter_digits_1_row_N[1], 0, sizeof(counter_digits_1_row_N[1])); strcpy(counter_digits_1_row_N[1], String(gnrmcData.utc_date).c_str());
@@ -1928,9 +1957,9 @@ void outputStat(void) {
     memset(counter_digits_1_row_N[2], 0, sizeof(counter_digits_1_row_N[2])); strcpy(counter_digits_1_row_N[2], String(satioData.local_unixtime_uS).c_str());
     memset(counter_digits_1_row_N[3], 0, sizeof(counter_digits_1_row_N[3])); strcpy(counter_digits_1_row_N[3], String(satioData.degrees_latitude, 7).c_str());
     memset(counter_digits_1_row_N[4], 0, sizeof(counter_digits_1_row_N[4])); strcpy(counter_digits_1_row_N[4], String(satioData.degrees_longitude, 7).c_str());
-    memset(counter_digits_1_row_N[5], 0, sizeof(counter_digits_1_row_N[5])); strcpy(counter_digits_1_row_N[5], String(String(satioData.altitude_converted) + " " + String(satioData.char_altitude_unit_mode[satioData.altitude_unit_mode])).c_str());
+    memset(counter_digits_1_row_N[5], 0, sizeof(counter_digits_1_row_N[5])); strcpy(counter_digits_1_row_N[5], String(String(satioData.altitude)).c_str());
     memset(counter_digits_1_row_N[6], 0, sizeof(counter_digits_1_row_N[6])); strcpy(counter_digits_1_row_N[6], String(satioData.ground_heading).c_str());
-    memset(counter_digits_1_row_N[7], 0, sizeof(counter_digits_1_row_N[7])); strcpy(counter_digits_1_row_N[7], String(String(satioData.speed_converted, 2) + " " + String(satioData.char_speed_unit_mode[satioData.speed_unit_mode])).c_str());
+    memset(counter_digits_1_row_N[7], 0, sizeof(counter_digits_1_row_N[7])); strcpy(counter_digits_1_row_N[7], String(String(satioData.speed, 2)).c_str());
     memset(counter_digits_1_row_N[8], 0, sizeof(counter_digits_1_row_N[8])); strcpy(counter_digits_1_row_N[8], String(satioData.mileage).c_str()); // make mileage any 3d direction, refactor 'distance'
     for (int i = 0; i < 10; i++) {if (i==0) {printf("%-19s", counter_chars_1_col_0[i+3]);} else {printf("%-19s", counter_digits_1_row_N[i-1]);}}
     printf("\n");
@@ -1947,352 +1976,353 @@ void outputStat(void) {
     memset(counter_digits_1_row_N[8], 0, sizeof(counter_digits_1_row_N[8])); strcpy(counter_digits_1_row_N[8], String("pending").c_str());
     for (int i = 0; i < 10; i++) {if (i==0) {printf("%-19s", counter_chars_1_col_0[i+4]);} else {printf("%-19s", counter_digits_1_row_N[i-1]);}}
     printf("\n");
-    Serial.println("----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
-    Serial.println("INS MODE : " + String(insData.INS_MODE) + " (" + String(insData.char_ins_mode[insData.INS_MODE]) + ") | INS INIT FLAG : " + String(insData.INS_INITIALIZATION_FLAG) + "/" + String(MAX_INS_INITIALIZATION_FLAG) + " | INS FORCED ON FLAG : " + String(insData.INS_FORCED_ON_FLAG)
-    + " | INS_REQ_GPS_PRECISION : " + String(insData.INS_REQ_GPS_PRECISION) + " | INS_REQ_MIN_SPEED : " + String(insData.INS_REQ_MIN_SPEED) + " | INS_REQ_HEADING_RANGE_DIFF : " + String(insData.INS_REQ_HEADING_RANGE_DIFF));
-    Serial.println("----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
-    Serial.println("                   X                  Y                  Z");
+    printf("----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n");
+    printf("INS MODE : %d (%s) | INS INIT FLAG : %d/%d | INS FORCED ON FLAG : %d | INS_REQ_GPS_PRECISION : %f | INS_REQ_MIN_SPEED : %f | INS_REQ_HEADING_RANGE_DIFF : %f\n",
+      insData.INS_MODE, insData.char_ins_mode[insData.INS_MODE], insData.INS_INITIALIZATION_FLAG, MAX_INS_INITIALIZATION_FLAG, insData.INS_FORCED_ON_FLAG,
+      insData.INS_REQ_GPS_PRECISION, insData.INS_REQ_MIN_SPEED, insData.INS_REQ_HEADING_RANGE_DIFF);
+    printf("----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n");
+    printf("                   X                  Y                  Z\n");
     memset(counter_digits_1_row_N[0], 0, sizeof(counter_digits_1_row_N[0])); strcpy(counter_digits_1_row_N[0], String(gyroData.gyro_0_ang_x).c_str());
     memset(counter_digits_1_row_N[1], 0, sizeof(counter_digits_1_row_N[1])); strcpy(counter_digits_1_row_N[1], String(gyroData.gyro_0_ang_y).c_str());
     memset(counter_digits_1_row_N[2], 0, sizeof(counter_digits_1_row_N[2])); strcpy(counter_digits_1_row_N[2], String(gyroData.gyro_0_ang_z).c_str());
-    Serial.print("Angle              ");
+    printf("Angle              ");
     for (int i = 0; i < 3; i++) {printf("%-19s", counter_digits_1_row_N[i]);}
     printf("\n");
     memset(counter_digits_1_row_N[0], 0, sizeof(counter_digits_1_row_N[0])); strcpy(counter_digits_1_row_N[0], String(gyroData.gyro_0_gyr_x).c_str());
     memset(counter_digits_1_row_N[1], 0, sizeof(counter_digits_1_row_N[1])); strcpy(counter_digits_1_row_N[1], String(gyroData.gyro_0_gyr_y).c_str());
     memset(counter_digits_1_row_N[2], 0, sizeof(counter_digits_1_row_N[2])); strcpy(counter_digits_1_row_N[2], String(gyroData.gyro_0_gyr_z).c_str());
-    Serial.print("Gyro               ");
+    printf("Gyro               ");
     for (int i = 0; i < 3; i++) {printf("%-19s", counter_digits_1_row_N[i]);}
     printf("\n");
     memset(counter_digits_1_row_N[0], 0, sizeof(counter_digits_1_row_N[0])); strcpy(counter_digits_1_row_N[0], String(gyroData.gyro_0_acc_x).c_str());
     memset(counter_digits_1_row_N[1], 0, sizeof(counter_digits_1_row_N[1])); strcpy(counter_digits_1_row_N[1], String(gyroData.gyro_0_acc_y).c_str());
     memset(counter_digits_1_row_N[2], 0, sizeof(counter_digits_1_row_N[2])); strcpy(counter_digits_1_row_N[2], String(gyroData.gyro_0_acc_z).c_str());
-    Serial.print("Acceleration       ");
+    printf("Acceleration       ");
     for (int i = 0; i < 3; i++) {printf("%-19s", counter_digits_1_row_N[i]);}
     printf("\n");
     memset(counter_digits_1_row_N[0], 0, sizeof(counter_digits_1_row_N[0])); strcpy(counter_digits_1_row_N[0], String(gyroData.gyro_0_mag_x).c_str());
     memset(counter_digits_1_row_N[1], 0, sizeof(counter_digits_1_row_N[1])); strcpy(counter_digits_1_row_N[1], String(gyroData.gyro_0_mag_y).c_str());
     memset(counter_digits_1_row_N[2], 0, sizeof(counter_digits_1_row_N[2])); strcpy(counter_digits_1_row_N[2], String(gyroData.gyro_0_mag_z).c_str());
-    Serial.print("Magnetic Field     ");
+    printf("Magnetic Field     ");
     for (int i = 0; i < 3; i++) {printf("%-19s", counter_digits_1_row_N[i]);}
     printf("\n");
-    Serial.println("----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
-    Serial.println("Weekday int: " + String(satioData.local_wday) + " Weekday Name: " + String(satioData.local_wday_name));
-    Serial.print("Meteor Warning: ");
-    for (int i = 0; i < MAX_METEOR_SHOWERS; i++) {Serial.print(String(String(meteor_shower_names[i]) + ": " + String(meteor_shower_warning_system[i][0]) + " " + String(meteor_shower_warning_system[i][1]) + " | ").c_str());}
-    Serial.println();
-    Serial.println("----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
-    Serial.println("SDCard mounted: " + String(sdcardData.sdcard_mounted) + " (" + String(sdcardData.sdcard_type_names[sdcardData.sdcard_type]) + " (type: " + String(sdcardData.sdcard_type) + ")");
+    printf("----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n");
+    printf("Weekday int: %d Weekday Name: %s\n", satioData.local_wday, satioData.local_wday_name);
+    printf("Meteor Warning: ");
+    for (int i = 0; i < MAX_METEOR_SHOWERS; i++) {printf("%s: %d %d | ", meteor_shower_names[i], meteor_shower_warning_system[i][0], meteor_shower_warning_system[i][1]);}
+    printf("\n");
+    printf("----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n");
+    // printf("SDCard mounted: %d (%s (type: %d)\n", sdcardData.sdcard_mounted, sdcardData.sdcard_type_names[sdcardData.sdcard_type], sdcardData.sdcard_type);
   }
     // ----------------------------------------------------------------------------------------------------------------------------
     //                                                                                                      PRINT PROGRAMMABLE DATA
     // ----------------------------------------------------------------------------------------------------------------------------
     if (systemData.output_stat_v==true || systemData.output_stat_vv) {
-    Serial.println("----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
-    Serial.print("                      ");
+    printf("----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n");
+    printf("                      ");
     printArray(print_index_0, 0, 35);
-    Serial.print("Computer Assist    :  ");
-    for (int i=0;i<35;i++) {Serial.print(String(matrixData.computer_assist[0][i]) + "      ");}
-    Serial.println();
-    Serial.print("Switch Intention   :  ");
-    for (int i=0;i<35;i++) {Serial.print(String(matrixData.switch_intention[0][i]) + "      ");}
-    Serial.println();
-    Serial.print("Computer Intention :  ");
-    for (int i=0;i<35;i++) {Serial.print(String(matrixData.computer_intention[0][i]) + "      ");}
-    Serial.println();
-    Serial.print("Output Value       :  ");
+    printf("Computer Assist    :  ");
+    for (int i=0;i<35;i++) {printf("%d      ", matrixData.computer_assist[0][i]);}
+    printf("\n");
+    printf("Switch Intention   :  ");
+    for (int i=0;i<35;i++) {printf("%d      ", matrixData.switch_intention[0][i]);}
+    printf("\n");
+    printf("Computer Intention :  ");
+    for (int i=0;i<35;i++) {printf("%d      ", matrixData.computer_intention[0][i]);}
+    printf("\n");
+    printf("Output Value       :  ");
     printArray(matrixData.output_value[0], 0, 35);
     }
     if (systemData.output_stat_vv) {
-    Serial.println("----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
-    Serial.print("Switch Function 0  :  ");
+    printf("----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n");
+    printf("Switch Function 0  :  ");
     for (int i = 0; i < 35; i++) {printf("%-7d", matrixData.matrix_function[0][i][0]);}
     printf("\n");
-    Serial.print("Switch Function X  :  ");
+    printf("Switch Function X  :  ");
     for (int i = 0; i < 35; i++) {printf("%-7.0f", matrixData.matrix_function_xyz[0][i][0][INDEX_MATRIX_FUNTION_X]);}
     printf("\n");
-    Serial.print("Switch Function Y  :  ");
+    printf("Switch Function Y  :  ");
     for (int i = 0; i < 35; i++) {printf("%-7.0f", matrixData.matrix_function_xyz[0][i][0][INDEX_MATRIX_FUNTION_Y]);}
     printf("\n");
-    Serial.print("Switch Function Z  :  ");
+    printf("Switch Function Z  :  ");
     for (int i = 0; i < 35; i++) {printf("%-7.0f", matrixData.matrix_function_xyz[0][i][0][INDEX_MATRIX_FUNTION_Z]);}
     printf("\n");
-    Serial.println("----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
-    Serial.print("Switch Function 1  :  ");
+    printf("----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n");
+    printf("Switch Function 1  :  ");
     for (int i = 0; i < 35; i++) {printf("%-7d", matrixData.matrix_function[0][i][1]);}
     printf("\n");
-    Serial.print("Switch Function X  :  ");
+    printf("Switch Function X  :  ");
     for (int i = 0; i < 35; i++) {printf("%-7.0f", matrixData.matrix_function_xyz[0][i][1][INDEX_MATRIX_FUNTION_X]);}
     printf("\n");
-    Serial.print("Switch Function Y  :  ");
+    printf("Switch Function Y  :  ");
     for (int i = 0; i < 35; i++) {printf("%-7.0f", matrixData.matrix_function_xyz[0][i][1][INDEX_MATRIX_FUNTION_Y]);}
     printf("\n");
-    Serial.print("Switch Function Z  :  ");
+    printf("Switch Function Z  :  ");
     for (int i = 0; i < 35; i++) {printf("%-7.0f", matrixData.matrix_function_xyz[0][i][1][INDEX_MATRIX_FUNTION_Z]);}
     printf("\n");
-    Serial.println("----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
-    Serial.print("Switch Function 2  :  ");
+    printf("----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n");
+    printf("Switch Function 2  :  ");
     for (int i = 0; i < 35; i++) {printf("%-7d", matrixData.matrix_function[0][i][2]);}
     printf("\n");
-    Serial.print("Switch Function X  :  ");
+    printf("Switch Function X  :  ");
     for (int i = 0; i < 35; i++) {printf("%-7.0f", matrixData.matrix_function_xyz[0][i][2][INDEX_MATRIX_FUNTION_X]);}
     printf("\n");
-    Serial.print("Switch Function Y  :  ");
+    printf("Switch Function Y  :  ");
     for (int i = 0; i < 35; i++) {printf("%-7.0f", matrixData.matrix_function_xyz[0][i][2][INDEX_MATRIX_FUNTION_Y]);}
     printf("\n");
-    Serial.print("Switch Function Z  :  ");
+    printf("Switch Function Z  :  ");
     for (int i = 0; i < 35; i++) {printf("%-7.0f", matrixData.matrix_function_xyz[0][i][2][INDEX_MATRIX_FUNTION_Z]);}
     printf("\n");
-    Serial.println("----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
-    Serial.print("Switch Function 3  :  ");
+    printf("----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n");
+    printf("Switch Function 3  :  ");
     for (int i = 0; i < 35; i++) {printf("%-7d", matrixData.matrix_function[0][i][3]);}
     printf("\n");
-    Serial.print("Switch Function X  :  ");
+    printf("Switch Function X  :  ");
     for (int i = 0; i < 35; i++) {printf("%-7.0f", matrixData.matrix_function_xyz[0][i][3][INDEX_MATRIX_FUNTION_X]);}
     printf("\n");
-    Serial.print("Switch Function Y  :  ");
+    printf("Switch Function Y  :  ");
     for (int i = 0; i < 35; i++) {printf("%-7.0f", matrixData.matrix_function_xyz[0][i][3][INDEX_MATRIX_FUNTION_Y]);}
     printf("\n");
-    Serial.print("Switch Function Z  :  ");
+    printf("Switch Function Z  :  ");
     for (int i = 0; i < 35; i++) {printf("%-7.0f", matrixData.matrix_function_xyz[0][i][3][INDEX_MATRIX_FUNTION_Z]);}
     printf("\n");
-    Serial.println("----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
-    Serial.print("Switch Function 4  :  ");
+    printf("----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n");
+    printf("Switch Function 4  :  ");
     for (int i = 0; i < 35; i++) {printf("%-7d", matrixData.matrix_function[0][i][4]);}
     printf("\n");
-    Serial.print("Switch Function X  :  ");
+    printf("Switch Function X  :  ");
     for (int i = 0; i < 35; i++) {printf("%-7.0f", matrixData.matrix_function_xyz[0][i][4][INDEX_MATRIX_FUNTION_X]);}
     printf("\n");
-    Serial.print("Switch Function Y  :  ");
+    printf("Switch Function Y  :  ");
     for (int i = 0; i < 35; i++) {printf("%-7.0f", matrixData.matrix_function_xyz[0][i][4][INDEX_MATRIX_FUNTION_Y]);}
     printf("\n");
-    Serial.print("Switch Function Z  :  ");
+    printf("Switch Function Z  :  ");
     for (int i = 0; i < 35; i++) {printf("%-7.0f", matrixData.matrix_function_xyz[0][i][4][INDEX_MATRIX_FUNTION_Z]);}
     printf("\n");
-    Serial.println("----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
-    Serial.print("Switch Function 0  :  ");
+    printf("----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n");
+    printf("Switch Function 0  :  ");
     for (int i = 0; i < 35; i++) {printf("%-7d", matrixData.matrix_function[0][i][5]);}
     printf("\n");
-    Serial.print("Switch Function X  :  ");
+    printf("Switch Function X  :  ");
     for (int i = 0; i < 35; i++) {printf("%-7.0f", matrixData.matrix_function_xyz[0][i][5][INDEX_MATRIX_FUNTION_X]);}
     printf("\n");
-    Serial.print("Switch Function Y  :  ");
+    printf("Switch Function Y  :  ");
     for (int i = 0; i < 35; i++) {printf("%-7.0f", matrixData.matrix_function_xyz[0][i][5][INDEX_MATRIX_FUNTION_Y]);}
     printf("\n");
-    Serial.print("Switch Function Z  :  ");
+    printf("Switch Function Z  :  ");
     for (int i = 0; i < 35; i++) {printf("%-7.0f", matrixData.matrix_function_xyz[0][i][5][INDEX_MATRIX_FUNTION_Z]);}
     printf("\n");
-    Serial.println("----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
-    Serial.print("Switch Function 6  :  ");
+    printf("----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n");
+    printf("Switch Function 6  :  ");
     for (int i = 0; i < 35; i++) {printf("%-7d", matrixData.matrix_function[0][i][6]);}
     printf("\n");
-    Serial.print("Switch Function X  :  ");
+    printf("Switch Function X  :  ");
     for (int i = 0; i < 35; i++) {printf("%-7.0f", matrixData.matrix_function_xyz[0][i][6][INDEX_MATRIX_FUNTION_X]);}
     printf("\n");
-    Serial.print("Switch Function Y  :  ");
+    printf("Switch Function Y  :  ");
     for (int i = 0; i < 35; i++) {printf("%-7.0f", matrixData.matrix_function_xyz[0][i][6][INDEX_MATRIX_FUNTION_Y]);}
     printf("\n");
-    Serial.print("Switch Function Z  :  ");
+    printf("Switch Function Z  :  ");
     for (int i = 0; i < 35; i++) {printf("%-7.0f", matrixData.matrix_function_xyz[0][i][6][INDEX_MATRIX_FUNTION_Z]);}
     printf("\n");
-    Serial.println("----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
-    Serial.print("Switch Function 7  :  ");
+    printf("----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n");
+    printf("Switch Function 7  :  ");
     for (int i = 0; i < 35; i++) {printf("%-7d", matrixData.matrix_function[0][i][7]);}
     printf("\n");
-    Serial.print("Switch Function X  :  ");
+    printf("Switch Function X  :  ");
     for (int i = 0; i < 35; i++) {printf("%-7.0f", matrixData.matrix_function_xyz[0][i][7][INDEX_MATRIX_FUNTION_X]);}
     printf("\n");
-    Serial.print("Switch Function Y  :  ");
+    printf("Switch Function Y  :  ");
     for (int i = 0; i < 35; i++) {printf("%-7.0f", matrixData.matrix_function_xyz[0][i][7][INDEX_MATRIX_FUNTION_Y]);}
     printf("\n");
-    Serial.print("Switch Function Z  :  ");
+    printf("Switch Function Z  :  ");
     for (int i = 0; i < 35; i++) {printf("%-7.0f", matrixData.matrix_function_xyz[0][i][7][INDEX_MATRIX_FUNTION_Z]);}
     printf("\n");
-    Serial.println("----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
-    Serial.print("Switch Function 8  :  ");
+    printf("----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n");
+    printf("Switch Function 8  :  ");
     for (int i = 0; i < 35; i++) {printf("%-7d", matrixData.matrix_function[0][i][8]);}
     printf("\n");
-    Serial.print("Switch Function X  :  ");
+    printf("Switch Function X  :  ");
     for (int i = 0; i < 35; i++) {printf("%-7.0f", matrixData.matrix_function_xyz[0][i][8][INDEX_MATRIX_FUNTION_X]);}
     printf("\n");
-    Serial.print("Switch Function Y  :  ");
+    printf("Switch Function Y  :  ");
     for (int i = 0; i < 35; i++) {printf("%-7.0f", matrixData.matrix_function_xyz[0][i][8][INDEX_MATRIX_FUNTION_Y]);}
     printf("\n");
-    Serial.print("Switch Function Z  :  ");
+    printf("Switch Function Z  :  ");
     for (int i = 0; i < 35; i++) {printf("%-7.0f", matrixData.matrix_function_xyz[0][i][8][INDEX_MATRIX_FUNTION_Z]);}
     printf("\n");
-    Serial.println("----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
-    Serial.print("Switch Function 9  :  ");
+    printf("----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n");
+    printf("Switch Function 9  :  ");
     for (int i = 0; i < 35; i++) {printf("%-7d", matrixData.matrix_function[0][i][9]);}
     printf("\n");
-    Serial.print("Switch Function X  :  ");
+    printf("Switch Function X  :  ");
     for (int i = 0; i < 35; i++) {printf("%-7.0f", matrixData.matrix_function_xyz[0][i][9][INDEX_MATRIX_FUNTION_X]);}
     printf("\n");
-    Serial.print("Switch Function Y  :  ");
+    printf("Switch Function Y  :  ");
     for (int i = 0; i < 35; i++) {printf("%-7.0f", matrixData.matrix_function_xyz[0][i][9][INDEX_MATRIX_FUNTION_Y]);}
     printf("\n");
-    Serial.print("Switch Function Z  :  ");
+    printf("Switch Function Z  :  ");
     for (int i = 0; i < 35; i++) {printf("%-7.0f", matrixData.matrix_function_xyz[0][i][9][INDEX_MATRIX_FUNTION_Z]);}
     printf("\n");
     }
     if (systemData.output_stat_v==true || systemData.output_stat_vv) {
-    Serial.println("----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
-    Serial.print("                      ");
+    printf("----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n");
+    printf("                      ");
     printArray(print_index_1, 0, 35);
-    Serial.print("Computer Assist    :  ");
-    for (int i=35;i<70;i++) {Serial.print(String(matrixData.computer_assist[0][i]) + "      ");}
-    Serial.println();
-    Serial.print("Switch Intention   :  ");
-    for (int i=35;i<70;i++) {Serial.print(String(matrixData.switch_intention[0][i]) + "      ");}
-    Serial.println();
-    Serial.print("Computer Intention :  ");
-    for (int i=35;i<70;i++) {Serial.print(String(matrixData.computer_intention[0][i]) + "      ");}
-    Serial.println();
-    Serial.print("Output Value       :  ");
+    printf("Computer Assist    :  ");
+    for (int i=35;i<70;i++) {printf("%d      ", matrixData.computer_assist[0][i]);}
+    printf("\n");
+    printf("Switch Intention   :  ");
+    for (int i=35;i<70;i++) {printf("%d      ", matrixData.switch_intention[0][i]);}
+    printf("\n");
+    printf("Computer Intention :  ");
+    for (int i=35;i<70;i++) {printf("%d      ", matrixData.computer_intention[0][i]);}
+    printf("\n");
+    printf("Output Value       :  ");
     printArray(matrixData.output_value[0], 35, 70);
     }
     if (systemData.output_stat_vv) {
-    Serial.println("----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
-    Serial.print("Switch Function 0  :  ");
+    printf("----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n");
+    printf("Switch Function 0  :  ");
     for (int i = 35; i < 70; i++) {printf("%-7d", matrixData.matrix_function[0][i][0]);}
     printf("\n");
-    Serial.print("Switch Function X  :  ");
+    printf("Switch Function X  :  ");
     for (int i = 35; i < 70; i++) {printf("%-7.0f", matrixData.matrix_function_xyz[0][i][0][INDEX_MATRIX_FUNTION_X]);}
     printf("\n");
-    Serial.print("Switch Function Y  :  ");
+    printf("Switch Function Y  :  ");
     for (int i = 35; i < 70; i++) {printf("%-7.0f", matrixData.matrix_function_xyz[0][i][0][INDEX_MATRIX_FUNTION_Y]);}
     printf("\n");
-    Serial.print("Switch Function Z  :  ");
+    printf("Switch Function Z  :  ");
     for (int i = 35; i < 70; i++) {printf("%-7.0f", matrixData.matrix_function_xyz[0][i][0][INDEX_MATRIX_FUNTION_Z]);}
     printf("\n");
-    Serial.println("----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
-    Serial.print("Switch Function 1  :  ");
+    printf("----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n");
+    printf("Switch Function 1  :  ");
     for (int i = 35; i < 70; i++) {printf("%-7d", matrixData.matrix_function[0][i][1]);}
     printf("\n");
-    Serial.print("Switch Function X  :  ");
+    printf("Switch Function X  :  ");
     for (int i = 35; i < 70; i++) {printf("%-7.0f", matrixData.matrix_function_xyz[0][i][1][INDEX_MATRIX_FUNTION_X]);}
     printf("\n");
-    Serial.print("Switch Function Y  :  ");
+    printf("Switch Function Y  :  ");
     for (int i = 35; i < 70; i++) {printf("%-7.0f", matrixData.matrix_function_xyz[0][i][1][INDEX_MATRIX_FUNTION_Y]);}
     printf("\n");
-    Serial.print("Switch Function Z  :  ");
+    printf("Switch Function Z  :  ");
     for (int i = 35; i < 70; i++) {printf("%-7.0f", matrixData.matrix_function_xyz[0][i][1][INDEX_MATRIX_FUNTION_Z]);}
     printf("\n");
-    Serial.println("----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
-    Serial.print("Switch Function 2  :  ");
+    printf("----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n");
+    printf("Switch Function 2  :  ");
     for (int i = 35; i < 70; i++) {printf("%-7d", matrixData.matrix_function[0][i][2]);}
     printf("\n");
-    Serial.print("Switch Function X  :  ");
+    printf("Switch Function X  :  ");
     for (int i = 35; i < 70; i++) {printf("%-7.0f", matrixData.matrix_function_xyz[0][i][2][INDEX_MATRIX_FUNTION_X]);}
     printf("\n");
-    Serial.print("Switch Function Y  :  ");
+    printf("Switch Function Y  :  ");
     for (int i = 35; i < 70; i++) {printf("%-7.0f", matrixData.matrix_function_xyz[0][i][2][INDEX_MATRIX_FUNTION_Y]);}
     printf("\n");
-    Serial.print("Switch Function Z  :  ");
+    printf("Switch Function Z  :  ");
     for (int i = 35; i < 70; i++) {printf("%-7.0f", matrixData.matrix_function_xyz[0][i][2][INDEX_MATRIX_FUNTION_Z]);}
     printf("\n");
-    Serial.println("----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
-    Serial.print("Switch Function 3  :  ");
+    printf("----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n");
+    printf("Switch Function 3  :  ");
     for (int i = 35; i < 70; i++) {printf("%-7d", matrixData.matrix_function[0][i][3]);}
     printf("\n");
-    Serial.print("Switch Function X  :  ");
+    printf("Switch Function X  :  ");
     for (int i = 35; i < 70; i++) {printf("%-7.0f", matrixData.matrix_function_xyz[0][i][3][INDEX_MATRIX_FUNTION_X]);}
     printf("\n");
-    Serial.print("Switch Function Y  :  ");
+    printf("Switch Function Y  :  ");
     for (int i = 35; i < 70; i++) {printf("%-7.0f", matrixData.matrix_function_xyz[0][i][3][INDEX_MATRIX_FUNTION_Y]);}
     printf("\n");
-    Serial.print("Switch Function Z  :  ");
+    printf("Switch Function Z  :  ");
     for (int i = 35; i < 70; i++) {printf("%-7.0f", matrixData.matrix_function_xyz[0][i][3][INDEX_MATRIX_FUNTION_Z]);}
     printf("\n");
-    Serial.println("----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
-    Serial.print("Switch Function 4  :  ");
+    printf("----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n");
+    printf("Switch Function 4  :  ");
     for (int i = 35; i < 70; i++) {printf("%-7d", matrixData.matrix_function[0][i][4]);}
     printf("\n");
-    Serial.print("Switch Function X  :  ");
+    printf("Switch Function X  :  ");
     for (int i = 35; i < 70; i++) {printf("%-7.0f", matrixData.matrix_function_xyz[0][i][4][INDEX_MATRIX_FUNTION_X]);}
     printf("\n");
-    Serial.print("Switch Function Y  :  ");
+    printf("Switch Function Y  :  ");
     for (int i = 35; i < 70; i++) {printf("%-7.0f", matrixData.matrix_function_xyz[0][i][4][INDEX_MATRIX_FUNTION_Y]);}
     printf("\n");
-    Serial.print("Switch Function Z  :  ");
+    printf("Switch Function Z  :  ");
     for (int i = 35; i < 70; i++) {printf("%-7.0f", matrixData.matrix_function_xyz[0][i][4][INDEX_MATRIX_FUNTION_Z]);}
     printf("\n");
-    Serial.println("----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
-    Serial.print("Switch Function 0  :  ");
+    printf("----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n");
+    printf("Switch Function 0  :  ");
     for (int i = 35; i < 70; i++) {printf("%-7d", matrixData.matrix_function[0][i][5]);}
     printf("\n");
-    Serial.print("Switch Function X  :  ");
+    printf("Switch Function X  :  ");
     for (int i = 35; i < 70; i++) {printf("%-7.0f", matrixData.matrix_function_xyz[0][i][5][INDEX_MATRIX_FUNTION_X]);}
     printf("\n");
-    Serial.print("Switch Function Y  :  ");
+    printf("Switch Function Y  :  ");
     for (int i = 35; i < 70; i++) {printf("%-7.0f", matrixData.matrix_function_xyz[0][i][5][INDEX_MATRIX_FUNTION_Y]);}
     printf("\n");
-    Serial.print("Switch Function Z  :  ");
+    printf("Switch Function Z  :  ");
     for (int i = 35; i < 70; i++) {printf("%-7.0f", matrixData.matrix_function_xyz[0][i][5][INDEX_MATRIX_FUNTION_Z]);}
     printf("\n");
-    Serial.println("----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
-    Serial.print("Switch Function 6  :  ");
+    printf("----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n");
+    printf("Switch Function 6  :  ");
     for (int i = 35; i < 70; i++) {printf("%-7d", matrixData.matrix_function[0][i][6]);}
     printf("\n");
-    Serial.print("Switch Function X  :  ");
+    printf("Switch Function X  :  ");
     for (int i = 35; i < 70; i++) {printf("%-7.0f", matrixData.matrix_function_xyz[0][i][6][INDEX_MATRIX_FUNTION_X]);}
     printf("\n");
-    Serial.print("Switch Function Y  :  ");
+    printf("Switch Function Y  :  ");
     for (int i = 35; i < 70; i++) {printf("%-7.0f", matrixData.matrix_function_xyz[0][i][6][INDEX_MATRIX_FUNTION_Y]);}
     printf("\n");
-    Serial.print("Switch Function Z  :  ");
+    printf("Switch Function Z  :  ");
     for (int i = 35; i < 70; i++) {printf("%-7.0f", matrixData.matrix_function_xyz[0][i][6][INDEX_MATRIX_FUNTION_Z]);}
     printf("\n");
-    Serial.println("----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
-    Serial.print("Switch Function 7  :  ");
+    printf("----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n");
+    printf("Switch Function 7  :  ");
     for (int i = 35; i < 70; i++) {printf("%-7d", matrixData.matrix_function[0][i][7]);}
     printf("\n");
-    Serial.print("Switch Function X  :  ");
+    printf("Switch Function X  :  ");
     for (int i = 35; i < 70; i++) {printf("%-7.0f", matrixData.matrix_function_xyz[0][i][7][INDEX_MATRIX_FUNTION_X]);}
     printf("\n");
-    Serial.print("Switch Function Y  :  ");
+    printf("Switch Function Y  :  ");
     for (int i = 35; i < 70; i++) {printf("%-7.0f", matrixData.matrix_function_xyz[0][i][7][INDEX_MATRIX_FUNTION_Y]);}
     printf("\n");
-    Serial.print("Switch Function Z  :  ");
+    printf("Switch Function Z  :  ");
     for (int i = 35; i < 70; i++) {printf("%-7.0f", matrixData.matrix_function_xyz[0][i][7][INDEX_MATRIX_FUNTION_Z]);}
     printf("\n");
-    Serial.println("----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
-    Serial.print("Switch Function 8  :  ");
+    printf("----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n");
+    printf("Switch Function 8  :  ");
     for (int i = 35; i < 70; i++) {printf("%-7d", matrixData.matrix_function[0][i][8]);}
     printf("\n");
-    Serial.print("Switch Function X  :  ");
+    printf("Switch Function X  :  ");
     for (int i = 35; i < 70; i++) {printf("%-7.0f", matrixData.matrix_function_xyz[0][i][8][INDEX_MATRIX_FUNTION_X]);}
     printf("\n");
-    Serial.print("Switch Function Y  :  ");
+    printf("Switch Function Y  :  ");
     for (int i = 35; i < 70; i++) {printf("%-7.0f", matrixData.matrix_function_xyz[0][i][8][INDEX_MATRIX_FUNTION_Y]);}
     printf("\n");
-    Serial.print("Switch Function Z  :  ");
+    printf("Switch Function Z  :  ");
     for (int i = 35; i < 70; i++) {printf("%-7.0f", matrixData.matrix_function_xyz[0][i][8][INDEX_MATRIX_FUNTION_Z]);}
     printf("\n");
-    Serial.println("----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
-    Serial.print("Switch Function 9  :  ");
+    printf("----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n");
+    printf("Switch Function 9  :  ");
     for (int i = 35; i < 70; i++) {printf("%-7d", matrixData.matrix_function[0][i][9]);}
     printf("\n");
-    Serial.print("Switch Function X  :  ");
+    printf("Switch Function X  :  ");
     for (int i = 35; i < 70; i++) {printf("%-7.0f", matrixData.matrix_function_xyz[0][i][9][INDEX_MATRIX_FUNTION_X]);}
     printf("\n");
-    Serial.print("Switch Function Y  :  ");
+    printf("Switch Function Y  :  ");
     for (int i = 35; i < 70; i++) {printf("%-7.0f", matrixData.matrix_function_xyz[0][i][9][INDEX_MATRIX_FUNTION_Y]);}
     printf("\n");
-    Serial.print("Switch Function Z  :  ");
+    printf("Switch Function Z  :  ");
     for (int i = 35; i < 70; i++) {printf("%-7.0f", matrixData.matrix_function_xyz[0][i][9][INDEX_MATRIX_FUNTION_Z]);}
     printf("\n");
     }
     if (systemData.output_stat_v==true || systemData.output_stat_vv) {
-    Serial.println("----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
-    Serial.print("                      ");
+    printf("----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n");
+    printf("                      ");
     printArray(print_index_0, 0, 35);
-    Serial.print("Mapped Values      :  ");
+    printf("Mapped Values      :  ");
     printArray(mappingData.mapped_value[0], 0, 35);
-    Serial.println("----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
-    Serial.print("                      ");
+    printf("----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n");
+    printf("                      ");
     printArray(print_index_1, 0, 35);
-    Serial.print("Mapped Values      :  ");
+    printf("Mapped Values      :  ");
     printArray(mappingData.mapped_value[0], 35, 70);
     }
 }

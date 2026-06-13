@@ -24,6 +24,9 @@ extern RTC_DS3231 rtc;
 // SATIO Struct.
 // ----------------------------------------------------------------------------------------
 struct SATIOStruct {
+    // ------------------------------------------------------------------------------------
+    // INTERNAL
+    // ------------------------------------------------------------------------------------
     char satio_sentence[MAX_GLOBAL_SERIAL_BUFFER_SIZE]; // Buffer for processed data
     double latitude_meter;                              // One meter (tunable)
     double longitude_meter;                             // One meter (tunable)
@@ -43,8 +46,6 @@ struct SATIOStruct {
     double secondsLong;                                 // Seconds for longitude conversion
     double millisecondsLat;                             // Milliseconds for latitude conversion
     double millisecondsLong;                            // Milliseconds for longitude conversion
-    double degrees_latitude;                            // Converted latitude in degrees
-    double degrees_longitude;                           // Converted longitude in degrees
     double degreesLat;                                  // Degrees for latitude conversion
     double degreesLong;                                 // Degrees for longitude conversion
     uint16_t tmp_year_int;                              // Temp year
@@ -62,6 +63,50 @@ struct SATIOStruct {
     char tmp_second[MAX_GLOBAL_ELEMENT_SIZE];           // Temp second string
     char tmp_millisecond[MAX_GLOBAL_ELEMENT_SIZE];      // Temp millisecond string
     char week_day_names[MAX_DAYS_OF_THE_WEEK][MAX_GLOBAL_ELEMENT_SIZE]; // Weekday names
+    char month_names[MAX_MONTHS_OF_THE_YEAR][MAX_GLOBAL_ELEMENT_SIZE]; // Month names
+    char abbrev_month_names[MAX_MONTHS_OF_THE_YEAR][12];
+    
+    // ------------------------------------------------------------------------------------
+    // LOCATION
+    // ------------------------------------------------------------------------------------
+    double degrees_latitude;         // GPS latitude converted to degrees
+    double degrees_longitude;        // GPS longitude converted to degrees
+    double user_degrees_latitude;    // User specified latitude
+    double user_degrees_longitude;   // User specified longitude
+    double system_degrees_latitude;  // System latitude (GPS / User)
+    double system_degrees_longitude; // Sytem longitude (GPS / User)
+    int location_value_mode;         // GPS / User
+    // ------------------------------------------------------------------------------------
+    // ALTITUDE SETTINGS
+    // ------------------------------------------------------------------------------------
+    double altitude;         // GPS altitude (must always be meters altitude)
+    double user_altitude;    // User specified altitude
+    double system_altitude;  // System altitude (GPS / User)
+    int altitude_value_mode; // GPS / User
+    // ------------------------------------------------------------------------------------
+    // SPEED SETTINGS
+    // ------------------------------------------------------------------------------------
+    double speed;         // GPS speed (must always be meters a second)
+    double user_speed;    // User specified altitude
+    double system_speed;  // System speed (GPS / User)
+    int speed_value_mode; // GPS / User
+    // ------------------------------------------------------------------------------------
+    // HEADING SETTINGS
+    // ------------------------------------------------------------------------------------
+    double ground_heading;         // GPS ground heading
+    double user_ground_heading;    // User specified ground heading
+    double system_ground_heading;  // System ground heading (GPS / User)
+    int ground_heading_value_mode; // GPS / User
+    char   ground_heading_name[MAX_GLOBAL_ELEMENT_SIZE]; // Ground heading (e.g., N, NNE)
+    // ------------------------------------------------------------------------------------
+    // MILEAGE
+    // ------------------------------------------------------------------------------------
+    char mileage[MAX_GLOBAL_ELEMENT_SIZE];        // Mileage (pending processing)
+
+    // ------------------------------------------------------------------------------------
+    // LOCAL TIME ITEMS
+    // ------------------------------------------------------------------------------------
+    uint64_t local_unixtime_uS;                         // Local Unix time in microseconds
     uint8_t local_hour;                                 // Local hour
     uint8_t local_minute;                               // Local minute
     uint8_t local_second;                               // Local second
@@ -71,44 +116,32 @@ struct SATIOStruct {
     uint8_t local_yday;                                 // Local day of year
     uint8_t local_wday;                                 // Local day of week
     char local_wday_name[MAX_GLOBAL_ELEMENT_SIZE];      // Local weekday name
-
+    char local_month_name[MAX_GLOBAL_ELEMENT_SIZE];      // Local month name
+    int64_t utc_second_offset;      // UTC offset in seconds
+    bool utc_auto_offset_flag;      // Auto offset flag
+    bool set_time_automatically;    // Auto time setting flag
+    // ------------------------------------------------------------------------------------
+    // LOCAL TIME FORMATTED (FOR USER)
+    // ------------------------------------------------------------------------------------
     char formatted_local_time_HHMMSS[MAX_GLOBAL_ELEMENT_SIZE];   // Formatted local time
     char formatted_local_date_DDMMYYYY[MAX_GLOBAL_ELEMENT_SIZE]; // Formatted local date
     char formatted_local_short_date_DDMMYY[MAX_GLOBAL_ELEMENT_SIZE]; // Formatted local date
-
+    // ------------------------------------------------------------------------------------
+    // LOCAL TIME PADDED (FOR CALC)
+    // ------------------------------------------------------------------------------------
     char padded_local_time_HHMMSS[MAX_GLOBAL_ELEMENT_SIZE]; // Padded local time (HHMMSS)
     char padded_local_hour[MAX_GLOBAL_ELEMENT_SIZE];        // Padded local hour (HH)
     char padded_local_minute[MAX_GLOBAL_ELEMENT_SIZE];      // Padded local hour (MM)
     char padded_local_second[MAX_GLOBAL_ELEMENT_SIZE];      // Padded local hour (SS)
-
     char padded_local_date_DDMMYYYY[MAX_GLOBAL_ELEMENT_SIZE];     // Padded local date
     char padded_local_short_date_DDMMYY[MAX_GLOBAL_ELEMENT_SIZE]; // Padded local short date
-    char padded_local_day[MAX_GLOBAL_ELEMENT_SIZE];               // Padded local hour (HH)
+    char padded_local_day[MAX_GLOBAL_ELEMENT_SIZE];               // Padded local day (DD)
     char padded_local_month[MAX_GLOBAL_ELEMENT_SIZE];             // Padded local hour (MM)
-    char padded_local_year[MAX_GLOBAL_ELEMENT_SIZE];              // Padded local hour (SS)
-
-    uint64_t local_unixtime_uS;                         // Local Unix time in microseconds
-    
-    uint8_t rtcsync_hour;                               // RTC sync hour
-    uint8_t rtcsync_minute;                             // RTC sync minute
-    uint8_t rtcsync_second;                             // RTC sync second
-    uint16_t rtcsync_year;                              // RTC sync year
-    uint8_t rtcsync_month;                              // RTC sync month
-    uint8_t rtcsync_day;                                // RTC sync day
-
-    char formatted_rtc_sync_time[MAX_GLOBAL_ELEMENT_SIZE]; // Formatted RTC sync time
-    char formatted_rtc_sync_date_DDMMYYYY[MAX_GLOBAL_ELEMENT_SIZE]; // Formatted RTC sync date
-    char formatted_rtc_sync_short_date_DDMMYY[MAX_GLOBAL_ELEMENT_SIZE]; // Formatted RTC sync date
-
-    char padded_rtc_sync_time_HHMMSS[MAX_GLOBAL_ELEMENT_SIZE]; // Padded RTC sync time (HHMMSS)
-    char padded_rtc_sync_date_DDMMYYYY[MAX_GLOBAL_ELEMENT_SIZE]; // Padded RTC sync date
-
-    uint32_t rtcsync_unixtime;                          // RTC sync Unix time
-    
-    char rtcsync_latitude[MAX_GLOBAL_ELEMENT_SIZE];      // RTC sync latitude
-    char rtcsync_longitude[MAX_GLOBAL_ELEMENT_SIZE];     // RTC sync longitude
-    char rtcsync_altitude[MAX_GLOBAL_ELEMENT_SIZE];      // RTC sync altitude
-
+    char padded_local_year[MAX_GLOBAL_ELEMENT_SIZE];              // Padded local hour (YYYY)
+    // ------------------------------------------------------------------------------------
+    // RTC ITEMS
+    // ------------------------------------------------------------------------------------
+    uint32_t rtc_unixtime;                              // RTC Unix time
     uint8_t rtc_hour;                                   // RTC current hour
     uint8_t rtc_minute;                                 // RTC current minute
     uint8_t rtc_second;                                 // RTC current second
@@ -116,45 +149,57 @@ struct SATIOStruct {
     uint8_t rtc_month;                                  // RTC current month
     uint8_t rtc_mday;                                   // RTC current day
     uint8_t rtc_wday;                                   // RTC current day of week
-    char rtc_wday_name[MAX_GLOBAL_ELEMENT_SIZE];         // RTC weekday name
-
-    char formatted_rtc_time[MAX_GLOBAL_ELEMENT_SIZE];    // Formatted RTC time
-    char formatted_rtc_date[MAX_GLOBAL_ELEMENT_SIZE];    // Formatted RTC date
-
-    char padded_rtc_time_HHMMSS[MAX_GLOBAL_ELEMENT_SIZE]; // Padded RTC time (HHMMSS)
+    char rtc_wday_name[MAX_GLOBAL_ELEMENT_SIZE];        // RTC weekday name
+    // ------------------------------------------------------------------------------------
+    // RTC FORMATTED (FOR USER)
+    // ------------------------------------------------------------------------------------
+    char formatted_rtc_time[MAX_GLOBAL_ELEMENT_SIZE];       // Formatted RTC time
+    char formatted_rtc_date[MAX_GLOBAL_ELEMENT_SIZE];       // Formatted RTC date
+    char padded_rtc_time_HHMMSS[MAX_GLOBAL_ELEMENT_SIZE];   // Padded RTC time (HHMMSS)
     char padded_rtc_date_DDMMYYYY[MAX_GLOBAL_ELEMENT_SIZE]; // Padded RTC date
+    // ------------------------------------------------------------------------------------
+    // RTC SYNC ITEMS
+    // ------------------------------------------------------------------------------------
+    uint32_t rtcsync_unixtime;                           // RTC sync Unix time
+    uint8_t rtcsync_hour;                                // RTC sync hour
+    uint8_t rtcsync_minute;                              // RTC sync minute
+    uint8_t rtcsync_second;                              // RTC sync second
+    uint16_t rtcsync_year;                               // RTC sync year
+    uint8_t rtcsync_month;                               // RTC sync month
+    uint8_t rtcsync_day;                                 // RTC sync day
+    char rtcsync_latitude[MAX_GLOBAL_ELEMENT_SIZE];      // RTC sync latitude
+    char rtcsync_longitude[MAX_GLOBAL_ELEMENT_SIZE];     // RTC sync longitude
+    char rtcsync_altitude[MAX_GLOBAL_ELEMENT_SIZE];      // RTC sync altitude
+    // ------------------------------------------------------------------------------------
+    // RTC SYNC FORMATTED (FOR USER)
+    // ------------------------------------------------------------------------------------
+    char formatted_rtc_sync_time[MAX_GLOBAL_ELEMENT_SIZE]; // Formatted RTC sync time
+    char formatted_rtc_sync_date_DDMMYYYY[MAX_GLOBAL_ELEMENT_SIZE]; // Formatted RTC sync date
+    char formatted_rtc_sync_short_date_DDMMYY[MAX_GLOBAL_ELEMENT_SIZE]; // Formatted RTC sync date
+    // ------------------------------------------------------------------------------------
+    // RTC SYNC PADDED (FOR CALC)
+    // ------------------------------------------------------------------------------------
+    char padded_rtc_sync_time_HHMMSS[MAX_GLOBAL_ELEMENT_SIZE]; // Padded RTC sync time (HHMMSS)
+    char padded_rtc_sync_date_DDMMYYYY[MAX_GLOBAL_ELEMENT_SIZE]; // Padded RTC sync date
 
-    uint32_t rtc_unixtime;                              // RTC Unix time
+    // ------------------------------------------------------------------------------------
+    // Geo-Positional Time
+    // ------------------------------------------------------------------------------------
+    double geo_positional_hour; // Hour for geo-positional time
+    double geo_positional_minute; // Minute for geo-positional time
+    double geo_positional_second; // Second for geo-positional time
+    double geo_positional_millisecond; // Millisecond for geo-positional time
 
-    int64_t utc_second_offset;                 // UTC offset in seconds
-    bool utc_auto_offset_flag;                          // Auto offset flag
-    bool set_time_automatically;                        // Auto time setting flag
+    double geo_positional_year; // Year for geo-positional time
+    double geo_positional_month; // Month for geo-positional time
+    double geo_positional_day; // Day for geo-positional time
+
+    // ------------------------------------------------------------------------------------
+    // FLAGS
+    // ------------------------------------------------------------------------------------
     bool set_rtc_datetime_flag;
-    bool sync_rtc_immediately_flag;
-
-    int   coordinate_conversion_mode; // 0: STATIC, 1: GNGGA, 2: GNRMC
-    char  char_coordinate_conversion_mode[MAX_COORDINATE_CONVERSION_CONVERSION_MODES][10];
-
-    double altitude; // should always be meters altitude.
-    double altitude_converted;
-    int    altitude_unit_mode; // 0: Meters, 1: Miles, 2: Km, add more
-    char   char_altitude_unit_mode[MAX_ALTITUDE_UNIT_MODES][10];
-    int    altitude_conversion_mode; // 0: STATIC, 1: GNGGA
-    char   char_altitude_conversion_mode[MAX_ALTITUDE_CONVERSION_MODES][10];
-
-    double speed; // should always be meters a second.
-    double speed_converted;
-    int    speed_unit_mode; // 0: M/S, 1: MPH, 2: KPH, 3: KTS add more
-    char   char_speed_unit_mode[MAX_SPEED_UNIT_MODES][10]; // Speed mode names
-    int    speed_conversion_mode; // 0: STATIC, 1: GNRMC
-    char   char_speed_conversion_mode[MAX_COORDINATE_CONVERSION_CONVERSION_MODES][10];
-
-    char   ground_heading_name[MAX_GLOBAL_ELEMENT_SIZE]; // Ground heading (e.g., N, NNE)
-    double ground_heading;
-    int    ground_heading_mode;
-    char   char_ground_heading_mode[MAX_GROUND_HEADING_MODES][10];
-
-    char mileage[MAX_GLOBAL_ELEMENT_SIZE];        // Mileage (pending processing)
+    bool sync_rtc_immediately_flag; // for sync regardless of second/minute/hour
+    bool gps_sync;
 };
 extern struct SATIOStruct satioData;
 
@@ -201,6 +246,7 @@ void padDigitsZero(int digits, char* output, size_t output_size);
 void printAllTimes(void);
 void storeRTCTime(void);
 void storeLocalTime(void);
+void updateGeoPositionalTime(void);
 void storeRTCSYNCTime(void) ;
 void extractDateTimeFromGPSData(void);
 void setSystemTime(long usec);

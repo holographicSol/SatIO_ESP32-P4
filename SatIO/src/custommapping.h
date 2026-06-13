@@ -27,6 +27,16 @@ struct CustomMappingStruct {
     int map_mode[1][MAX_MAP_SLOTS];
 
     /**
+     * Map Mode Names.
+     * 
+     * Mode 0: [ 0: Title ] [ 1-5: C0-C5 ]
+     * Mode 1: [ 0: Title ] [ 1-5: C0-C5 ]
+     */
+    char char_map_mode_names[3][MAX_GLOBAL_ELEMENT_SIZE];
+
+    char char_map_mode_config_names[3][7][MAX_GLOBAL_ELEMENT_SIZE];
+
+    /**
      * Map Configuration.
      *
      * Map Mode 0:
@@ -50,14 +60,6 @@ struct CustomMappingStruct {
     int32_t mapping_config[1][MAX_MAP_SLOTS][MAX_MAPPING_PARAMETERS];
 
     /**
-     * Map slot index.
-     *
-     * No alignment.
-     * Each slot can point at any mapped_value slot.
-     */
-    int index_mapped_value[1][MAX_MAP_SLOTS];
-
-    /**
      * Mapped results.
      *
      * Aligns with map_mode, mapping_config, mapped_value.
@@ -72,7 +74,7 @@ extern struct CustomMappingStruct mappingData;
  * @param var Value to be mapped
  * @return No return
  */
-void center_map(int map_slot, float var);
+void center_map(int map_slot, int32_t var);
 
 /**
  * Map Values.
@@ -80,6 +82,14 @@ void center_map(int map_slot, float var);
  * @return No return
  */
 void map_values(void);
+
+/**
+ * @brief Get Target value to be mapped.
+ * 
+ * @param mapslot Specify target mapslot.
+ * @return Char value is returned so that map value types are returned as a uniform type.
+ */
+double get_mapping_input_value(int map_slot);
 
 /**
  * Reset a single map slot.

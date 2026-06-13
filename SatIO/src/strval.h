@@ -10,9 +10,10 @@
 #include <ctype.h>    // For isdigit, isalnum
 #include <stdlib.h>   // For strtod, strtol
 #include <errno.h>    // For errno
+#include <float.h>   // For FLT_MAX, DBL_MAX
+#include <stdint.h>   // For int8_t, uint8_t, etc.
 #include <limits.h>
 #include <math.h>
-#include "config.h"
 
 /**
  * Is String alphanumeric.
@@ -104,5 +105,33 @@ bool str_is_int16(const char *str);
  * @return Return true if str is int8
  */
 bool str_is_int8(const char *str);
+
+/**
+ * strval type enum - specifies which validation/conversion function to use
+ */
+typedef enum {
+    STRVAL_BOOL,
+    STRVAL_FLOAT, 
+    STRVAL_DOUBLE,
+    STRVAL_LONG,
+    STRVAL_UINT64,
+    STRVAL_INT64,
+    STRVAL_UINT32,
+    STRVAL_INT32,
+    STRVAL_UINT16,
+    STRVAL_INT16,
+    STRVAL_UINT8,
+    STRVAL_INT8,
+    STRVAL_ALNUM,  // Non-converting validation only
+    STRVAL_TYPE_COUNT // add str_is_less_than_char_max function
+} strval_type_t;
+
+/**
+ * Validate string against specified strval type.
+ * @param type strval_type_t enum specifying validation function
+ * @param str Null-terminated string to validate
+ * @return true if string matches the specified type, false otherwise
+ */
+bool strval_validate(strval_type_t type, const char * str);
 
 #endif

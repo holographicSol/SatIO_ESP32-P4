@@ -6,15 +6,15 @@
 #define SATIO_FILE_HELPER_H
 
 #include <stdint.h>
-#include <FS.h>
-#include "SD_MMC.h"
-#include "SPIFFS.h"
+#include <stdio.h>
+#include <sys/stat.h>
+#include <dirent.h>
 #include "config.h"
 
-#define MAX_MATRIX_TAGS   12
-#define MAX_MATRIX_SLOTS  10
-#define MAX_MAPPING_TAGS  8
-#define MAX_SYSTEM_TAGS   60
+#define MAX_MATRIX_TAGS   16
+#define MAX_MATRIX_FILE_SLOTS  10
+#define MAX_MAPPING_TAGS  7
+#define MAX_SYSTEM_TAGS   41
 #define MAX_LOG_FILES     3     // maximum number of log files to be kept.
 /*
   Maximum log file size in bytes.
@@ -31,15 +31,10 @@ struct satioFileStruct {
     char* token;
     char tmp_chars[MAX_GLOBAL_ELEMENT_SIZE];
 
-    char matrix_tags[MAX_MATRIX_TAGS][MAX_GLOBAL_ELEMENT_SIZE];
-    char matix_filepaths[MAX_MATRIX_SLOTS][MAX_GLOBAL_ELEMENT_SIZE];
-    int matrix_file_slots[MAX_MATRIX_SLOTS];
+    char matix_filepaths[MAX_MATRIX_FILE_SLOTS][MAX_GLOBAL_ELEMENT_SIZE];
     char current_matrix_filepath[MAX_GLOBAL_ELEMENT_SIZE];
-
-    char mapping_tags[MAX_MAPPING_TAGS][MAX_GLOBAL_ELEMENT_SIZE];
+    int i_current_matrix_file_path;
     char mapping_filepath[MAX_GLOBAL_ELEMENT_SIZE];
-
-    char system_tags[MAX_SYSTEM_TAGS][MAX_GLOBAL_ELEMENT_SIZE];
     char system_filepath[MAX_GLOBAL_ELEMENT_SIZE];
 
     char log_dir[MAX_GLOBAL_ELEMENT_SIZE];
@@ -60,73 +55,62 @@ extern struct satioFileStruct satioFileData;
 
 /**
  * Save current mapping data.
- * @param fs Filesystem. Example SD_MMC
  * @param filepath Specify path to file
  */
-bool saveMappingFile(FS &fs, const char *filepath);
+bool saveMappingFile(const char *filepath);
 
 /**
  * Load mapping data.
- * @param fs Filesystem. Example SD_MMC
  * @param filepath Specify path to file
  */
-bool loadMappingFile(FS &fs, const char *filepath);
+bool loadMappingFile(const char *filepath);
 
 /**
  * Delete mapping data.
- * @param fs Filesystem. Example SD_MMC
  * @param filepath Specify path to file
  */
-bool deleteMappingFile(FS &fs, const char *filepath);
+bool deleteMappingFile(const char *filepath);
 
 /**
  * Save current matrix data.
- * @param fs Filesystem. Example SD_MMC
  * @param filepath Specify path to file
  */
-bool saveMatrixFile(FS &fs, const char *filepath);
+bool saveMatrixFile();
 
 /**
  * Load matrix data.
- * @param fs Filesystem. Example SD_MMC
  * @param filepath Specify path to file
  */
-bool loadMatrixFile(FS &fs, const char *filepath);
+bool loadMatrixFile();
 
 /**
  * Delete matrix data.
- * @param fs Filesystem. Example SD_MMC
  * @param filepath Specify path to file
  */
-bool deleteMatrixFile(FS &fs, const char *filepath);
+bool deleteMatrixFile();
 
 /**
  * Save system data.
- * @param fs Filesystem. Example SD_MMC
  * @param filepath Specify path to file
  */
-bool saveSystemFile(FS &fs, const char *filepath);
+bool saveSystemFile(const char *filepath);
 
 /**
  * Load system data.
- * @param fs Filesystem. Example SD_MMC
  * @param filepath Specify path to file
  */
-bool loadSystemFile(FS &fs, const char *filepath);
+bool loadSystemFile(const char *filepath);
 
 /**
  * Delete matrix data.
- * @param fs Filesystem. Example SD_MMC
  * @param filepath Specify path to file
  */
-bool deleteSystemFile(FS &fs, const char *filepath);
+bool deleteSystemFile(const char *filepath);
 
 /**
  * Write Log.
- * @param fs Filesystem. Example SD_MMC
- * @param filepath Specify path to file
  */
-bool writeLog(FS &fs);
+bool writeLog();
 
 /**
  * @brief Print SD some information.
@@ -144,6 +128,8 @@ uint64_t getFreeBytes();
  * @return Bool true if space available.
  */
 bool isAvailableBytes(uint64_t num_bytes);
+
+void sdcardFlagHandler();
 
 void getLogFiles();
 

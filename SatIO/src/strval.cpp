@@ -675,3 +675,25 @@ bool str_is_int8(const char *str) {
     }
     return true;
 }
+
+bool strval_validate(strval_type_t type, const char * str)
+{
+    if(!str) return false;
+    
+    switch(type) {
+        case STRVAL_BOOL:    return str_is_bool(str);
+        case STRVAL_FLOAT:   return str_is_float(str);
+        case STRVAL_DOUBLE:  return str_is_double(str);
+        case STRVAL_LONG:    return str_is_long(str);
+        case STRVAL_UINT64:  return str_is_uint64(str);
+        case STRVAL_INT64:   return str_is_int64(str);
+        case STRVAL_UINT32:  return str_is_uint32(str);
+        case STRVAL_INT32:   return str_is_int32(str);
+        case STRVAL_UINT16:  return str_is_uint16(str);
+        case STRVAL_INT16:   return str_is_int16(str);
+        case STRVAL_UINT8:   return str_is_uint8(str);
+        case STRVAL_INT8:    return str_is_int8(str);
+        case STRVAL_ALNUM:   return is_alnum(str);
+        default:             return false;
+    }
+}

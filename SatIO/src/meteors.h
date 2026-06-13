@@ -54,4 +54,7 @@ extern bool meteor_shower_warning_system[MAX_METEOR_SHOWERS][MAX_METEOR_RESULT_E
  */
 void setMeteorShowerWarning(int month, int mday);
 
+bool sumMeteorShowerWarning();
+bool sumMeteorShowerPeakWarning();
+
 #endif

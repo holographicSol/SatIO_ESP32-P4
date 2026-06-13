@@ -48,12 +48,12 @@
 // ## BEGIN I2C BUS PINS
 // #####################################################################################################################
 
-#define IIC_BUS0_SDA 2 // uncomment to set pin if required.
+#define IIC_BUS0_SDA 2 // uncomment to set pin if required.                  
 #define IIC_BUS0_SCL 3 // uncomment to set pin if required.
 #define IIC_BUS1_SDA 4 // uncomment to set pin if required.
 #define IIC_BUS1_SCL 5 // uncomment to set pin if required.
-#define IIC_BUS2_SDA 7 // uncomment to set pin if required.
-#define IIC_BUS2_SCL 8 // uncomment to set pin if required.
+#define IIC_BUS2_SDA 4 // uncomment to set pin if required.
+#define IIC_BUS2_SCL 5 // uncomment to set pin if required.
 
 // #####################################################################################################################
 // ## BEGIN I2C BUS TIMEOUTS
@@ -69,7 +69,7 @@
 
 #define I2C_CLOCK_Hz_BUS0 200000 // 200kHz
 #define I2C_CLOCK_Hz_BUS1 800000 // 800kHz
-#define I2C_CLOCK_Hz_BUS2 200000 // 100kHz
+#define I2C_CLOCK_Hz_BUS2 400000 // 400kHz
 
 // #####################################################################################################################
 // ## BEGIN I2C BUS LIMITS
@@ -83,8 +83,8 @@
 // #####################################################################################################################
 
 extern TwoWire iic_0; // Uncomment to use global I2C bus 0 wire instance
-extern TwoWire iic_1; // Uncomment to use global I2C bus 0 wire instance
-extern TwoWire iic_2; // Uncomment to use global I2C bus 0 wire instance
+extern TwoWire iic_1; // Uncomment to use global I2C bus 1 wire instance
+extern TwoWire iic_2; // Uncomment to use global I2C bus 2 wire instance
 
 // #####################################################################################################################
 // ## BEGIN ESPIDF I2C SLAVE CONFIGURATION BLOCKS
